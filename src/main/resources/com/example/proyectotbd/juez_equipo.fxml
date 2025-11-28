@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.proyectotbd.JuezEquipoController"
+            prefHeight="720.0" prefWidth="1280.0"
+            style="-fx-background-color: #f4f6f8;">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #2c3e50; -fx-padding: 20;">
+            <Button text="← Regresar"
+                    onAction="#handleRegresar"
+                    style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-font-size: 14; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
+
+            <Label text="Panel de Evaluación" textFill="WHITE">
+                <font>
+                    <Font name="System Bold" size="24.0" />
+                </font>
+                <HBox.margin>
+                    <Insets left="20.0" />
+                </HBox.margin>
+            </Label>
+
+            <Region HBox.hgrow="ALWAYS" />
+
+            <Label text="Bienvenido, Juez" textFill="#bdc3c7">
+                <font>
+                    <Font size="16.0" />
+                </font>
+            </Label>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="20.0">
+            <padding>
+                <Insets bottom="40.0" left="60.0" right="60.0" top="40.0" />
+            </padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="20.0">
+                <Label text="Selecciona un equipo para evaluar" textFill="#2c3e50">
+                    <font>
+                        <Font name="System Bold" size="26.0" />
+                    </font>
+                </Label>
+
+                <Region HBox.hgrow="ALWAYS" />
+
+                <TextField promptText="Buscar por nombre o categoría..."
+                           prefHeight="40.0"
+                           prefWidth="300.0"
+                           style="-fx-background-radius: 20; -fx-border-color: #bdc3c7; -fx-border-radius: 20; -fx-padding: 0 15;"/>
+            </HBox>
+
+            <HBox spacing="0.0" style="-fx-padding: 0 20 0 20;">
+                <Label text="EQUIPO / PROYECTO" textFill="#95a5a6" prefWidth="400.0" style="-fx-font-weight: bold;"/>
+                <Label text="CATEGORÍA" textFill="#95a5a6" prefWidth="200.0" style="-fx-font-weight: bold;"/>
+                <Label text="ESTADO" textFill="#95a5a6" prefWidth="200.0" style="-fx-font-weight: bold;"/>
+                <Region HBox.hgrow="ALWAYS" />
+                <Label text="ACCIÓN" textFill="#95a5a6" style="-fx-font-weight: bold;"/>
+            </HBox>
+
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+                <content>
+                    <VBox fx:id="vboxListaEquipos" spacing="15.0" style="-fx-padding: 5;">
+
+                        <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20;">
+                            <effect>
+                                <DropShadow color="#0000001a" radius="5" offsetY="2" />
+                            </effect>
+
+                            <VBox prefWidth="400.0">
+                                <Label text="Los Innovadores" textFill="#2c3e50" style="-fx-font-weight: bold; -fx-font-size: 18;"/>
+                                <Label text="Proyecto: Brazo Robótico Hidráulico" textFill="#7f8c8d"/>
+                            </VBox>
+
+                            <Label text="Preparatoria" textFill="#34495e" prefWidth="200.0" style="-fx-font-size: 14;"/>
+                            <Label text="Pendiente" textFill="#e67e22" prefWidth="200.0" style="-fx-font-weight: bold;"/>
+                            <Region HBox.hgrow="ALWAYS" />
+
+                            <Button text="EVALUAR"
+                                    onAction="#handleSeleccionarEquipo"
+                                    style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5; -fx-padding: 10 25;"/>
+                        </HBox>
+
+                        <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20;">
+                            <effect>
+                                <DropShadow color="#0000001a" radius="5" offsetY="2" />
+                            </effect>
+                            <VBox prefWidth="400.0">
+                                <Label text="Code Masters" textFill="#2c3e50" style="-fx-font-weight: bold; -fx-font-size: 18;"/>
+                                <Label text="Proyecto: App de Reciclaje Escolar" textFill="#7f8c8d"/>
+                            </VBox>
+                            <Label text="Secundaria" textFill="#34495e" prefWidth="200.0" style="-fx-font-size: 14;"/>
+                            <Label text="Evaluado" textFill="#27ae60" prefWidth="200.0" style="-fx-font-weight: bold;"/>
+                            <Region HBox.hgrow="ALWAYS" />
+
+                            <Button text="EDITAR"
+                                    style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5; -fx-padding: 10 25;"/>
+                        </HBox>
+
+                        <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20;">
+                            <effect>
+                                <DropShadow color="#0000001a" radius="5" offsetY="2" />
+                            </effect>
+                            <VBox prefWidth="400.0">
+                                <Label text="Alpha Team" textFill="#2c3e50" style="-fx-font-weight: bold; -fx-font-size: 18;"/>
+                                <Label text="Proyecto: Generador Eólico Casero" textFill="#7f8c8d"/>
+                            </VBox>
+                            <Label text="Primaria" textFill="#34495e" prefWidth="200.0" style="-fx-font-size: 14;"/>
+                            <Label text="Pendiente" textFill="#e67e22" prefWidth="200.0" style="-fx-font-weight: bold;"/>
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Button text="EVALUAR"
+                                    onAction="#handleSeleccionarEquipo"
+                                    style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5; -fx-padding: 10 25;"/>
+                        </HBox>
+
+                    </VBox>
+                </content>
+            </ScrollPane>
+
+        </VBox>
+    </center>
+
+</BorderPane>
