@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.proyectotbd.OrganizadorCrearUsuario"
+            prefHeight="720.0" prefWidth="1280.0"
+            style="-fx-background-color: #f4f6f8;">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #2c3e50; -fx-padding: 20;">
+            <Button text="← Regresar al Menú"
+                    onAction="#handleRegresar"
+                    style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-font-size: 14; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
+
+            <Label text="Alta de Usuarios" textFill="WHITE">
+                <font>
+                    <Font name="System Bold" size="24.0" />
+                </font>
+                <HBox.margin>
+                    <Insets left="15.0" />
+                </HBox.margin>
+            </Label>
+
+            <Region HBox.hgrow="ALWAYS" />
+
+            <Label text="Administrador" textFill="#bdc3c7">
+                <font> <Font size="16.0" /> </font>
+            </Label>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox alignment="CENTER">
+
+            <VBox spacing="20.0" maxWidth="500.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 40;">
+                <effect>
+                    <DropShadow color="#00000022" radius="15" offsetY="5" />
+                </effect>
+
+                <VBox spacing="5.0" alignment="CENTER_LEFT">
+                    <Label text="Registrar Nuevo Usuario" textFill="#d35400">
+                        <font>
+                            <Font name="System Bold" size="24.0" />
+                        </font>
+                    </Label>
+                    <Label text="Complete los datos del nuevo integrante." textFill="#95a5a6"/>
+                </VBox>
+
+                <VBox spacing="5.0">
+                    <Label text="NOMBRE COMPLETO" textFill="#7f8c8d" style="-fx-font-weight:bold; -fx-font-size: 12;"/>
+                    <TextField fx:id="txtNombre" promptText="Ej: Juan Pérez" prefHeight="40.0" style="-fx-background-color: #f4f6f8; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
+                </VBox>
+
+                <VBox spacing="5.0">
+                    <Label text="INSTITUCIÓN" textFill="#7f8c8d" style="-fx-font-weight:bold; -fx-font-size: 12;"/>
+                    <TextField fx:id="txtInstitucion" promptText="Ej: Tecnológico de Monterrey" prefHeight="40.0" style="-fx-background-color: #f4f6f8; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
+                </VBox>
+
+                <HBox spacing="20.0">
+                    <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                        <Label text="USUARIO" textFill="#7f8c8d" style="-fx-font-weight:bold; -fx-font-size: 12;"/>
+                        <TextField fx:id="txtUsername" promptText="juan.perez" prefHeight="40.0" style="-fx-background-color: #f4f6f8; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
+                    </VBox>
+
+                    <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                        <Label text="CONTRASEÑA" textFill="#7f8c8d" style="-fx-font-weight:bold; -fx-font-size: 12;"/>
+                        <PasswordField fx:id="txtPassword" promptText="••••••" prefHeight="40.0" style="-fx-background-color: #f4f6f8; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
+                    </VBox>
+                </HBox>
+
+                <VBox spacing="10.0" style="-fx-background-color: #fdf2e9; -fx-padding: 15; -fx-background-radius: 5; -fx-border-color: #edbb99; -fx-border-radius: 5;">
+                    <Label text="ASIGNAR ROLES" textFill="#d35400" style="-fx-font-weight:bold; -fx-font-size: 12;"/>
+
+                    <HBox spacing="30.0">
+                        <CheckBox fx:id="checkCoach" text="Es Coach" textFill="#2c3e50" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                        <CheckBox fx:id="checkJuez" text="Es Juez" textFill="#2c3e50" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                    </HBox>
+                </VBox>
+
+                <Label fx:id="lblMensaje" visible="false" style="-fx-font-weight: bold;"/>
+
+                <Button text="GUARDAR USUARIO"
+                        onAction="#handleGuardarUsuario"
+                        prefHeight="50.0"
+                        maxWidth="Infinity"
+                        style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-background-radius: 5; -fx-cursor: hand;">
+                    <VBox.margin>
+                        <Insets top="10.0" />
+                    </VBox.margin>
+                </Button>
+
+            </VBox>
+        </VBox>
+    </center>
+
+</BorderPane>
