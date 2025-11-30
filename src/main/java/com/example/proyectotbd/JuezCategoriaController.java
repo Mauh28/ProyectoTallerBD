@@ -46,4 +46,14 @@ public class JuezCategoriaController {
             System.out.println("Error al cargar: " + fxml);
         }
     }
+
+    public class SeleccionCategoriaController {
+
+        @FXML private Button btnPrimaria;
+        @FXML private Button btnSecundaria;
+        @FXML private Button btnPreparatoria;
+        @FXML private Button btnUniversidad; // <-- Agrega esta línea
+
+        // ... el resto del código sigue igual ...
+    }
 }

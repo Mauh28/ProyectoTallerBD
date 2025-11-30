@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.proyectotbd."
+            prefHeight="720.0" prefWidth="1280.0"
+            style="-fx-background-color: #f4f6f8;">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #2c3e50; -fx-padding: 20;">
+
+            <Label text="Panel de Administración" textFill="WHITE">
+                <font>
+                    <Font name="System Bold" size="24.0" />
+                </font>
+            </Label>
+
+            <Region HBox.hgrow="ALWAYS" />
+
+            <HBox alignment="CENTER" spacing="15.0">
+                <Label text="Hola, Admin" textFill="#bdc3c7">
+                    <font>
+                        <Font size="16.0" />
+                    </font>
+                </Label>
+
+                <Button text="Cerrar Sesión"
+                        onAction="#handleLogout"
+                        style="-fx-background-color: transparent; -fx-text-fill: #ecf0f1; -fx-border-color: #ecf0f1; -fx-border-radius: 5; -fx-cursor: hand; -fx-padding: 5 15;"/>
+            </HBox>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox alignment="CENTER" spacing="50.0">
+
+            <VBox alignment="CENTER" spacing="5.0">
+                <Label text="Gestión General" textFill="#2c3e50">
+                    <font>
+                        <Font name="System Bold" size="32.0" />
+                    </font>
+                </Label>
+                <Label text="Selecciona una operación para comenzar" textFill="#7f8c8d">
+                    <font>
+                        <Font size="18.0" />
+                    </font>
+                </Label>
+            </VBox>
+
+            <HBox alignment="CENTER" spacing="40.0">
+
+                <Button onAction="#handleSeleccionarEvento"
+                        prefHeight="280.0"
+                        prefWidth="280.0"
+                        style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 0); -fx-cursor: hand; -fx-border-color: #2980b9; -fx-border-width: 0 0 8 0; -fx-border-radius: 20;">
+                    <graphic>
+                        <VBox alignment="CENTER" spacing="10.0">
+                            <Label text="📅" textFill="#2980b9">
+                                <font> <Font size="60.0" /> </font>
+                            </Label>
+                            <Label text="SELECCIONAR EVENTO" textFill="#2980b9" wrapText="true" textAlignment="CENTER">
+                                <font> <Font name="System Bold" size="20.0" /> </font>
+                            </Label>
+                            <Label text="Ver lista y gestionar activos" textFill="#95a5a6" />
+                        </VBox>
+                    </graphic>
+                </Button>
+
+                <Button onAction="#handleCrearEvento"
+                        prefHeight="280.0"
+                        prefWidth="280.0"
+                        style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 0); -fx-cursor: hand; -fx-border-color: #27ae60; -fx-border-width: 0 0 8 0; -fx-border-radius: 20;">
+                    <graphic>
+                        <VBox alignment="CENTER" spacing="10.0">
+                            <Label text="➕" textFill="#27ae60">
+                                <font> <Font size="60.0" /> </font>
+                            </Label>
+                            <Label text="CREAR EVENTO" textFill="#27ae60" wrapText="true" textAlignment="CENTER">
+                                <font> <Font name="System Bold" size="20.0" /> </font>
+                            </Label>
+                            <Label text="Dar de alta uno nuevo" textFill="#95a5a6" />
+                        </VBox>
+                    </graphic>
+                </Button>
+
+                <Button onAction="#handleCrearUsuario"
+                        prefHeight="280.0"
+                        prefWidth="280.0"
+                        style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 0); -fx-cursor: hand; -fx-border-color: #e67e22; -fx-border-width: 0 0 8 0; -fx-border-radius: 20;">
+                    <graphic>
+                        <VBox alignment="CENTER" spacing="10.0">
+                            <Label text="👤" textFill="#e67e22">
+                                <font> <Font size="60.0" /> </font>
+                            </Label>
+                            <Label text="CREAR USUARIO" textFill="#e67e22" wrapText="true" textAlignment="CENTER">
+                                <font> <Font name="System Bold" size="20.0" /> </font>
+                            </Label>
+                            <Label text="Registrar Coach o Juez" textFill="#95a5a6" />
+                        </VBox>
+                    </graphic>
+                </Button>
+
+            </HBox>
+
+        </VBox>
+    </center>
+
+</BorderPane>
