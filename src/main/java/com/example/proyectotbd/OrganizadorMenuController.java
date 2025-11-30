@@ -18,28 +18,28 @@ public class OrganizadorMenuController {
         // Aquí podrías reutilizar 'juez_evento-view.fxml' si quieres ver la misma lista,
         // o crear una nueva vista 'admin_lista_eventos.fxml' si el admin tiene botones de editar/borrar.
         // Por ahora lo mandamos a la selección estándar:
-        cambiarVista(event, "juez_evento-view.fxml");
+        cambiarVista(event, "organizador_selecEvento.fxml");
     }
 
     @FXML
     public void handleCrearEvento(ActionEvent event) {
         System.out.println("Ir a Alta de Evento");
         // Esta vista ya la creamos antes (el formulario de registro de evento)
-        cambiarVista(event, "evento_registro.fxml");
+        cambiarVista(event, "organizador_crearEvento.fxml");
     }
 
     @FXML
     public void handleCrearUsuario(ActionEvent event) {
         System.out.println("Ir a Crear Usuario");
         // Esta vista también la tenemos (selección de rol para registro)
-        cambiarVista(event, "register_selection.fxml");
+        cambiarVista(event, "organizador_crearUsuario.fxml");
     }
 
     @FXML
     public void handleLogout(ActionEvent event) {
         System.out.println("Cerrando sesión de admin...");
         // Regresa al login principal (el dividido)
-        cambiarVista(event, "login_split.fxml");
+        cambiarVista(event, "login.fxml");
     }
 
     // Método estándar para cambiar de pantalla

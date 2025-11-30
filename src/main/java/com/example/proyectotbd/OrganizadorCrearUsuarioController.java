@@ -10,7 +10,7 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 import java.io.IOException;
 
-public class OrganizadorCrearUsuario {
+public class OrganizadorCrearUsuarioController {
 
     @FXML private TextField txtNombre;
     @FXML private TextField txtInstitucion;
@@ -22,30 +22,30 @@ public class OrganizadorCrearUsuario {
 
     @FXML
     public void handleRegresar(ActionEvent event) {
-        // Regresa al Dashboard del Organizador
+        // Regresa al Dashboard del Organizador si cancela
         cambiarVista(event, "organizador_menu.fxml");
     }
 
     @FXML
     public void handleGuardarUsuario(ActionEvent event) {
-        // Validación visual básica
+        // 1. Validación visual básica
         if (txtNombre.getText().isEmpty() || txtUsername.getText().isEmpty() ||
                 (!checkCoach.isSelected() && !checkJuez.isSelected())) {
 
             lblMensaje.setText("Error: Llena los datos y selecciona al menos un rol.");
             lblMensaje.setStyle("-fx-text-fill: red;");
             lblMensaje.setVisible(true);
-            return;
+            return; // Se detiene aquí si hay error
         }
 
-        System.out.println("Guardando usuario...");
+        // 2. Simulación de Guardado (Aquí irá tu Procedure después)
+        System.out.println("--- NUEVO USUARIO GUARDADO ---");
+        System.out.println("Usuario: " + txtUsername.getText());
         System.out.println("Roles: Coach=" + checkCoach.isSelected() + ", Juez=" + checkJuez.isSelected());
 
-        lblMensaje.setText("¡Usuario registrado correctamente!");
-        lblMensaje.setStyle("-fx-text-fill: green;");
-        lblMensaje.setVisible(true);
-
-        // Opcional: Limpiar campos aquí
+        // 3. CAMBIO DE VISTA: Regresar al menú automáticamente
+        System.out.println("Redirigiendo al menú...");
+        cambiarVista(event, "organizador_menu.fxml");
     }
 
     private void cambiarVista(ActionEvent event, String fxml) {
@@ -57,6 +57,7 @@ public class OrganizadorCrearUsuario {
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
+            System.out.println("Error al cargar la vista: " + fxml);
         }
     }
 }

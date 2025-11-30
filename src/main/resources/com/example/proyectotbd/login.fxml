@@ -98,15 +98,6 @@
             </Button>
 
             <VBox alignment="CENTER" spacing="15.0">
-                <HBox alignment="CENTER" spacing="5.0">
-                    <Label text="¿No tienes cuenta?" textFill="#95a5a6">
-                        <font> <Font size="14.0" /> </font>
-                    </Label>
-                    <Hyperlink text="Regístrate aquí"
-                               onAction="#handleGoToRegister"
-                               textFill="#3498db"
-                               style="-fx-font-weight: bold; -fx-font-size: 14; -fx-border-color: transparent; -fx-padding: 0;" />
-                </HBox>
 
                 <HBox alignment="CENTER" spacing="5.0">
                     <Label text="¿Eres Organizador?" textFill="#95a5a6">

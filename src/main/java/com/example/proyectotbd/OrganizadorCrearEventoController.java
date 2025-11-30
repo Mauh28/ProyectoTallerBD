@@ -11,7 +11,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.time.LocalDate;
 
-public class OrganizadorCrearEvento {
+public class OrganizadorCrearEventoController {
 
     @FXML private TextField txtNombreEvento;
     @FXML private TextField txtLugar;
@@ -20,7 +20,7 @@ public class OrganizadorCrearEvento {
 
     @FXML
     public void handleRegresar(ActionEvent event) {
-        // Regresa al Dashboard del Organizador (organizador_menu.fxml)
+        // Si cancela, regresa al menú
         cambiarVista(event, "organizador_menu.fxml");
     }
 
@@ -36,21 +36,16 @@ public class OrganizadorCrearEvento {
             lblMensaje.setText("Error: Todos los campos son obligatorios.");
             lblMensaje.setStyle("-fx-text-fill: #e74c3c;"); // Rojo
             lblMensaje.setVisible(true);
-            return;
+            return; // Se detiene aquí si hay error
         }
 
-        // 3. Simulación de Guardado (Aquí conectarás el SP sp_crear_evento después)
-        System.out.println("--- NUEVO EVENTO ---");
-        System.out.println("Nombre: " + nombre);
-        System.out.println("Lugar:  " + lugar);
-        System.out.println("Fecha:  " + fecha);
+        // 3. Simulación de Guardado (Aquí irá tu Procedure sp_crear_evento después)
+        System.out.println("--- NUEVO EVENTO CREADO ---");
+        System.out.println("Evento: " + nombre + " | Fecha: " + fecha);
 
-        lblMensaje.setText("¡Evento creado exitosamente!");
-        lblMensaje.setStyle("-fx-text-fill: #27ae60;"); // Verde
-        lblMensaje.setVisible(true);
-
-        // Opcional: Limpiar campos
-        // txtNombreEvento.clear(); txtLugar.clear(); dpFecha.setValue(null);
+        // 4. CAMBIO DE VISTA: Regresar al menú automáticamente
+        System.out.println("Redirigiendo al menú...");
+        cambiarVista(event, "organizador_menu.fxml");
     }
 
     private void cambiarVista(ActionEvent event, String fxml) {
