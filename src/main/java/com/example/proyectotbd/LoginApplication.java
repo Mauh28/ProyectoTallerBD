@@ -12,7 +12,7 @@ public class LoginApplication extends Application {
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(LoginApplication.class.getResource("login.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
-        stage.setTitle("Inicio de sesion");
+        stage.setTitle("Sistema de Gestion VexRobotics");
         stage.setWidth(1280);
         stage.setHeight(720);
         stage.setMinWidth(900);

@@ -1,0 +1,48 @@
+/* estilos.css */
+
+/* 1. Fondo del encabezado de las pestañas (transparente para que se vea limpio) */
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: transparent;
+}
+
+/* 2. Estilo base de cada Pestaña (Tab) */
+.tab {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent transparent #e0e0e0 transparent; /* Línea gris suave abajo */
+    -fx-border-width: 0 0 2 0; /* Grosor de la línea */
+    -fx-cursor: hand;
+    -fx-padding: 10 20 10 20; /* Espacio interno */
+}
+
+/* 3. Texto de la pestaña inactiva */
+.tab .tab-label {
+    -fx-text-fill: #95a5a6; /* Gris */
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+/* 4. Estilo cuando la pestaña está SELECCIONADA */
+.tab:selected {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #2980b9 transparent; /* Línea AZUL activa */
+    -fx-border-width: 0 0 4 0; /* Línea más gruesa */
+}
+
+/* 5. Texto de la pestaña seleccionada */
+.tab:selected .tab-label {
+    -fx-text-fill: #2c3e50; /* Azul oscuro */
+}
+
+/* 6. Efecto al pasar el mouse por encima (Hover) */
+.tab:hover {
+    -fx-background-color: #f4f6f8;
+}
+
+/* 7. Eliminar el borde del contenido */
+.tab-content-area {
+    -fx-background-color: white;
+    -fx-border-color: transparent;
+    -fx-padding: 20;
+}

@@ -26,6 +26,7 @@ public class JuezMenuController {
     @FXML
     public void handleIrAReportes(ActionEvent event) {
         System.out.println("Ir a Reportes...");
+        cambiarVista(event, "juez_reportes.fxml");
     }
 
     @FXML

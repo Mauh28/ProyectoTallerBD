@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.proyectotbd.CoachEventoController"
+            prefHeight="720.0" prefWidth="1280.0"
+            style="-fx-background-color: #f4f6f8;">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #2c3e50; -fx-padding: 20;">
+            <Button text="← Volver al Menú"
+                    onAction="#handleRegresar"
+                    style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-font-size: 14; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
+
+            <Label text="Inscripción a Eventos" textFill="WHITE">
+                <font> <Font name="System Bold" size="24.0" /> </font>
+                <HBox.margin> <Insets left="15.0" /> </HBox.margin>
+            </Label>
+
+            <Region HBox.hgrow="ALWAYS" />
+
+            <HBox alignment="CENTER" spacing="15.0">
+                <Label text="Coach" textFill="#bdc3c7">
+                    <font> <Font size="16.0" /> </font>
+                </Label>
+                <Button text="Cerrar Sesión"
+                        onAction="#handleLogout"
+                        style="-fx-background-color: transparent; -fx-text-fill: #ecf0f1; -fx-border-color: #ecf0f1; -fx-border-radius: 5; -fx-cursor: hand; -fx-padding: 5 15;"/>
+            </HBox>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="20.0">
+            <padding> <Insets bottom="40.0" left="60.0" right="60.0" top="40.0" /> </padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="20.0">
+                <VBox>
+                    <Label text="Eventos Disponibles" textFill="#2c3e50">
+                        <font> <Font name="System Bold" size="28.0" /> </font>
+                    </Label>
+                    <Label text="Selecciona el torneo en el que participará tu equipo" textFill="#7f8c8d">
+                        <font> <Font size="16.0" /> </font>
+                    </Label>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS" />
+                <TextField promptText="Buscar torneo..." prefHeight="40.0" prefWidth="300.0" style="-fx-background-radius: 20; -fx-border-color: #bdc3c7; -fx-border-radius: 20; -fx-padding: 0 15;"/>
+            </HBox>
+
+            <HBox spacing="10.0" style="-fx-padding: 10 20;">
+                <Label text="NOMBRE DEL EVENTO" textFill="#95a5a6" prefWidth="400.0" style="-fx-font-weight: bold;"/>
+                <Label text="SEDE" textFill="#95a5a6" prefWidth="250.0" style="-fx-font-weight: bold;"/>
+                <Label text="FECHA LÍMITE" textFill="#95a5a6" prefWidth="150.0" style="-fx-font-weight: bold;"/>
+                <Region HBox.hgrow="ALWAYS" />
+                <Label text="ACCIÓN" textFill="#95a5a6" style="-fx-font-weight: bold; -fx-padding: 0 20 0 0;"/>
+            </HBox>
+
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+                <content>
+                    <VBox fx:id="vboxListaEventos" spacing="15.0" style="-fx-padding: 5;">
+
+                        <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20;">
+                            <effect> <DropShadow color="#0000001a" radius="5" offsetY="2" /> </effect>
+
+                            <Label text="Torneo Nacional VEX 2026" textFill="#2c3e50" prefWidth="400.0" wrapText="true">
+                                <font> <Font name="System Bold" size="18.0" /> </font>
+                            </Label>
+                            <Label text="CDMX" textFill="#7f8c8d" prefWidth="250.0"/>
+                            <Label text="2026-03-15" textFill="#e67e22" prefWidth="150.0" style="-fx-font-weight: bold;"/>
+                            <Region HBox.hgrow="ALWAYS" />
+
+                            <Button text="INSCRIBIR"
+                                    onAction="#handleInscribir"
+                                    style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5; -fx-padding: 10 25;"/>
+                        </HBox>
+
+                        <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20;">
+                            <effect> <DropShadow color="#0000001a" radius="5" offsetY="2" /> </effect>
+
+                            <Label text="Regional Norte 2025" textFill="#2c3e50" prefWidth="400.0" wrapText="true">
+                                <font> <Font name="System Bold" size="18.0" /> </font>
+                            </Label>
+                            <Label text="Monterrey, NL" textFill="#7f8c8d" prefWidth="250.0"/>
+                            <Label text="2025-11-20" textFill="#e67e22" prefWidth="150.0" style="-fx-font-weight: bold;"/>
+                            <Region HBox.hgrow="ALWAYS" />
+
+                            <Button text="INSCRIBIR"
+                                    onAction="#handleInscribir"
+                                    style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5; -fx-padding: 10 25;"/>
+                        </HBox>
+
+                    </VBox>
+                </content>
+            </ScrollPane>
+        </VBox>
+    </center>
+</BorderPane>

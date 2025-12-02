@@ -30,14 +30,12 @@ public class LoginController {
             cambiarVista(event, "juez_menu.fxml");
 
         } else if (usuario.equalsIgnoreCase("coach")) {
-            lblError.setText("Vista de Coach pendiente.");
-            lblError.setStyle("-fx-text-fill: green;");
-            lblError.setVisible(true);
+            System.out.println("Simulando entrada de Coach...");
+            cambiarVista(event, "coach_menu.fxml");
 
         } else if (usuario.equalsIgnoreCase("ambos")) {
-            lblError.setText("Vista Mixta pendiente.");
-            lblError.setStyle("-fx-text-fill: green;");
-            lblError.setVisible(true);
+            System.out.println("Simulando entrada de usuario mixto...");
+            cambiarVista(event, "usuario_mixto.fxml");
 
         } else {
             lblError.setText("Para probar, usa el usuario: 'juez' o 'coach'");
