@@ -18,7 +18,7 @@ public class CoachMenuController {
     @FXML
     public void handleRegistrarEquipo(ActionEvent event) {
         System.out.println("Iniciando flujo de registro...");
-        cambiarVista(event, "coach_evento.fxml");
+        cambiarVista(event, "coach_registroEquipo.fxml");
     }
 
     @FXML

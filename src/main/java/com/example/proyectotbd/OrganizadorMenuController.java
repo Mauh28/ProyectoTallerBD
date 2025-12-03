@@ -18,7 +18,7 @@ public class OrganizadorMenuController {
         // Aquí podrías reutilizar 'juez_evento-view.fxml' si quieres ver la misma lista,
         // o crear una nueva vista 'admin_lista_eventos.fxml' si el admin tiene botones de editar/borrar.
         // Por ahora lo mandamos a la selección estándar:
-        cambiarVista(event, "organizador_selecEvento.fxml");
+        cambiarVista(event, "organizador_asignarJuez.fxml");
     }
 
     @FXML

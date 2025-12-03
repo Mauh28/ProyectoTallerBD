@@ -6,6 +6,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
@@ -20,9 +21,9 @@
 
     <top>
         <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #2c3e50; -fx-padding: 20;">
-            <Button text="← Volver a Categorías" onAction="#handleRegresar"
+            <Button text="← Volver al Menú" onAction="#handleRegresar"
                     style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-font-size: 14; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
-            <Label text="Asignación de Jueces" textFill="WHITE">
+            <Label text="Gestión de Jueces" textFill="WHITE">
                 <font> <Font name="System Bold" size="24.0" /> </font>
                 <HBox.margin> <Insets left="15.0" /> </HBox.margin>
             </Label>
@@ -31,38 +32,50 @@
 
     <center>
         <VBox alignment="CENTER">
-            <VBox spacing="20.0" maxWidth="600.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 50;">
+            <VBox spacing="25.0" maxWidth="700.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 40;">
                 <effect> <DropShadow color="#00000022" radius="15" offsetY="5" /> </effect>
 
-                <Label text="Configuración de Evaluación" textFill="#d35400">
-                    <font> <Font name="System Bold" size="24.0" /> </font>
-                </Label>
-                <Label text="Selecciona al juez responsable para esta categoría y evento." textFill="#95a5a6"/>
-
-                <VBox spacing="5.0" style="-fx-background-color: #fdf2e9; -fx-padding: 15; -fx-background-radius: 5;">
-                    <Label text="RESUMEN" textFill="#d35400" style="-fx-font-weight: bold;"/>
-                    <Label text="Evento: Torneo Nacional VEX 2025" textFill="#2c3e50"/>
-                    <Label text="Categoría: Preparatoria" textFill="#2c3e50"/>
-                </VBox>
-
                 <VBox spacing="5.0">
-                    <Label text="SELECCIONAR JUEZ" textFill="#7f8c8d" style="-fx-font-weight:bold; -fx-font-size: 12;"/>
-                    <ComboBox fx:id="cbJueces" promptText="Selecciona un juez..." prefHeight="45.0" maxWidth="Infinity" style="-fx-background-color: #f4f6f8; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-font-size: 14;">
-                        <items>
-                            <FXCollections fx:factory="observableArrayList">
-                                <String fx:value="Juez 1 - Ana Torres" />
-                                <String fx:value="Juez 2 - Carlos Ruiz" />
-                                <String fx:value="Juez 3 - Roberto Gómez" />
-                            </FXCollections>
-                        </items>
-                    </ComboBox>
+                    <Label text="Asignar Juez a Categoría" textFill="#d35400">
+                        <font> <Font name="System Bold" size="24.0" /> </font>
+                    </Label>
+                    <Label text="Configura la mesa de evaluación seleccionando los datos en orden." textFill="#95a5a6"/>
                 </VBox>
+
+                <Separator />
+
+                <VBox spacing="10.0">
+                    <Label text="1. SELECCIONA EL EVENTO" textFill="#2c3e50" style="-fx-font-weight:bold;"/>
+                    <ComboBox fx:id="cbEventos" promptText="Elige un torneo..." prefHeight="45.0" maxWidth="Infinity"
+                              style="-fx-background-color: #f4f6f8; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-font-size: 14;"/>
+                </VBox>
+
+                <VBox spacing="10.0">
+                    <Label text="2. SELECCIONA LA CATEGORÍA" textFill="#2c3e50" style="-fx-font-weight:bold;"/>
+                    <HBox spacing="15.0" alignment="CENTER_LEFT">
+                        <Button fx:id="btnPrimaria" text="Primaria" onAction="#handleCategoria" prefWidth="150.0" style="-fx-base: #f4f6f8;"/>
+                        <Button fx:id="btnSecundaria" text="Secundaria" onAction="#handleCategoria" prefWidth="150.0" style="-fx-base: #f4f6f8;"/>
+                        <Button fx:id="btnPrepa" text="Preparatoria" onAction="#handleCategoria" prefWidth="150.0" style="-fx-base: #f4f6f8;"/>
+                        <Button fx:id="btnProfesional" text="Profesional" onAction="#handleCategoria" prefWidth="150.0" style="-fx-base: #f4f6f8;"/>
+                    </HBox>
+                    <Label fx:id="lblCategoriaSeleccionada" text="Ninguna seleccionada" textFill="#7f8c8d" style="-fx-font-style: italic;"/>
+                </VBox>
+
+                <VBox spacing="10.0">
+                    <Label text="3. SELECCIONA EL JUEZ" textFill="#2c3e50" style="-fx-font-weight:bold;"/>
+                    <ComboBox fx:id="cbJueces" promptText="Elige un juez disponible..." prefHeight="45.0" maxWidth="Infinity"
+                              style="-fx-background-color: #f4f6f8; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-font-size: 14;"/>
+                </VBox>
+
+                <Separator />
+
+                <Label fx:id="lblMensaje" visible="false" wrapText="true" style="-fx-font-weight: bold;"/>
 
                 <Button text="CONFIRMAR ASIGNACIÓN" onAction="#handleGuardar"
                         prefHeight="50.0" maxWidth="Infinity"
                         style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-background-radius: 5; -fx-cursor: hand;">
-                    <VBox.margin> <Insets top="20.0" /> </VBox.margin>
                 </Button>
+
             </VBox>
         </VBox>
     </center>
