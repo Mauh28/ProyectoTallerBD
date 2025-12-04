@@ -1,27 +1,21 @@
 package com.example.proyectotbd;
 
 import com.example.proyectotbd.ConexionDB;
-import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import javafx.util.Duration;
 
 import java.io.IOException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 
 public class CoachRegistroEquipoController {
 
@@ -33,11 +27,13 @@ public class CoachRegistroEquipoController {
     @FXML private Label lblCategoriaSeleccionada;
 
     private String categoriaTexto = null;
+    private int categoriaId = 0;
     private OrganizadorDAO dao = new OrganizadorDAO();
 
     @FXML
     public void initialize() {
         cargarEventos();
+        recuperarDatosDeSesion(); // <--- NUEVO: Recuperar si volvemos atrás
     }
 
     private void cargarEventos() {
@@ -48,10 +44,46 @@ public class CoachRegistroEquipoController {
         }
     }
 
+    // Restaurar datos si el usuario regresó para corregir
+    private void recuperarDatosDeSesion() {
+        UserSession session = UserSession.getInstance();
+
+        // 1. Restaurar Texto
+        if (session.getTempNombreEquipo() != null) txtNombreEquipo.setText(session.getTempNombreEquipo());
+        if (session.getTempInstitucion() != null) txtInstitucion.setText(session.getTempInstitucion());
+
+        // 2. Restaurar Categoría (Visual y Lógica)
+        if (session.getTempCategoriaNombre() != null) {
+            this.categoriaTexto = session.getTempCategoriaNombre();
+            this.categoriaId = session.getTempCategoriaId();
+            lblCategoriaSeleccionada.setText("Seleccionada: " + categoriaTexto);
+            lblCategoriaSeleccionada.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold; -fx-font-style: italic;");
+        }
+
+        // 3. Restaurar Evento (Un poco más complejo en ComboBox, buscamos por ID)
+        if (session.getTempEventoId() != 0) {
+            for (OpcionCombo item : cbEventos.getItems()) {
+                if (item.getId() == session.getTempEventoId()) {
+                    cbEventos.getSelectionModel().select(item);
+                    break;
+                }
+            }
+        }
+    }
+
     @FXML
     public void handleCategoria(ActionEvent event) {
         Button btn = (Button) event.getSource();
         categoriaTexto = btn.getText();
+
+        // Mapeo ID (Asegúrate de que coincida con tu BD)
+        switch (categoriaTexto) {
+            case "Primaria": categoriaId = 1; break;
+            case "Secundaria": categoriaId = 2; break;
+            case "Preparatoria": categoriaId = 3; break;
+            case "Profesional": categoriaId = 4; break;
+            default: categoriaId = 0;
+        }
 
         lblCategoriaSeleccionada.setText("Seleccionada: " + categoriaTexto);
         lblCategoriaSeleccionada.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold; -fx-font-style: italic;");
@@ -63,60 +95,40 @@ public class CoachRegistroEquipoController {
         String nombre = txtNombreEquipo.getText();
         String institucion = txtInstitucion.getText();
 
-        if (eventoSeleccionado == null) {
-            mostrarMensaje("Selecciona un evento.", true); return;
-        }
-        if (categoriaTexto == null) {
-            mostrarMensaje("Selecciona una categoría (haz clic en un botón).", true); return;
-        }
-        if (nombre.isEmpty() || institucion.isEmpty()) {
-            mostrarMensaje("Llena el nombre del equipo e institución.", true); return;
-        }
+        // 1. Validaciones Visuales
+        if (eventoSeleccionado == null) { mostrarMensaje("Selecciona un evento.", true); return; }
+        if (categoriaTexto == null) { mostrarMensaje("Selecciona una categoría.", true); return; }
+        if (nombre.isEmpty() || institucion.isEmpty()) { mostrarMensaje("Llena todos los campos.", true); return; }
 
-        int usuarioId = UserSession.getInstance().getUserId();
+        // 2. VALIDACIÓN EN BD (Sin Insertar)
+        // Usamos la nueva Función FN_VerificarDisponibilidadEquipo
+        String sql = "{? = call FN_VerificarDisponibilidadEquipo(?, ?)}";
 
-        try (Connection conn = ConexionDB.getConnection()) {
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
 
-            // A. Registrar Equipo
-            String sqlEquipo = "{call SP_NombreEquipoExiste(?, ?, ?, ?)}";
-            int nuevoEquipoId = 0;
+            stmt.registerOutParameter(1, Types.INTEGER); // Valor de retorno
+            stmt.setString(2, nombre);
+            stmt.setInt(3, categoriaId);
 
-            try (CallableStatement stmt = conn.prepareCall(sqlEquipo)) {
-                stmt.setInt(1, usuarioId);
-                stmt.setString(2, categoriaTexto);
-                stmt.setString(3, nombre);
-                stmt.setString(4, institucion);
+            stmt.execute();
 
-                boolean hasResults = stmt.execute();
-                if (hasResults) {
-                    try (ResultSet rs = stmt.getResultSet()) {
-                        if (rs.next()) {
-                            nuevoEquipoId = rs.getInt("nuevo_equipo_id");
-                        }
-                    }
-                }
-            }
+            int existe = stmt.getInt(1);
 
-            if (nuevoEquipoId == 0) {
-                mostrarMensaje("Error: No se obtuvo el ID del equipo.", true);
+            if (existe > 0) {
+                mostrarMensaje("El nombre del equipo ya existe en esta categoría.", true);
                 return;
             }
 
-            // B. Inscribir en Evento
-            String sqlInscripcion = "{call SP_RegistrarEquipoEnEvento(?, ?)}";
-            try (CallableStatement stmt = conn.prepareCall(sqlInscripcion)) {
-                stmt.setInt(1, nuevoEquipoId);
-                stmt.setInt(2, eventoSeleccionado.getId());
-                stmt.execute();
-            }
+            // 3. SI TODO ESTÁ BIEN: GUARDAR EN SESIÓN Y AVANZAR
+            UserSession session = UserSession.getInstance();
+            session.setTempEventoId(eventoSeleccionado.getId());
+            session.setTempCategoriaId(categoriaId);
+            session.setTempCategoriaNombre(categoriaTexto);
+            session.setTempNombreEquipo(nombre);
+            session.setTempInstitucion(institucion);
 
-            // --- ÉXITO ---
-            UserSession.getInstance().setEquipoIdTemp(nuevoEquipoId);
-
-            // 1. Mostrar Pop-up
-            mostrarNotificacionExito("¡Equipo '" + nombre + "' creado correctamente!");
-
-            // 2. Cambiar vista
+            System.out.println("Datos guardados en memoria. Pasando a integrantes...");
             cambiarVista(event, "coach_registroIntegrantes.fxml");
 
         } catch (SQLException e) {
@@ -125,46 +137,13 @@ public class CoachRegistroEquipoController {
         }
     }
 
-    // --- MÉTODO POP-UP ---
-    private void mostrarNotificacionExito(String mensaje) {
-        try {
-            Stage toastStage = new Stage();
-            toastStage.initStyle(StageStyle.TRANSPARENT);
-            toastStage.setAlwaysOnTop(true);
-
-            Label label = new Label("✅ " + mensaje);
-            label.setStyle(
-                    "-fx-background-color: #27ae60;" +
-                            "-fx-text-fill: white;" +
-                            "-fx-font-weight: bold;" +
-                            "-fx-font-size: 16px;" +
-                            "-fx-padding: 20px;" +
-                            "-fx-background-radius: 10px;" +
-                            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);"
-            );
-
-            StackPane root = new StackPane(label);
-            root.setStyle("-fx-background-color: transparent;");
-            Scene scene = new Scene(root);
-            scene.setFill(Color.TRANSPARENT);
-            toastStage.setScene(scene);
-
-            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            toastStage.setX(screenBounds.getMaxX() - 450);
-            toastStage.setY(screenBounds.getMaxY() - 100);
-
-            toastStage.show();
-            PauseTransition delay = new PauseTransition(Duration.seconds(3));
-            delay.setOnFinished(e -> toastStage.close());
-            delay.play();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     @FXML
     public void handleRegresar(ActionEvent event) {
+        // Limpiamos los temporales si cancela todo el proceso
+        UserSession.getInstance().setTempNombreEquipo(null);
+        UserSession.getInstance().setTempInstitucion(null);
+        // ... (opcional limpiar resto)
+
         cambiarVista(event, "coach_menu.fxml");
     }
 

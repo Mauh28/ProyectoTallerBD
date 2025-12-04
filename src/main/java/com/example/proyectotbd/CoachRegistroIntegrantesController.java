@@ -22,6 +22,7 @@ import javafx.util.Duration;
 import java.io.IOException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 
@@ -31,15 +32,15 @@ public class CoachRegistroIntegrantesController {
     @FXML private DatePicker dpNacimiento;
     @FXML private ComboBox<String> cbSexo;
     @FXML private Label lblError;
-    @FXML private Button btnAccion; // Botón Agregar/Actualizar
+
+    // Botón dinámico (cambia entre "AGREGAR" y "GUARDAR CAMBIOS")
+    @FXML private Button btnAccion;
 
     @FXML private ListView<String> listaParticipantes;
     @FXML private Label lblContador;
 
     private ObservableList<String> participantes = FXCollections.observableArrayList();
     private final int MAX_PARTICIPANTES = 3;
-
-    // Variable para saber si estamos editando (-1 = No editando)
     private int indiceEdicion = -1;
 
     @FXML
@@ -48,58 +49,7 @@ public class CoachRegistroIntegrantesController {
         actualizarContador();
     }
 
-    // --- MANEJO DE SELECCIÓN EN LA LISTA ---
-    @FXML
-    public void handleSeleccionarItem() {
-        int index = listaParticipantes.getSelectionModel().getSelectedIndex();
-        if (index != -1) {
-            String item = listaParticipantes.getSelectionModel().getSelectedItem();
-
-            // Convertir texto "Nombre | Fecha | Sexo" a los campos
-            try {
-                String[] datos = item.split(" \\| ");
-                txtNombre.setText(datos[0]);
-                dpNacimiento.setValue(LocalDate.parse(datos[1]));
-                cbSexo.setValue(datos[2]);
-
-                // Activar modo edición
-                indiceEdicion = index;
-                btnAccion.setText("GUARDAR CAMBIOS");
-                btnAccion.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold;"); // Naranja
-                lblError.setVisible(false);
-
-            } catch (Exception e) {
-                // Error al parsear (raro)
-            }
-        }
-    }
-
-    @FXML
-    public void handleLimpiar() {
-        txtNombre.clear();
-        dpNacimiento.setValue(null);
-        cbSexo.getSelectionModel().clearSelection();
-
-        // Salir de modo edición
-        indiceEdicion = -1;
-        btnAccion.setText("AGREGAR A LA LISTA");
-        btnAccion.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold;"); // Azul
-        listaParticipantes.getSelectionModel().clearSelection();
-        lblError.setVisible(false);
-    }
-
-    @FXML
-    public void handleEliminar() {
-        int index = listaParticipantes.getSelectionModel().getSelectedIndex();
-        if (index != -1) {
-            participantes.remove(index);
-            handleLimpiar(); // Resetear formulario
-            actualizarContador();
-        } else {
-            lblError.setText("Selecciona un alumno de la lista para eliminar.");
-            lblError.setVisible(true);
-        }
-    }
+    // --- 1. GESTIÓN DE LA LISTA VISUAL (MEMORIA) ---
 
     @FXML
     public void handleAgregarOActualizar(ActionEvent event) {
@@ -109,7 +59,6 @@ public class CoachRegistroIntegrantesController {
 
         if (nombre.isEmpty() || nacimiento == null || sexo == null) {
             lblError.setText("Por favor llena todos los campos.");
-            lblError.setStyle("-fx-text-fill: #e74c3c;");
             lblError.setVisible(true);
             return;
         }
@@ -119,70 +68,150 @@ public class CoachRegistroIntegrantesController {
         if (indiceEdicion == -1) {
             // MODO AGREGAR
             if (participantes.size() >= MAX_PARTICIPANTES) {
-                lblError.setText("Límite alcanzado (" + MAX_PARTICIPANTES + "). Elimina o edita uno existente.");
+                lblError.setText("Límite alcanzado (" + MAX_PARTICIPANTES + ").");
                 lblError.setVisible(true);
                 return;
             }
             participantes.add(registro);
         } else {
-            // MODO ACTUALIZAR
+            // MODO EDITAR
             participantes.set(indiceEdicion, registro);
-            handleLimpiar(); // Volver a modo agregar
+            handleLimpiar(); // Salir de edición
         }
 
         actualizarContador();
         lblError.setVisible(false);
-        if (indiceEdicion == -1) handleLimpiar(); // Limpiar si fue agregar
+        if (indiceEdicion == -1) handleLimpiar();
+    }
+
+    @FXML
+    public void handleSeleccionarItem() {
+        int index = listaParticipantes.getSelectionModel().getSelectedIndex();
+        if (index != -1) {
+            String item = listaParticipantes.getSelectionModel().getSelectedItem();
+            try {
+                String[] datos = item.split(" \\| ");
+                txtNombre.setText(datos[0]);
+                dpNacimiento.setValue(LocalDate.parse(datos[1]));
+                cbSexo.setValue(datos[2]);
+
+                indiceEdicion = index;
+                btnAccion.setText("GUARDAR CAMBIOS");
+                btnAccion.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold;");
+                lblError.setVisible(false);
+            } catch (Exception e) { e.printStackTrace(); }
+        }
+    }
+
+    @FXML
+    public void handleLimpiar() {
+        txtNombre.clear();
+        dpNacimiento.setValue(null);
+        cbSexo.getSelectionModel().clearSelection();
+        indiceEdicion = -1;
+        btnAccion.setText("AGREGAR A LA LISTA");
+        btnAccion.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold;");
+        listaParticipantes.getSelectionModel().clearSelection();
+        lblError.setVisible(false);
+    }
+
+    @FXML
+    public void handleEliminar() {
+        int index = listaParticipantes.getSelectionModel().getSelectedIndex();
+        if (index != -1) {
+            participantes.remove(index);
+            handleLimpiar();
+            actualizarContador();
+        } else {
+            lblError.setText("Selecciona un alumno para eliminar.");
+            lblError.setVisible(true);
+        }
     }
 
     private void actualizarContador() {
         lblContador.setText(participantes.size() + " / " + MAX_PARTICIPANTES);
     }
 
+    // --- 2. TRANSACCIÓN FINAL A BASE DE DATOS ---
+
     @FXML
     public void handleFinalizar(ActionEvent event) {
         if (participantes.isEmpty()) {
             lblError.setText("Debes registrar al menos un integrante.");
-            lblError.setStyle("-fx-text-fill: #e74c3c;");
             lblError.setVisible(true);
             return;
         }
 
-        int equipoId = UserSession.getInstance().getEquipoIdTemp();
-        if (equipoId == 0) {
-            lblError.setText("Error crítico: No se encontró el ID del equipo.");
+        // Recuperar datos de la sesión (Pantalla anterior)
+        UserSession session = UserSession.getInstance();
+        int usuarioId = session.getUserId();
+        String nombreCategoria = session.getTempCategoriaNombre();
+        String nombreEquipo = session.getTempNombreEquipo();
+        String institucion = session.getTempInstitucion();
+        int eventoId = session.getTempEventoId();
+
+        if (nombreEquipo == null) {
+            lblError.setText("Error: Datos de sesión perdidos.");
             lblError.setVisible(true);
             return;
         }
-
-        System.out.println("Guardando en BD...");
-        String sql = "{call SP_RegistrarParticipante(?, ?, ?, ?)}";
 
         try (Connection conn = ConexionDB.getConnection()) {
-            conn.setAutoCommit(false); // Transacción
+            conn.setAutoCommit(false); // INICIO DE TRANSACCIÓN
 
-            try (CallableStatement stmt = conn.prepareCall(sql)) {
-                for (String p : participantes) {
-                    String[] datos = p.split(" \\| ");
-                    stmt.setInt(1, equipoId);
-                    stmt.setString(2, datos[0]);
-                    stmt.setDate(3, java.sql.Date.valueOf(LocalDate.parse(datos[1])));
-                    stmt.setString(4, datos[2]);
-                    stmt.execute();
+            try {
+                // PASO A: Crear Equipo
+                String sqlEquipo = "{call SP_NombreEquipoExiste(?, ?, ?, ?)}";
+                int nuevoEquipoId = 0;
+
+                try (CallableStatement stmtEq = conn.prepareCall(sqlEquipo)) {
+                    stmtEq.setInt(1, usuarioId);
+                    stmtEq.setString(2, nombreCategoria); // Enviamos texto, el SP busca el ID
+                    stmtEq.setString(3, nombreEquipo);
+                    stmtEq.setString(4, institucion);
+
+                    boolean hasResults = stmtEq.execute();
+                    if (hasResults) {
+                        try (ResultSet rs = stmtEq.getResultSet()) {
+                            if (rs.next()) nuevoEquipoId = rs.getInt("nuevo_equipo_id");
+                        }
+                    }
                 }
 
-                conn.commit(); // Confirmar cambios
+                if (nuevoEquipoId == 0) throw new SQLException("No se generó ID para el equipo.");
 
-                mostrarNotificacionExito("¡Inscripción finalizada con éxito!");
+                // PASO B: Inscribir en Evento
+                String sqlEvento = "{call SP_RegistrarEquipoEnEvento(?, ?)}";
+                try (CallableStatement stmtEv = conn.prepareCall(sqlEvento)) {
+                    stmtEv.setInt(1, nuevoEquipoId);
+                    stmtEv.setInt(2, eventoId);
+                    stmtEv.execute();
+                }
+
+                // PASO C: Insertar Participantes
+                String sqlPart = "{call SP_RegistrarParticipante(?, ?, ?, ?)}";
+                try (CallableStatement stmtPart = conn.prepareCall(sqlPart)) {
+                    for (String p : participantes) {
+                        String[] datos = p.split(" \\| ");
+                        stmtPart.setInt(1, nuevoEquipoId);
+                        stmtPart.setString(2, datos[0]);
+                        stmtPart.setDate(3, java.sql.Date.valueOf(LocalDate.parse(datos[1])));
+                        stmtPart.setString(4, datos[2]);
+                        stmtPart.execute();
+                    }
+                }
+
+                // COMMIT
+                conn.commit();
+                session.setTempNombreEquipo(null); // Limpiar sesión
+
+                mostrarNotificacionExito("¡Equipo y Alumnos registrados!");
                 cambiarVista(event, "coach_menu.fxml");
 
             } catch (SQLException ex) {
-                conn.rollback(); // Cancelar todo si falla uno
+                conn.rollback(); // ROLLBACK si algo falla
                 ex.printStackTrace();
-
-                // Mostrar error para que el usuario corrija
-                lblError.setText("Error al guardar: " + ex.getMessage() + "\nRevisa la edad del alumno y vuelve a intentar.");
-                lblError.setStyle("-fx-text-fill: #e74c3c;");
+                lblError.setText("Error al guardar: " + ex.getMessage());
                 lblError.setVisible(true);
             }
 
@@ -193,14 +222,23 @@ public class CoachRegistroIntegrantesController {
         }
     }
 
-    // --- POP UP DE ÉXITO ---
+    // --- 3. NAVEGACIÓN (EL MÉTODO QUE FALTABA) ---
+
+    @FXML
+    public void handleRegresar(ActionEvent event) {
+        // Regresa a la pantalla de datos del equipo (los datos se cargarán desde UserSession)
+        cambiarVista(event, "coach_registroEquipo.fxml");
+    }
+
+    // --- MÉTODOS AUXILIARES ---
+
     private void mostrarNotificacionExito(String mensaje) {
         try {
             Stage toastStage = new Stage();
             toastStage.initStyle(StageStyle.TRANSPARENT);
             toastStage.setAlwaysOnTop(true);
 
-            Label label = new Label("🎓 " + mensaje);
+            Label label = new Label("✅ " + mensaje);
             label.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-padding: 20px; -fx-background-radius: 10px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);");
 
             StackPane root = new StackPane(label);
@@ -227,6 +265,9 @@ public class CoachRegistroIntegrantesController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error cargando vista: " + fxml);
+        }
     }
 }

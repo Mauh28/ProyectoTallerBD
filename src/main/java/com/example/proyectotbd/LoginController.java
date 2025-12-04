@@ -48,17 +48,20 @@ public class LoginController {
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                // A. OBTENER DATOS DE LA BD
                 int id = rs.getInt("usuario_id");
                 String nombre = rs.getString("nombre");
                 boolean esCoach = rs.getBoolean("coach");
                 boolean esJuez = rs.getBoolean("juez");
 
-                // B. GUARDAR EN SESIÓN (Singleton)
+                // B. GUARDAR EN SESIÓN (ACTUALIZADO)
                 UserSession.getInstance().cleanUserSession();
                 UserSession.getInstance().setUserId(id);
                 UserSession.getInstance().setUsername(usuario);
                 UserSession.getInstance().setNombreCompleto(nombre);
+
+                // Guardamos los permisos
+                UserSession.getInstance().setCoach(esCoach);
+                UserSession.getInstance().setJuez(esJuez);
 
                 System.out.println("Login Exitoso: " + nombre);
 

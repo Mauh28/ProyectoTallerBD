@@ -16,6 +16,16 @@ public class JuezMenuController {
 
     @FXML private Button btnEvaluar;
     @FXML private Button btnReportes;
+    @FXML private Button btnCambiarRol; // Nuevo botón
+
+    @FXML
+    public void initialize() {
+        // Verificar si tiene doble rol
+        if (UserSession.getInstance().isCoach()) {
+            btnCambiarRol.setVisible(true);
+            btnCambiarRol.setManaged(true);
+        }
+    }
 
     @FXML
     public void handleIrAEvaluar(ActionEvent event) {
@@ -30,13 +40,18 @@ public class JuezMenuController {
     }
 
     @FXML
+    public void handleCambiarACoach(ActionEvent event) {
+        System.out.println("Cambiando a rol de Coach...");
+        cambiarVista(event, "coach_menu.fxml");
+    }
+
+    @FXML
     public void handleCerrarSesion(ActionEvent event) {
         System.out.println("Cerrando sesión...");
-
-        // Truco para cambiar vista desde un MenuItem (que no es un Nodo normal)
-        // Usamos uno de los botones de la pantalla para obtener el Stage
-        cambiarVistaDesdeBoton(btnEvaluar, "login.fxml");
+        cambiarVista(event, "login.fxml"); // Usamos el método estándar
     }
+
+
 
     // Método auxiliar para navegación
     private void cambiarVista(ActionEvent event, String fxml) {

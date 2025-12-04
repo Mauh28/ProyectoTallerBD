@@ -75,4 +75,65 @@ public class OrganizadorDAO {
         }
         return lista;
     }
+
+    // --- GESTIÓN DE USUARIOS ---
+    public ObservableList<UsuarioItem> obtenerTodosLosUsuarios() throws SQLException {
+        ObservableList<UsuarioItem> lista = FXCollections.observableArrayList();
+        String sql = "{call SP_Admin_ListarUsuarios()}";
+
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(new UsuarioItem(
+                        rs.getInt("usuario_id"),
+                        rs.getString("username"),
+                        rs.getString("nombre"),
+                        rs.getString("institucion"),
+                        rs.getString("rol")
+                ));
+            }
+        }
+        return lista;
+    }
+
+    public void eliminarUsuario(int id) throws SQLException {
+        String sql = "{call SP_Admin_EliminarUsuario(?)}";
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
+            stmt.setInt(1, id);
+            stmt.execute();
+        }
+    }
+
+    // --- GESTIÓN DE EVENTOS ---
+    public ObservableList<EventoItem> obtenerTodosLosEventos() throws SQLException {
+        ObservableList<EventoItem> lista = FXCollections.observableArrayList();
+        String sql = "{call SP_Admin_ListarEventos()}";
+
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(new EventoItem(
+                        rs.getInt("evento_id"),
+                        rs.getString("nombre_evento"),
+                        rs.getString("lugar"),
+                        rs.getDate("fecha").toString()
+                ));
+            }
+        }
+        return lista;
+    }
+
+    public void eliminarEvento(int id) throws SQLException {
+        String sql = "{call SP_Admin_EliminarEvento(?)}";
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
+            stmt.setInt(1, id);
+            stmt.execute();
+        }
+    }
 }

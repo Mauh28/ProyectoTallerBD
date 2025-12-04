@@ -2,9 +2,6 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.MenuButton?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
@@ -30,18 +27,21 @@
             <Region HBox.hgrow="ALWAYS" />
 
             <HBox alignment="CENTER" spacing="10.0">
+
+                <Button fx:id="btnCambiarRol" text="Cambiar a Modo Coach 📋"
+                        visible="false" managed="false"
+                        onAction="#handleCambiarACoach"
+                        style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5;"/>
+
                 <Label text="Hola, Juez" textFill="#bdc3c7">
                     <font>
                         <Font size="16.0" />
                     </font>
                 </Label>
 
-                <MenuButton text="Mi Cuenta"
-                            style="-fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-cursor: hand; -fx-font-size: 14;">
-                    <items>
-                        <MenuItem text="Cerrar sesión" onAction="#handleCerrarSesion"/>
-                    </items>
-                </MenuButton>
+                <Button text="Cerrar Sesión"
+                        onAction="#handleCerrarSesion"
+                        style="-fx-background-color: transparent; -fx-text-fill: #ecf0f1; -fx-border-color: #ecf0f1; -fx-border-radius: 5; -fx-cursor: hand; -fx-padding: 5 15;"/>
             </HBox>
 
         </HBox>

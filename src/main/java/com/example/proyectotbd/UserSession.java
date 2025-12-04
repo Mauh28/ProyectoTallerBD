@@ -11,6 +11,17 @@ public class UserSession {
     private String nombreCompleto;
     private int equipoIdTemp;
 
+    // VARIABLES TEMPORALES PARA EL REGISTRO TRANSACCIONAL
+    private int tempEventoId;
+    private int tempCategoriaId;
+    private String tempCategoriaNombre;
+    private String tempNombreEquipo;
+    private String tempInstitucion;
+
+    // --- NUEVAS VARIABLES DE ROL ---
+    private boolean coach;
+    private boolean juez;
+
     // Constructor privado para que nadie pueda hacer "new UserSession()"
     private UserSession() {}
 
@@ -27,7 +38,13 @@ public class UserSession {
         userId = 0;
         username = null;
         nombreCompleto = null;
+        tempEventoId = 0;
+        tempCategoriaId = 0;
+        tempCategoriaNombre = null;
+        tempNombreEquipo = null;
+        tempInstitucion = null;
     }
+
 
     // --- GETTERS Y SETTERS ---
 
@@ -62,4 +79,27 @@ public class UserSession {
     public void setEquipoIdTemp(int equipoIdTemp) {
         this.equipoIdTemp = equipoIdTemp;
     }
+
+    // --- GETTERS Y SETTERS NUEVOS ---
+    public int getTempEventoId() { return tempEventoId; }
+    public void setTempEventoId(int tempEventoId) { this.tempEventoId = tempEventoId; }
+
+    public int getTempCategoriaId() { return tempCategoriaId; }
+    public void setTempCategoriaId(int tempCategoriaId) { this.tempCategoriaId = tempCategoriaId; }
+
+    public String getTempCategoriaNombre() { return tempCategoriaNombre; }
+    public void setTempCategoriaNombre(String tempCategoriaNombre) { this.tempCategoriaNombre = tempCategoriaNombre; }
+
+    public String getTempNombreEquipo() { return tempNombreEquipo; }
+    public void setTempNombreEquipo(String tempNombreEquipo) { this.tempNombreEquipo = tempNombreEquipo; }
+
+    public String getTempInstitucion() { return tempInstitucion; }
+    public void setTempInstitucion(String tempInstitucion) { this.tempInstitucion = tempInstitucion; }
+
+    // --- NUEVOS GETTERS/SETTERS DE ROL ---
+    public boolean isCoach() { return coach; }
+    public void setCoach(boolean coach) { this.coach = coach; }
+
+    public boolean isJuez() { return juez; }
+    public void setJuez(boolean juez) { this.juez = juez; }
 }

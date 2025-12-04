@@ -6,60 +6,82 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class CoachMenuController {
 
-    // Referencia al contenedor principal para obtener el Stage
-    @FXML private BorderPane rootPane;
+    @FXML private Button btnVerReportes;
+    @FXML private Label lblMensajeEstado;
+    @FXML private Button btnCambiarRol; // Botón para usuarios híbridos
+
+    private CoachDAO coachDAO = new CoachDAO();
+
+    @FXML
+    public void initialize() {
+        verificarEstadoEquipos();
+        verificarDobleRol();
+    }
+
+    private void verificarEstadoEquipos() {
+        int usuarioId = UserSession.getInstance().getUserId();
+        try {
+            boolean tieneEquipos = coachDAO.tieneEquiposRegistrados(usuarioId);
+
+            if (tieneEquipos) {
+                btnVerReportes.setDisable(false);
+                lblMensajeEstado.setVisible(false);
+            } else {
+                btnVerReportes.setDisable(true);
+                lblMensajeEstado.setText("No tienes equipos registrados, registra uno.");
+                lblMensajeEstado.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                lblMensajeEstado.setVisible(true);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void verificarDobleRol() {
+        if (UserSession.getInstance().isJuez()) {
+            btnCambiarRol.setVisible(true);
+            btnCambiarRol.setManaged(true);
+        }
+    }
 
     @FXML
     public void handleRegistrarEquipo(ActionEvent event) {
-        System.out.println("Iniciando flujo de registro...");
-        cambiarVista(event, "coach_registroEquipo.fxml");
+        cambiarVista(event, "coach_registroEquipo.fxml"); // Actualizado para ir directo al registro unificado
     }
 
     @FXML
     public void handleVerReportes(ActionEvent event) {
-        System.out.println("Abriendo reporte de resultados...");
-        cambiarVista(event, "coach_reportes.fxml");
+        cambiarVista(event, "coach_misEquipos.fxml");
+    }
+
+    @FXML
+    public void handleCambiarAJuez(ActionEvent event) {
+        System.out.println("Cambiando a rol de Juez...");
+        cambiarVista(event, "juez_menu.fxml");
     }
 
     @FXML
     public void handleLogout(ActionEvent event) {
         System.out.println("Cerrando sesión...");
-
-        // SOLUCIÓN: Usamos 'rootPane' en lugar de 'event' para obtener la ventana
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
-            Parent root = loader.load();
-
-            // Obtenemos el Stage desde el rootPane que ya está cargado en pantalla
-            Stage stage = (Stage) rootPane.getScene().getWindow();
-
-            stage.setScene(new Scene(root));
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // Ahora usamos el método estándar porque el botón es un Nodo normal
+        cambiarVista(event, "login.fxml");
     }
 
-    // Método genérico para botones normales (Registrar, Reportes)
     private void cambiarVista(ActionEvent event, String fxml) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
             Parent root = loader.load();
-
-            // Para botones normales, esto sí funciona bien
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Error al cargar: " + fxml);
-        }
+        } catch (IOException e) { e.printStackTrace(); }
     }
 }

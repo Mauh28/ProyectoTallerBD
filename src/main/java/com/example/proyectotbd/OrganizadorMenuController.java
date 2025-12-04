@@ -55,4 +55,14 @@ public class OrganizadorMenuController {
             System.out.println("Error cargando vista: " + fxml);
         }
     }
+
+    @FXML
+    public void handleVerUsuarios(ActionEvent event) {
+        cambiarVista(event, "organizador_verUsuarios.fxml");
+    }
+
+    @FXML
+    public void handleVerEventos(ActionEvent event) {
+        cambiarVista(event, "organizador_verEventos.fxml");
+    }
 }
