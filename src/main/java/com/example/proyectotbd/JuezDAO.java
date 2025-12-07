@@ -167,4 +167,31 @@ public class JuezDAO {
         }
         return lista;
     }
+
+    // Método para listar SOLO los eventos asignados al juez logueado
+    public ObservableList<EventoItem> obtenerEventosDelJuez(int juezId) throws SQLException {
+        ObservableList<EventoItem> lista = FXCollections.observableArrayList();
+        String sql = "{call SP_ListarEventosDelJuez(?)}"; // Nuevo SP
+
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
+            stmt.setInt(1, juezId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    // Reutilizamos la clase EventoItem
+                    // Nota: El SP no devuelve 'jueces', así que mandamos "Asignado" o null
+                    lista.add(new EventoItem(
+                            rs.getInt("evento_id"),
+                            rs.getString("nombre_evento"),
+                            rs.getString("lugar"),
+                            rs.getDate("fecha").toString(),
+                            "Tú estás asignado"
+                    ));
+                }
+            }
+        }
+        return lista;
+    }
 }

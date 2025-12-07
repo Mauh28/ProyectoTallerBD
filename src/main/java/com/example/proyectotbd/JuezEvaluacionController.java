@@ -98,7 +98,7 @@ public class JuezEvaluacionController {
                 mostrarNotificacionExito("¡Evaluación guardada correctamente!");
 
                 // Volver a la lista de equipos
-                cambiarVista(event, "juez_equiposUnificado.fxml");
+                cambiarVista(event, "juez_menu.fxml");
 
             } catch (SQLException ex) {
                 conn.rollback();

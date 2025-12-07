@@ -102,7 +102,7 @@ public class JuezEquiposUnificadoController {
         lblInst.setPrefWidth(300);
         lblInst.setStyle("-fx-text-fill: #7f8c8d;");
 
-        // 3. Estado (Visualización condicional)
+        // 3. Estado (Pendiente/Evaluado)
         boolean yaEvaluado = "EVALUADO".equalsIgnoreCase(equipo.getEstado());
 
         Label lblEstado = new Label(yaEvaluado ? "EVALUADO" : "PENDIENTE");
@@ -114,14 +114,20 @@ public class JuezEquiposUnificadoController {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // 4. Botón de Acción
-        Button btnAccion = new Button(yaEvaluado ? "EDITAR" : "EVALUAR");
-        btnAccion.setStyle(yaEvaluado
-                ? "-fx-background-color: #2980b9; -fx-text-fill: white; -fx-cursor: hand;"
-                : "-fx-background-color: #27ae60; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold;");
+        // 4. LÓGICA DEL BOTÓN (CAMBIO AQUÍ)
+        Button btnAccion = new Button();
 
-        // Acción del botón: Ir a evaluar este equipo específico
-        btnAccion.setOnAction(e -> irAEvaluar(equipo));
+        if (yaEvaluado) {
+            // Si ya evaluó: Botón gris, texto "COMPLETADO" y deshabilitado
+            btnAccion.setText("COMPLETADO");
+            btnAccion.setDisable(true);
+            btnAccion.setStyle("-fx-background-color: #bdc3c7; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
+        } else {
+            // Si no: Botón verde "EVALUAR" activo
+            btnAccion.setText("EVALUAR");
+            btnAccion.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold; -fx-background-radius: 5;");
+            btnAccion.setOnAction(e -> irAEvaluar(equipo));
+        }
 
         tarjeta.getChildren().addAll(lblNombre, lblInst, lblEstado, spacer, btnAccion);
         return tarjeta;

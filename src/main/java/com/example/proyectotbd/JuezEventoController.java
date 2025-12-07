@@ -25,8 +25,8 @@ public class JuezEventoController {
 
     @FXML private VBox vboxListaEventos;
 
-    // Reutilizamos el DAO que ya tiene el método para traer eventos con detalles (Nombre, Lugar, Fecha)
-    private OrganizadorDAO dao = new OrganizadorDAO();
+    // Usamos JuezDAO porque necesitamos filtrar por asignación
+    private JuezDAO juezDao = new JuezDAO();
 
     @FXML
     public void initialize() {
@@ -36,13 +36,15 @@ public class JuezEventoController {
     private void cargarEventos() {
         vboxListaEventos.getChildren().clear();
 
+        // --- AQUÍ ESTABA EL ERROR: Faltaba obtener el ID ---
+        int juezId = UserSession.getInstance().getUserId();
+
         try {
-            // Usamos el método que ya creamos para el Admin, pues nos sirve igual aquí
-            // (Trae ID, Nombre, Lugar, Fecha)
-            ObservableList<EventoItem> eventos = dao.obtenerTodosLosEventos();
+            // Ahora sí podemos usar la variable juezId
+            ObservableList<EventoItem> eventos = juezDao.obtenerEventosDelJuez(juezId);
 
             if (eventos.isEmpty()) {
-                Label vacio = new Label("No hay eventos próximos disponibles.");
+                Label vacio = new Label("No tienes eventos asignados.");
                 vacio.setStyle("-fx-text-fill: #95a5a6; -fx-font-size: 14px; -fx-padding: 20;");
                 vboxListaEventos.getChildren().add(vacio);
                 return;
@@ -101,10 +103,10 @@ public class JuezEventoController {
     private void handleSeleccionarEvento(EventoItem evento) {
         System.out.println("Evento seleccionado: " + evento.getNombre());
 
-        // 1. Guardar el ID del evento en la sesión para que la siguiente pantalla sepa cuál usar
+        // Guardar el ID del evento en la sesión
         UserSession.getInstance().setTempEventoId(evento.getId());
 
-        // 2. Ir a la pantalla unificada de equipos (ya no pasamos por categoría)
+        // Ir a la pantalla unificada de equipos
         cambiarVistaBoton(vboxListaEventos, "juez_equiposUnificado.fxml");
     }
 
