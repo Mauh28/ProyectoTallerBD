@@ -14,24 +14,40 @@ import java.time.LocalDateTime;
 public class JuezDAO {
 
     // --- MÉTODOS EXISTENTES ---
-    public int iniciarEvaluacion(int equipoId, int eventoId, int juezId) throws SQLException {
-        // ... (Tu código existente) ...
-        // Nota: Asegúrate de que este método devuelva el ID o lo maneje como vimos antes
+    public EvaluacionIds iniciarEvaluacion(int equipoId, int eventoId, int juezId) throws SQLException {
         String sql = "{call SP_IniciarEvaluacionSegura(?, ?, ?, ?)}";
-        int nuevaEvaluacionId = 0;
         try (Connection conn = ConexionDB.getConnection();
              CallableStatement stmt = conn.prepareCall(sql)) {
+
             stmt.setInt(1, equipoId);
             stmt.setInt(2, eventoId);
             stmt.setInt(3, juezId);
-            stmt.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
-            if(stmt.execute()) {
-                try(ResultSet rs = stmt.getResultSet()){
-                    if(rs.next()) nuevaEvaluacionId = rs.getInt("nueva_evaluacion_id");
+
+            try(ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    // Capturamos los 4 IDs que devuelve el SP
+                    return new EvaluacionIds(
+                            rs.getInt("nueva_evaluacion_id"),
+                            rs.getInt("id_disenio"),
+                            rs.getInt("id_programacion"),
+                            rs.getInt("id_construccion")
+                    );
                 }
             }
         }
-        return nuevaEvaluacionId;
+        throw new SQLException("Error: No se pudo iniciar ni recuperar la evaluación.");
+    }
+
+    // Clase auxiliar simple (similar a IdsAreas) para contener todos los IDs necesarios
+    public static class EvaluacionIds {
+        public int evaluacionId;
+        public int idDiseno, idProg, idConst;
+        public EvaluacionIds(int evalId, int d, int p, int c) {
+            this.evaluacionId = evalId;
+            this.idDiseno = d;
+            this.idProg = p;
+            this.idConst = c;
+        }
     }
 
     // --- MÉTODO CORREGIDO ---

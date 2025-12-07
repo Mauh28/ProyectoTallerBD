@@ -8,6 +8,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.effect.DropShadow;
@@ -127,40 +128,48 @@ public class JuezEquiposUnificadoController {
         return tarjeta;
     }
 
-    private void irAEvaluar(EquipoItem equipo) {
-        System.out.println("Iniciando evaluación para: " + equipo.getNombre());
+    // Método auxiliar para mostrar alertas de error
+    private void mostrarAlertaError(String msg) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error en la Evaluación");
+        alert.setHeaderText("Fallo en la operación de inicio");
+        alert.setContentText(msg);
+        alert.showAndWait();
+    }
 
+    private void irAEvaluar(EquipoItem equipo) {
         try {
             int juezId = UserSession.getInstance().getUserId();
             int eventoId = UserSession.getInstance().getTempEventoId();
 
-            // Llamar al SP_IniciarEvaluacionSegura a través del DAO
-            // Este SP maneja si ya existe (error de unicidad) o si es nueva
-            int evalId = juezDao.iniciarEvaluacion(equipo.getId(), eventoId, juezId);
+            // 1. Llamada al método unificado: iniciarOObtenerEvaluacion
+            // Este método devuelve un objeto EvaluacionIds con los 4 IDs.
+            JuezDAO.EvaluacionIds ids = juezDao.iniciarEvaluacion(equipo.getId(), eventoId, juezId);
 
-            if (evalId > 0) {
-                // Guardar ID de la evaluación para usarlo en la siguiente pantalla (Rúbrica)
-                UserSession.getInstance().setEvaluacionIdTemp(evalId);
+            // 2. Guardar todos los IDs y nombres en la Sesión (para evitar llamadas extra a la BD)
+            UserSession session = UserSession.getInstance();
 
-                // Pasar el nombre del equipo a la sesión temporal para mostrarlo en el título
-                UserSession.getInstance().setTempNombreEquipo(equipo.getNombre());
+            session.setEvaluacionIdTemp(ids.evaluacionId);
+            session.setTempNombreEquipo(equipo.getNombre());
 
-                // Ir a la Rúbrica
-                cambiarVistaBoton(vboxListaEquipos, "juez_evaluacion.fxml");
-            }
+            // Guardamos los IDs de las áreas para JuezEvaluacionController
+            session.setIdDisenoTemp(ids.idDiseno);
+            session.setIdProgramacionTemp(ids.idProg);
+            session.setIdConstruccionTemp(ids.idConst);
+
+            // 3. Ir a la Rúbrica. Si es edición, el controlador de evaluación se cargará con estos IDs.
+            cambiarVistaBoton(vboxListaEquipos, "juez_evaluacion.fxml");
+
         } catch (SQLException ex) {
-            String msj = ex.getMessage();
-            if (msj.contains("Error: Ya has iniciado una evaluación") || msj.contains("Duplicate entry")) {
-                System.out.println("Evaluación existente. Entrando en modo edición...");
-                // Aquí deberías tener lógica para recuperar el ID existente si no lo devolvió el SP,
-                // pero por ahora asumimos que el flujo continúa.
-                cambiarVistaBoton(vboxListaEquipos, "juez_evaluacion.fxml");
-            } else {
-                System.err.println("Error de negocio: " + msj);
-                // Aquí podrías mostrar un Alert
-            }
+            // Capturamos errores de negocio reales (ej: límite de 3 jueces) o de BD
+            System.err.println("Error de negocio o BD: " + ex.getMessage());
+
+            // Mostrar alerta al usuario con el mensaje de error de negocio
+            mostrarAlertaError(ex.getMessage());
         }
     }
+
+
 
     private void cambiarVista(ActionEvent event, String fxml) {
         try {
