@@ -22,7 +22,6 @@ public class LoginAdminController {
     @FXML private PasswordField txtPassword;
     @FXML private Label lblError;
 
-// LoginAdminController.java
 
     @FXML
     public void handleAdminLogin(ActionEvent event) {
