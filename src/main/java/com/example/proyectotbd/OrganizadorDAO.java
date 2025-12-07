@@ -28,17 +28,24 @@ public class OrganizadorDAO {
     }
 
     // 2. Obtener Jueces llamando al SP
-    public ObservableList<OpcionCombo> obtenerJuecesDisponibles() throws SQLException {
+// OrganizadorDAO.java
+
+    public ObservableList<OpcionCombo> obtenerJuecesSinConflicto(int categoriaId, int eventoId) throws SQLException {
         ObservableList<OpcionCombo> lista = FXCollections.observableArrayList();
 
-        String sql = "{call SP_ListarJuecesDisponibles()}";
+        // Llama al nuevo procedimiento que aplica el filtro de Conflicto de Interés
+        String sql = "{call SP_ListarJuecesSinConflicto(?, ?)}";
 
         try (Connection conn = ConexionDB.getConnection();
-             CallableStatement stmt = conn.prepareCall(sql);
-             ResultSet rs = stmt.executeQuery()) {
+             CallableStatement stmt = conn.prepareCall(sql)) {
 
-            while (rs.next()) {
-                lista.add(new OpcionCombo(rs.getInt("usuario_id"), rs.getString("nombre")));
+            stmt.setInt(1, categoriaId);
+            stmt.setInt(2, eventoId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(new OpcionCombo(rs.getInt("usuario_id"), rs.getString("nombre")));
+                }
             }
         }
         return lista;

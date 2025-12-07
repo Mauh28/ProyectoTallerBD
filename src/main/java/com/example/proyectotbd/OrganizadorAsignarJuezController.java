@@ -36,22 +36,30 @@ public class OrganizadorAsignarJuezController {
 
     @FXML
     public void initialize() {
-        cargarDatos();
+        // Solo cargamos eventos; los jueces se cargan DESPUÉS de la selección del evento/categoría.
+        cargarDatosIniciales();
     }
 
-    private void cargarDatos() {
+    private void cargarDatosIniciales() {
         try {
             cbEventos.setItems(organizadorDAO.obtenerEventosFuturos());
-            cbJueces.setItems(organizadorDAO.obtenerJuecesDisponibles());
+            // Se inicializa la lista de jueces vacía
+            cbJueces.setItems(FXCollections.observableArrayList());
         } catch (SQLException e) {
-            mostrarMensaje("Error al conectar con datos: " + e.getMessage(), true);
+            mostrarMensaje("Error al conectar con eventos: " + e.getMessage(), true);
         }
+
+        // Agregar un listener al ComboBox de Eventos para disparar la carga de jueces
+        cbEventos.setOnAction(e -> cargarJuecesFiltrados());
     }
+
+    // =================================================================
+    //  MANEJO DE CATEGORÍA
+    // =================================================================
 
     @FXML
     public void handleCategoria(ActionEvent event) {
         Button btn = (Button) event.getSource();
-        // IMPORTANTE: Convertimos a mayúsculas para evitar el error de validación
         categoriaTexto = btn.getText().toUpperCase();
 
         switch (categoriaTexto) {
@@ -65,7 +73,43 @@ public class OrganizadorAsignarJuezController {
 
         lblCategoriaSeleccionada.setText("Seleccionada: " + btn.getText());
         lblCategoriaSeleccionada.setStyle("-fx-text-fill: #2980b9; -fx-font-weight: bold;");
+
+        // Llamar a cargar jueces cada vez que se selecciona una categoría
+        cargarJuecesFiltrados();
     }
+
+    // =================================================================
+    //  CARGA DINÁMICA DE JUECES (NUEVO MÉTODO)
+    // =================================================================
+
+    private void cargarJuecesFiltrados() {
+        OpcionCombo eventoSeleccionado = cbEventos.getValue();
+
+        // 1. Validar que ambos campos estén seleccionados
+        if (eventoSeleccionado == null || categoriaId == 0) {
+            cbJueces.setItems(FXCollections.observableArrayList()); // Limpiar lista
+            mostrarMensaje("Selecciona un Evento y una Categoría para ver los jueces disponibles.", false);
+            return;
+        }
+
+        int eventoId = eventoSeleccionado.getId();
+
+        try {
+            // 2. Llamada al DAO con los filtros (categoriaId y eventoId)
+            ObservableList<OpcionCombo> jueces = organizadorDAO.obtenerJuecesSinConflicto(categoriaId, eventoId);
+            cbJueces.setItems(jueces);
+
+            if (jueces.isEmpty()) {
+                mostrarMensaje("No hay jueces disponibles sin conflicto de interés en esta categoría/evento.", true);
+            } else {
+                lblMensaje.setVisible(false);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            mostrarMensaje("Error al cargar jueces: " + e.getMessage(), true);
+        }
+    }
+
 
     @FXML
     public void handleGuardar(ActionEvent event) {
@@ -98,9 +142,10 @@ public class OrganizadorAsignarJuezController {
         }
     }
 
-    // --- MÉTODO DEL POP-UP (TOAST) ---
+    // --- MÉTODOS AUXILIARES (Sin cambios) ---
     private void mostrarNotificacionExito(String mensaje) {
         try {
+            // ... (código del Toast Pop-up) ...
             Stage toastStage = new Stage();
             toastStage.initStyle(StageStyle.TRANSPARENT);
             toastStage.setAlwaysOnTop(true);

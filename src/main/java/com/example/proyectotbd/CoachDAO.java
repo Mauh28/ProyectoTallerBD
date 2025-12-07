@@ -44,7 +44,7 @@ public class CoachDAO {
                             rs.getString("institucion_equipo"),
                             rs.getString("categoria_nivel"),
                             rs.getString("nombre_evento"),
-                            rs.getString("integrantes") // <--- AÑADIR ESTO AL CONSTRUCTOR
+                            rs.getString("integrantes")
                     ));
                 }
             }
@@ -52,11 +52,8 @@ public class CoachDAO {
         return lista;
     }
 
-    // 2. NUEVO MÉTODO para limpiar participantes (necesario para el modo edición)
+    // 2. MÉTODO para limpiar participantes (necesario para el modo edición)
     public void limpiarParticipantes(int equipoId) throws SQLException {
-        // Puedes crear este SP simple: DELETE FROM participante WHERE equipo_id = ?;
-        // O usar una consulta directa si tu restricción lo permite,
-        // pero mejor creamos un SP rápido:
         String sql = "{call SP_EliminarParticipantesPorEquipo(?)}";
         try (Connection conn = ConexionDB.getConnection();
              CallableStatement stmt = conn.prepareCall(sql)) {

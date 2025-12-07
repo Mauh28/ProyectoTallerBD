@@ -60,7 +60,7 @@ public class CoachMisEquiposController {
         // Configurar Sesión para Edición
         UserSession session = UserSession.getInstance();
 
-        // IMPORTANTE: Aquí se guarda el ID. Si getId() es 0, fallará en la siguiente pantalla.
+        // Aquí se guarda el ID. Si getId() es 0, fallará en la siguiente pantalla.
         session.setEquipoIdTemp(seleccionado.getId());
         session.setTempNombreEquipo(seleccionado.getNombre());
         session.setModoEdicion(true); // Activar bandera de edición
