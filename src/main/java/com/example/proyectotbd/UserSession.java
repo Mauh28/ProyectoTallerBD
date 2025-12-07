@@ -10,6 +10,9 @@ public class UserSession {
     private String username;
     private String nombreCompleto;
     private int equipoIdTemp;
+    // NUEVA VARIABLE
+    private boolean modoEdicion = false;
+    private int evaluacionIdTemp; // <--- AGREGAR ESTA VARIABLE
 
     // VARIABLES TEMPORALES PARA EL REGISTRO TRANSACCIONAL
     private int tempEventoId;
@@ -43,6 +46,17 @@ public class UserSession {
         tempCategoriaNombre = null;
         tempNombreEquipo = null;
         tempInstitucion = null;
+        modoEdicion = false;
+        evaluacionIdTemp = 0; // <--- AGREGAR ESTO PARA LIMPIAR
+    }
+
+    // --- MÉTODOS PARA EVALUACIÓN ---
+    public int getEvaluacionIdTemp() {
+        return evaluacionIdTemp;
+    }
+
+    public void setEvaluacionIdTemp(int evaluacionIdTemp) {
+        this.evaluacionIdTemp = evaluacionIdTemp;
     }
 
 
@@ -102,4 +116,7 @@ public class UserSession {
 
     public boolean isJuez() { return juez; }
     public void setJuez(boolean juez) { this.juez = juez; }
+
+    public boolean isModoEdicion() { return modoEdicion; }
+    public void setModoEdicion(boolean modoEdicion) { this.modoEdicion = modoEdicion; }
 }

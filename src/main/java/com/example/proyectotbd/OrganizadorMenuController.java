@@ -13,7 +13,7 @@ import java.io.IOException;
 public class OrganizadorMenuController {
 
     @FXML
-    public void handleSeleccionarEvento(ActionEvent event) {
+    public void handleAsignarJuez(ActionEvent event) {
         System.out.println("Ir a Lista de Eventos (Administrador)");
         // Aquí podrías reutilizar 'juez_evento-view.fxml' si quieres ver la misma lista,
         // o crear una nueva vista 'admin_lista_eventos.fxml' si el admin tiene botones de editar/borrar.

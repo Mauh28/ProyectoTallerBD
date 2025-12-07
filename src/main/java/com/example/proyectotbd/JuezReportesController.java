@@ -1,6 +1,5 @@
 package com.example.proyectotbd;
 
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -8,11 +7,13 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class JuezReportesController {
 
@@ -24,6 +25,11 @@ public class JuezReportesController {
     @FXML private TableColumn<ReporteJuezItem, String> colConst;
     @FXML private TableColumn<ReporteJuezItem, String> colTotal;
 
+    // Etiqueta para mensajes (opcional, si la agregas al FXML)
+    @FXML private Label lblMensaje;
+
+    private JuezDAO juezDao = new JuezDAO();
+
     @FXML
     public void initialize() {
         colEquipo.setCellValueFactory(new PropertyValueFactory<>("equipo"));
@@ -33,19 +39,26 @@ public class JuezReportesController {
         colConst.setCellValueFactory(new PropertyValueFactory<>("construc"));
         colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
 
-        // DATOS DE PRUEBA
-        ObservableList<ReporteJuezItem> datos = FXCollections.observableArrayList(
-                new ReporteJuezItem("Code Masters", "Secundaria", "10", "14", "15", "39"),
-                new ReporteJuezItem("Alpha Team", "Primaria", "8", "10", "12", "30"),
-                new ReporteJuezItem("Prepa Tec", "Preparatoria", "12", "15", "16", "43")
-        );
+        cargarDatos();
+    }
 
-        tablaReportes.setItems(datos);
+    private void cargarDatos() {
+        int juezId = UserSession.getInstance().getUserId();
+        try {
+            ObservableList<ReporteJuezItem> historial = juezDao.obtenerHistorial(juezId);
+            tablaReportes.setItems(historial);
+
+            if (historial.isEmpty()) {
+                // Si tienes un label de mensaje en el FXML:
+                if (lblMensaje != null) lblMensaje.setText("Aún no has realizado ninguna evaluación.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
     public void handleRegresar(ActionEvent event) {
-        // Regresa al Menú del Juez
         cambiarVista(event, "juez_menu.fxml");
     }
 
@@ -57,21 +70,5 @@ public class JuezReportesController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) { e.printStackTrace(); }
-    }
-
-    // Clase auxiliar para la tabla
-    public static class ReporteJuezItem {
-        private final String equipo, categoria, diseno, prog, construc, total;
-
-        public ReporteJuezItem(String e, String c, String d, String p, String co, String t) {
-            this.equipo = e; this.categoria = c; this.diseno = d;
-            this.prog = p; this.construc = co; this.total = t;
-        }
-        public String getEquipo() { return equipo; }
-        public String getCategoria() { return categoria; }
-        public String getDiseno() { return diseno; }
-        public String getProg() { return prog; }
-        public String getConstruc() { return construc; }
-        public String getTotal() { return total; }
     }
 }

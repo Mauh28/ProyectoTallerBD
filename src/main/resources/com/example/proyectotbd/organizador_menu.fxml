@@ -40,11 +40,13 @@
             <VBox alignment="CENTER" spacing="20.0">
                 <Label text="Operaciones de Gestión" textFill="#7f8c8d" style="-fx-font-weight: bold;"/>
                 <HBox alignment="CENTER" spacing="30.0">
-                    <Button onAction="#handleSeleccionarEvento" prefHeight="220.0" prefWidth="240.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0); -fx-cursor: hand; -fx-border-color: #2980b9; -fx-border-width: 0 0 6 0; -fx-border-radius: 15;">
+
+                    <Button onAction="#handleAsignarJuez" prefHeight="220.0" prefWidth="240.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0); -fx-cursor: hand; -fx-border-color: #2980b9; -fx-border-width: 0 0 6 0; -fx-border-radius: 15;">
                         <graphic>
                             <VBox alignment="CENTER" spacing="10.0">
-                                <Label text="📅" textFill="#2980b9"> <font> <Font size="50.0" /> </font> </Label>
-                                <Label text="SELECCIONAR EVENTO" textFill="#2980b9" wrapText="true" textAlignment="CENTER"> <font> <Font name="System Bold" size="16.0" /> </font> </Label>
+                                <Label text="⚖️" textFill="#2980b9"> <font> <Font size="50.0" /> </font> </Label>
+                                <Label text="ASIGNAR JUEZ" textFill="#2980b9" wrapText="true" textAlignment="CENTER"> <font> <Font name="System Bold" size="16.0" /> </font> </Label>
+                                <Label text="Vincular juez a categoría" textFill="#95a5a6" />
                             </VBox>
                         </graphic>
                     </Button>

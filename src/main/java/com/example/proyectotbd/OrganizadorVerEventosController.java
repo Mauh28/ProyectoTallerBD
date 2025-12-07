@@ -20,6 +20,7 @@ public class OrganizadorVerEventosController {
     @FXML private TableColumn<EventoItem, String> colNombre;
     @FXML private TableColumn<EventoItem, String> colLugar;
     @FXML private TableColumn<EventoItem, String> colFecha;
+    @FXML private TableColumn<EventoItem, String> colJueces; // Nueva referencia
 
     private OrganizadorDAO dao = new OrganizadorDAO();
 
@@ -30,7 +31,7 @@ public class OrganizadorVerEventosController {
         colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
         colLugar.setCellValueFactory(new PropertyValueFactory<>("lugar"));
         colFecha.setCellValueFactory(new PropertyValueFactory<>("fecha"));
-
+        colJueces.setCellValueFactory(new PropertyValueFactory<>("jueces"));
         cargarEventos();
     }
 

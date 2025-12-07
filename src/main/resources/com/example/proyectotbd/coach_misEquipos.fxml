@@ -28,15 +28,23 @@
         <VBox spacing="20.0" style="-fx-padding: 40;">
             <TableView fx:id="tablaEquipos" VBox.vgrow="ALWAYS" style="-fx-background-color: white; -fx-background-radius: 5;">
                 <columns>
-                    <TableColumn fx:id="colNombre" text="NOMBRE DEL EQUIPO" prefWidth="300.0"/>
-                    <TableColumn fx:id="colInstitucion" text="INSTITUCIÓN" prefWidth="300.0"/>
-                    <TableColumn fx:id="colCategoria" text="CATEGORÍA" prefWidth="200.0"/>
-                    <TableColumn fx:id="colEvento" text="EVENTO INSCRITO" prefWidth="300.0"/>
+                    <TableColumn fx:id="colNombre" text="NOMBRE DEL EQUIPO" prefWidth="200.0"/>
+                    <TableColumn fx:id="colInstitucion" text="INSTITUCIÓN" prefWidth="200.0"/>
+                    <TableColumn fx:id="colCategoria" text="CATEGORÍA" prefWidth="150.0"/>
+                    <TableColumn fx:id="colEvento" text="EVENTO" prefWidth="200.0"/>
+                    <TableColumn fx:id="colIntegrantes" text="INTEGRANTES" prefWidth="350.0"/>
                 </columns>
                 <columnResizePolicy>
                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                 </columnResizePolicy>
             </TableView>
+            <HBox alignment="CENTER_RIGHT" spacing="15.0">
+                <Button text="✏️ EDITAR SELECCIONADO" onAction="#handleEditar"
+                        style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 5;"/>
+
+                <Button text="🗑️ BORRAR EQUIPO" onAction="#handleBorrar"
+                        style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 5;"/>
+            </HBox>
         </VBox>
     </center>
 </BorderPane>

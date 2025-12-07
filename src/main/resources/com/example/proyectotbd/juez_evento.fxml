@@ -5,7 +5,6 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -89,59 +88,6 @@
             <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
                 <content>
                     <VBox fx:id="vboxListaEventos" spacing="15.0" style="-fx-padding: 5;">
-
-                        <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20;">
-                            <effect>
-                                <DropShadow color="#0000001a" radius="5" offsetY="2" />
-                            </effect>
-
-                            <Label text="Feria de Ciencias Estatal 2025" textFill="#2c3e50" prefWidth="400.0" wrapText="true">
-                                <font>
-                                    <Font name="System Bold" size="18.0" />
-                                </font>
-                            </Label>
-
-                            <Label text="Auditorio Municipal" textFill="#7f8c8d" prefWidth="250.0" wrapText="true">
-                                <font>
-                                    <Font size="14.0" />
-                                </font>
-                            </Label>
-
-                            <Label text="2025-11-15" textFill="#2980b9" prefWidth="150.0" style="-fx-font-weight: bold;"/>
-
-                            <Region HBox.hgrow="ALWAYS" />
-
-                            <Button text="SELECCIONAR"
-                                    onAction="#handleSeleccionarEvento"
-                                    style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5; -fx-padding: 10 25;"/>
-                        </HBox>
-
-                        <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20;">
-                            <effect>
-                                <DropShadow color="#0000001a" radius="5" offsetY="2" />
-                            </effect>
-
-                            <Label text="Torneo de Robótica - Fase 1" textFill="#2c3e50" prefWidth="400.0" wrapText="true">
-                                <font>
-                                    <Font name="System Bold" size="18.0" />
-                                </font>
-                            </Label>
-
-                            <Label text="Gimnasio Tech" textFill="#7f8c8d" prefWidth="250.0" wrapText="true">
-                                <font>
-                                    <Font size="14.0" />
-                                </font>
-                            </Label>
-
-                            <Label text="2025-12-01" textFill="#2980b9" prefWidth="150.0" style="-fx-font-weight: bold;"/>
-
-                            <Region HBox.hgrow="ALWAYS" />
-
-                            <Button text="SELECCIONAR"
-                                    onAction="#handleSeleccionarEvento"
-                                    style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5; -fx-padding: 10 25;"/>
-                        </HBox>
-
                     </VBox>
                 </content>
             </ScrollPane>

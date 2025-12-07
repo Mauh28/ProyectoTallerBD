@@ -121,7 +121,8 @@ public class OrganizadorDAO {
                         rs.getInt("evento_id"),
                         rs.getString("nombre_evento"),
                         rs.getString("lugar"),
-                        rs.getDate("fecha").toString()
+                        rs.getDate("fecha").toString(),
+                        rs.getString("lista_jueces") // <--- NUEVA COLUMNA
                 ));
             }
         }
