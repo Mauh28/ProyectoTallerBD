@@ -1,48 +1,198 @@
-/* estilos.css */
+/* =============================================================================
+   ESTILOS GENERALES Y PALETA DE COLORES
+   Azul Oscuro (Header): #2c3e50
+   Azul Brillante (Acción): #2980b9
+   Verde (Éxito): #27ae60
+   Rojo (Peligro): #e74c3c
+   Naranja (Alerta): #e67e22
+   Fondo General: #f4f6f8
+   ============================================================================= */
 
-/* 1. Fondo del encabezado de las pestañas (transparente para que se vea limpio) */
+.root {
+    -fx-font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+    -fx-background-color: #f4f6f8;
+}
+
+/* =============================================================================
+   ESTILOS PARA TABLEVIEW (TABLAS)
+   ============================================================================= */
+
+/* Fondo de la tabla */
+.table-view {
+    -fx-background-color: white;
+    -fx-table-cell-border-color: transparent;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+}
+
+/* Cabecera de columnas (Header) */
+.table-view .column-header-background {
+    -fx-background-color: #2c3e50; /* Azul oscuro */
+    -fx-background-radius: 5px 5px 0 0;
+    -fx-padding: 5px;
+}
+
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: transparent;
+    -fx-size: 45px; /* Altura del encabezado */
+    -fx-border-color: transparent;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+/* Filas de la tabla */
+.table-row-cell {
+    -fx-background-color: white;
+    -fx-border-color: transparent transparent #ecf0f1 transparent; /* Línea separadora sutil */
+    -fx-padding: 5px 0;
+}
+
+/* Filas impares (Efecto cebra opcional, aquí lo dejo blanco limpio o gris muy suave) */
+.table-row-cell:odd {
+    -fx-background-color: #fdfdfd;
+}
+
+/* Fila seleccionada */
+.table-view:focused .table-row-cell:filled:focused:selected,
+.table-row-cell:filled:selected {
+    -fx-background-color: #eaf2f8; /* Azul muy clarito */
+    -fx-background-insets: 0;
+}
+
+.table-view:focused .table-row-cell:filled:focused:selected .text,
+.table-row-cell:filled:selected .text {
+    -fx-fill: #2980b9; /* Texto azul brillante al seleccionar */
+    -fx-font-weight: bold;
+}
+
+/* Texto de las celdas vacío */
+.table-view .placeholder .label {
+    -fx-text-fill: #95a5a6;
+    -fx-font-size: 14px;
+}
+
+/* Barras de desplazamiento de la tabla */
+.table-view .scroll-bar:vertical,
+.scroll-pane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+}
+.table-view .scroll-bar:vertical .thumb,
+.scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #bdc3c7;
+    -fx-background-radius: 10px;
+}
+
+/* =============================================================================
+   ESTILOS PARA COMBOBOX Y DATEPICKER
+   ============================================================================= */
+
+.combo-box, .date-picker {
+    -fx-background-color: white;
+    -fx-border-color: #bdc3c7;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-padding: 2px;
+}
+
+.combo-box:focused, .date-picker:focused, .text-field:focused {
+    -fx-border-color: #2980b9; /* Borde azul al hacer clic */
+    -fx-background-color: white;
+}
+
+.combo-box .list-cell {
+    -fx-background-color: white;
+    -fx-text-fill: #2c3e50;
+}
+
+.combo-box-popup .list-view .list-cell:filled:selected,
+.combo-box-popup .list-view .list-cell:filled:hover {
+    -fx-background-color: #2980b9;
+    -fx-text-fill: white;
+}
+
+/* =============================================================================
+   ESTILOS PARA PESTAÑAS (TABS) - Manteniendo lo que tenías
+   ============================================================================= */
 .tab-pane .tab-header-area .tab-header-background {
     -fx-background-color: transparent;
 }
 
-/* 2. Estilo base de cada Pestaña (Tab) */
 .tab {
     -fx-background-color: transparent;
-    -fx-background-insets: 0;
-    -fx-background-radius: 0;
-    -fx-border-color: transparent transparent #e0e0e0 transparent; /* Línea gris suave abajo */
-    -fx-border-width: 0 0 2 0; /* Grosor de la línea */
+    -fx-border-color: transparent transparent #e0e0e0 transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-padding: 10 20 10 20;
     -fx-cursor: hand;
-    -fx-padding: 10 20 10 20; /* Espacio interno */
 }
 
-/* 3. Texto de la pestaña inactiva */
 .tab .tab-label {
-    -fx-text-fill: #95a5a6; /* Gris */
+    -fx-text-fill: #95a5a6;
     -fx-font-size: 14px;
     -fx-font-weight: bold;
 }
 
-/* 4. Estilo cuando la pestaña está SELECCIONADA */
 .tab:selected {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent transparent #2980b9 transparent; /* Línea AZUL activa */
-    -fx-border-width: 0 0 4 0; /* Línea más gruesa */
+    -fx-border-color: transparent transparent #2980b9 transparent;
+    -fx-border-width: 0 0 4 0;
 }
 
-/* 5. Texto de la pestaña seleccionada */
 .tab:selected .tab-label {
-    -fx-text-fill: #2c3e50; /* Azul oscuro */
+    -fx-text-fill: #2c3e50;
 }
 
-/* 6. Efecto al pasar el mouse por encima (Hover) */
 .tab:hover {
-    -fx-background-color: #f4f6f8;
+    -fx-background-color: rgba(41, 128, 185, 0.05);
 }
 
-/* 7. Eliminar el borde del contenido */
 .tab-content-area {
     -fx-background-color: white;
-    -fx-border-color: transparent;
     -fx-padding: 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 2);
+}
+
+/* =============================================================================
+   CLASES DE UTILIDAD PARA BOTONES (Opcional si quieres limpiar tus FXML)
+   ============================================================================= */
+.btn-primary {
+    -fx-background-color: #2980b9;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-radius: 5px;
+}
+.btn-primary:hover { -fx-background-color: #2471a3; }
+
+.btn-success {
+    -fx-background-color: #27ae60;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-radius: 5px;
+}
+.btn-success:hover { -fx-background-color: #229954; }
+
+.btn-danger {
+    -fx-background-color: #e74c3c;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-radius: 5px;
+}
+.btn-danger:hover { -fx-background-color: #c0392b; }
+
+/* Clase específica para forzar textos gigantes en los menús */
+.texto-gigante {
+    -fx-font-size: 70px !important; /* !important fuerza la prioridad */
+    -fx-font-family: "Segoe UI Emoji", "Segoe UI Symbol", "Symbola", "Quivira", "Segoe UI", sans-serif;
+}
+
+.titulo-menu {
+    -fx-font-size: 24px !important;
+    -fx-font-weight: bold;
 }

@@ -16,21 +16,24 @@
 <BorderPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.example.proyectotbd.JuezEvaluacionController"
-            stylesheets="@estilos.css"
             prefHeight="720.0" prefWidth="1280.0"
             style="-fx-background-color: #f4f6f8;">
 
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #2c3e50; -fx-padding: 15 25;">
+        <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-background-color: #2c3e50; -fx-padding: 15 25;">
             <Button text="← Cancelar"
                     onAction="#handleRegresar"
+                    style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
+
+            <Button text="🏠 Menú Principal"
+                    onAction="#handleIrAlMenu"
                     style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
 
             <VBox>
                 <Label text="Evaluación de Equipo" textFill="WHITE">
                     <font> <Font name="System Bold" size="20.0" /> </font>
                 </Label>
-                <Label fx:id="lblNombreEquipo" text="Nombre del Equipo Seleccionado" textFill="#bdc3c7">
+                <Label fx:id="lblNombreEquipo" text="Nombre del Equipo" textFill="#bdc3c7">
                     <font> <Font size="14.0" /> </font>
                 </Label>
             </VBox>

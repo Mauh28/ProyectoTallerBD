@@ -11,6 +11,10 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import java.io.IOException;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class LoginAdminController {
 
@@ -18,17 +22,42 @@ public class LoginAdminController {
     @FXML private PasswordField txtPassword;
     @FXML private Label lblError;
 
+// LoginAdminController.java
+
     @FXML
     public void handleAdminLogin(ActionEvent event) {
         String usuario = txtUsuario.getText();
+        String password = txtPassword.getText();
 
-        // SIMULACIÓN SIN BASE DE DATOS
-        // Si el usuario escribe "admin", entra.
-        if (usuario.equals("admin")) {
-            System.out.println("Login Admin Correcto (Simulado)");
-            cambiarVista(event, "organizador_menu.fxml");
-        } else {
-            lblError.setText("Credenciales incorrectas. Prueba con usuario: 'admin'");
+        if (usuario.isEmpty() || password.isEmpty()) {
+            lblError.setText("Por favor, ingrese usuario y clave de acceso.");
+            lblError.setVisible(true);
+            return;
+        }
+
+        String sql = "{call SP_AutenticarAdmin(?, ?)}";
+
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
+            stmt.setString(1, usuario);
+            stmt.setString(2, password);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int adminId = rs.getInt("admin_id");
+
+                    // NOTA: Guardar datos mínimos en una sesión (si es necesario)
+                    // UserSession.getInstance().setUserId(adminId);
+
+                    System.out.println("Login Admin Correcto. ID: " + adminId);
+                    cambiarVista(event, "organizador_menu.fxml");
+                }
+            }
+        } catch (SQLException e) {
+            // Capturamos el mensaje de error de 'SIGNAL SQLSTATE'
+            e.printStackTrace();
+            lblError.setText(e.getMessage());
             lblError.setVisible(true);
         }
     }

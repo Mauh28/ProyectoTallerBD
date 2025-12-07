@@ -339,4 +339,15 @@ public class CoachRegistroIntegrantesController {
             stage.show();
         } catch (IOException e) { e.printStackTrace(); }
     }
+
+    @FXML
+    public void handleIrAlMenu(ActionEvent event) {
+        // Limpiamos la sesión para evitar datos basura en el próximo intento
+        UserSession.getInstance().setTempNombreEquipo(null);
+        UserSession.getInstance().setTempInstitucion(null);
+        UserSession.getInstance().setModoEdicion(false);
+
+        cambiarVista(event, "coach_menu.fxml");
+    }
+
 }

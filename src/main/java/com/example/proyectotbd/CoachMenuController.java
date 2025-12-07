@@ -79,9 +79,17 @@ public class CoachMenuController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
             Parent root = loader.load();
+
+            // Obtener el Stage (ventana) actual
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root));
+
+            // Crear nueva escena SIN estilos extra
+            Scene scene = new Scene(root);
+
+            stage.setScene(scene);
             stage.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

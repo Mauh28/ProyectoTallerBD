@@ -150,4 +150,10 @@ public class JuezEvaluacionController {
             stage.show();
         } catch (IOException e) { e.printStackTrace(); }
     }
+
+    @FXML
+    public void handleIrAlMenu(ActionEvent event) {
+        // Salir directamente al menú principal
+        cambiarVista(event, "juez_menu.fxml");
+    }
 }

@@ -188,4 +188,9 @@ public class JuezEquiposUnificadoController {
             stage.show();
         } catch (IOException e) { e.printStackTrace(); }
     }
+
+    @FXML
+    public void handleIrAlMenu(ActionEvent event) {
+        cambiarVista(event, "juez_menu.fxml");
+    }
 }

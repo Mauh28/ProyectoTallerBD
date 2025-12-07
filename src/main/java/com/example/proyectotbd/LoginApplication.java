@@ -12,6 +12,13 @@ public class LoginApplication extends Application {
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(LoginApplication.class.getResource("login.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
+
+        // --- AGREGAR ESTA LÍNEA ---
+        // Carga el CSS globalmente para la primera escena
+        //String css = this.getClass().getResource("estilos.css").toExternalForm();
+        //scene.getStylesheets().add(css);
+        // --------------------------
+
         stage.setTitle("Sistema de Gestion VexRobotics");
         stage.setWidth(1280);
         stage.setHeight(720);
@@ -19,5 +26,7 @@ public class LoginApplication extends Application {
         stage.setMinHeight(600);
         stage.setScene(scene);
         stage.show();
+
+
     }
 }

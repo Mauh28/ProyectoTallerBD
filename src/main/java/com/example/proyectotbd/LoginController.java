@@ -27,14 +27,11 @@ public class LoginController {
         String usuario = txtUsuario.getText();
         String pass = txtPassword.getText();
 
-        // 1. Validación básica de campos vacíos
         if (usuario.isEmpty() || pass.isEmpty()) {
             mostrarMensaje("Por favor ingresa usuario y contraseña.", true);
             return;
         }
 
-        // 2. LLAMADA AL PROCEDIMIENTO ALMACENADO
-        // El SP valida password y estado activo internamente.
         String sql = "{call SP_AutenticarUsuario(?, ?)}";
 
         try (Connection conn = ConexionDB.getConnection();
@@ -43,8 +40,6 @@ public class LoginController {
             stmt.setString(1, usuario);
             stmt.setString(2, pass);
 
-            // Ejecutamos. Si las credenciales son malas, el SP lanza un error (SQLException)
-            // Si son buenas, nos devuelve los datos del usuario.
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
@@ -53,21 +48,18 @@ public class LoginController {
                 boolean esCoach = rs.getBoolean("coach");
                 boolean esJuez = rs.getBoolean("juez");
 
-                // B. GUARDAR EN SESIÓN (ACTUALIZADO)
+                // DEBUG: Ver en consola qué detectó
+                System.out.println("Usuario: " + nombre + " | Coach: " + esCoach + " | Juez: " + esJuez);
+
                 UserSession.getInstance().cleanUserSession();
                 UserSession.getInstance().setUserId(id);
                 UserSession.getInstance().setUsername(usuario);
                 UserSession.getInstance().setNombreCompleto(nombre);
-
-                // Guardamos los permisos
                 UserSession.getInstance().setCoach(esCoach);
                 UserSession.getInstance().setJuez(esJuez);
 
-                System.out.println("Login Exitoso: " + nombre);
-
-                // C. REDIRECCIONAR SEGÚN ROL
+                // LÓGICA DE REDIRECCIÓN
                 if (esCoach && esJuez) {
-                    // Usuario Híbrido
                     cambiarVista(event, "usuario_mixto.fxml");
                 } else if (esJuez) {
                     cambiarVista(event, "juez_menu.fxml");
@@ -79,9 +71,6 @@ public class LoginController {
             }
 
         } catch (SQLException e) {
-            // Aquí capturamos los mensajes que pusiste en el SP:
-            // "Error de inicio de sesión: Nombre de usuario o contraseña incorrectos."
-            // "Error de inicio de sesión: La cuenta está inactiva..."
             e.printStackTrace();
             mostrarMensaje(e.getMessage(), true);
         }
@@ -92,20 +81,9 @@ public class LoginController {
         cambiarVista(event, "login_admin.fxml");
     }
 
-    // Este método ya no se usa en la vista actual, pero lo dejamos por si acaso
-    @FXML
-    public void handleGoToRegister(ActionEvent event) {
-        cambiarVista(event, "register_selection.fxml");
-    }
-
-    // Método auxiliar para mensajes de error
     private void mostrarMensaje(String mensaje, boolean esError) {
         lblError.setText(mensaje);
-        if (esError) {
-            lblError.setStyle("-fx-text-fill: #e74c3c;"); // Rojo
-        } else {
-            lblError.setStyle("-fx-text-fill: #27ae60;"); // Verde
-        }
+        lblError.setStyle(esError ? "-fx-text-fill: #e74c3c;" : "-fx-text-fill: #27ae60;");
         lblError.setVisible(true);
     }
 
@@ -113,12 +91,17 @@ public class LoginController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
             Parent root = loader.load();
+
+            // Obtener el Stage (ventana) actual
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root));
+
+            // Crear nueva escena SIN estilos extra
+            Scene scene = new Scene(root);
+
+            stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Error al cargar: " + fxml);
         }
     }
 }

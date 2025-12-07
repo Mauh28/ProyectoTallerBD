@@ -13,6 +13,7 @@
 <BorderPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.example.proyectotbd.CoachMenuController"
+            stylesheets="@estilos.css"
             prefHeight="720.0" prefWidth="1280.0"
             style="-fx-background-color: #f4f6f8;">
 
@@ -53,12 +54,8 @@
                         style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 0); -fx-cursor: hand; -fx-border-color: #e67e22; -fx-border-width: 0 0 8 0; -fx-border-radius: 20;">
                     <graphic>
                         <VBox alignment="CENTER" spacing="10.0">
-                            <Label text="📝" textFill="#e67e22">
-                                <font> <Font size="60.0" /> </font>
-                            </Label>
-                            <Label text="REGISTRAR EQUIPO" textFill="#e67e22" wrapText="true" textAlignment="CENTER">
-                                <font> <Font name="System Bold" size="22.0" /> </font>
-                            </Label>
+                            <Label text="📝" textFill="#e67e22" style="-fx-font-size: 60px;" />
+                            <Label text="REGISTRAR EQUIPO" textFill="#e67e22" wrapText="true" textAlignment="CENTER" style="-fx-font-size: 22px; -fx-font-weight: bold;" />
                             <Label text="Inscribir nuevo equipo al torneo" textFill="#95a5a6" />
                         </VBox>
                     </graphic>
@@ -70,12 +67,8 @@
                         style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 0); -fx-cursor: hand; -fx-border-color: #2980b9; -fx-border-width: 0 0 8 0; -fx-border-radius: 20;">
                     <graphic>
                         <VBox alignment="CENTER" spacing="10.0">
-                            <Label text="📊" textFill="#2980b9">
-                                <font> <Font size="60.0" /> </font>
-                            </Label>
-                            <Label text="VER MIS EQUIPOS" textFill="#2980b9" wrapText="true" textAlignment="CENTER">
-                                <font> <Font name="System Bold" size="22.0" /> </font>
-                            </Label>
+                            <Label text="📊" textFill="#2980b9" style="-fx-font-size: 60px;" />
+                            <Label text="VER MIS EQUIPOS" textFill="#2980b9" wrapText="true" textAlignment="CENTER" style="-fx-font-size: 22px; -fx-font-weight: bold;" />
                             <Label text="Consultar estado y resultados" textFill="#95a5a6" />
                         </VBox>
                     </graphic>

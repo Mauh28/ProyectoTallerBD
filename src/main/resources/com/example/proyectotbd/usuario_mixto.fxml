@@ -54,12 +54,8 @@
                         style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 0); -fx-cursor: hand; -fx-border-color: #e67e22; -fx-border-width: 0 0 8 0; -fx-border-radius: 20;">
                     <graphic>
                         <VBox alignment="CENTER" spacing="15.0">
-                            <Label text="📋" textFill="#e67e22">
-                                <font> <Font size="70.0" /> </font>
-                            </Label>
-                            <Label text="MODO COACH" textFill="#e67e22" wrapText="true" textAlignment="CENTER">
-                                <font> <Font name="System Bold" size="24.0" /> </font>
-                            </Label>
+                            <Label text="📋" textFill="#e67e22" style="-fx-font-size: 70px;" />
+                            <Label text="MODO COACH" textFill="#e67e22" wrapText="true" textAlignment="CENTER" style="-fx-font-size: 24px; -fx-font-weight: bold;" />
                             <Label text="Registrar equipos y alumnos" textFill="#95a5a6" />
                         </VBox>
                     </graphic>
@@ -70,12 +66,8 @@
                         style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 0); -fx-cursor: hand; -fx-border-color: #27ae60; -fx-border-width: 0 0 8 0; -fx-border-radius: 20;">
                     <graphic>
                         <VBox alignment="CENTER" spacing="15.0">
-                            <Label text="⚖️" textFill="#27ae60">
-                                <font> <Font size="70.0" /> </font>
-                            </Label>
-                            <Label text="MODO JUEZ" textFill="#27ae60" wrapText="true" textAlignment="CENTER">
-                                <font> <Font name="System Bold" size="24.0" /> </font>
-                            </Label>
+                            <Label text="⚖️" textFill="#27ae60" style="-fx-font-size: 70px;" />
+                            <Label text="MODO JUEZ" textFill="#27ae60" wrapText="true" textAlignment="CENTER" style="-fx-font-size: 24px; -fx-font-weight: bold;" />
                             <Label text="Evaluar proyectos y asignar puntos" textFill="#95a5a6" />
                         </VBox>
                     </graphic>

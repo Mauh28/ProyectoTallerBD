@@ -1,5 +1,6 @@
 package com.example.proyectotbd;
-
+import javafx.scene.control.Alert; // <--- ESTA ES LA QUE TE FALTA
+import javafx.scene.control.ButtonType;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -33,12 +34,17 @@ public class UsuarioMixtoController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
             Parent root = loader.load();
+
+            // Obtener el Stage (ventana) actual
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root));
+
+            // Crear nueva escena SIN estilos extra
+            Scene scene = new Scene(root);
+
+            stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Error al cargar: " + fxml);
         }
     }
 }

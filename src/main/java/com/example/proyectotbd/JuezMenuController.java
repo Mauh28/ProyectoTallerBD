@@ -53,26 +53,18 @@ public class JuezMenuController {
 
 
 
-    // Método auxiliar para navegación
     private void cambiarVista(ActionEvent event, String fxml) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
             Parent root = loader.load();
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
-    // Método especial para cuando el evento viene de un MenuItem
-    private void cambiarVistaDesdeBoton(Button botonReferencia, String fxml) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
-            Parent root = loader.load();
-            Stage stage = (Stage) botonReferencia.getScene().getWindow();
-            stage.setScene(new Scene(root));
+            // Obtener el Stage (ventana) actual
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+
+            // Crear nueva escena SIN estilos extra
+            Scene scene = new Scene(root);
+
+            stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
