@@ -20,7 +20,7 @@ import java.sql.Types;
 public class CoachRegistroEquipoController {
 
     @FXML private TextField txtNombreEquipo;
-    @FXML private TextField txtInstitucion;
+    // @FXML private TextField txtInstitucion;
     @FXML private Label lblMensaje;
 
     @FXML private ComboBox<OpcionCombo> cbEventos;
@@ -50,7 +50,7 @@ public class CoachRegistroEquipoController {
 
         // 1. Restaurar Texto
         if (session.getTempNombreEquipo() != null) txtNombreEquipo.setText(session.getTempNombreEquipo());
-        if (session.getTempInstitucion() != null) txtInstitucion.setText(session.getTempInstitucion());
+        // if (session.getTempInstitucion() != null) txtInstitucion.setText(session.getTempInstitucion());
 
         // 2. Restaurar Categoría (Visual y Lógica)
         if (session.getTempCategoriaNombre() != null) {
@@ -93,12 +93,11 @@ public class CoachRegistroEquipoController {
     public void handleContinuar(ActionEvent event) {
         OpcionCombo eventoSeleccionado = cbEventos.getValue();
         String nombre = txtNombreEquipo.getText();
-        String institucion = txtInstitucion.getText();
 
         // 1. Validaciones Visuales
         if (eventoSeleccionado == null) { mostrarMensaje("Selecciona un evento.", true); return; }
         if (categoriaTexto == null) { mostrarMensaje("Selecciona una categoría.", true); return; }
-        if (nombre.isEmpty() || institucion.isEmpty()) { mostrarMensaje("Llena todos los campos.", true); return; }
+        if (nombre.isEmpty()) { mostrarMensaje("Escribe el nombre del equipo.", true); return; } // <--- CAMBIO
 
         // 2. VALIDACIÓN EN BD (Sin Insertar)
         // Usamos la nueva Función FN_VerificarDisponibilidadEquipo
@@ -126,7 +125,12 @@ public class CoachRegistroEquipoController {
             session.setTempCategoriaId(categoriaId);
             session.setTempCategoriaNombre(categoriaTexto);
             session.setTempNombreEquipo(nombre);
-            session.setTempInstitucion(institucion);
+
+            // --- CAMBIO IMPORTANTE ---
+            // Tomamos la institución del perfil del usuario logueado
+            session.setTempInstitucion(session.getInstitucionUsuario());
+            // -------------------------
+            System.out.println("Institución asignada automáticamente: " + session.getInstitucionUsuario());
 
             System.out.println("Datos guardados en memoria. Pasando a integrantes...");
             cambiarVista(event, "coach_registroIntegrantes.fxml");

@@ -11,6 +11,8 @@ public class UserSession {
     private String nombreCompleto;
     private boolean coach;
     private boolean juez;
+    // --- NUEVO CAMPO ---
+    private String institucionUsuario;
 
     // --- CAMPOS TEMPORALES DEL COACH (Registro/Edición de Equipo) ---
     private int equipoIdTemp;
@@ -63,6 +65,8 @@ public class UserSession {
         idDisenoTemp = 0;         // Limpieza de campos de Juez
         idProgramacionTemp = 0;   // Limpieza de campos de Juez
         idConstruccionTemp = 0;   // Limpieza de campos de Juez
+
+        institucionUsuario = null; // <--- Limpiarlo
     }
 
     // =================================================================
@@ -121,4 +125,7 @@ public class UserSession {
 
     public int getIdConstruccionTemp() { return idConstruccionTemp; }
     public void setIdConstruccionTemp(int idConstruccionTemp) { this.idConstruccionTemp = idConstruccionTemp; }
+
+    public String getInstitucionUsuario() { return institucionUsuario; }
+    public void setInstitucionUsuario(String institucionUsuario) { this.institucionUsuario = institucionUsuario; }
 }

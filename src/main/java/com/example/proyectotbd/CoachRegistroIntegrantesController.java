@@ -210,13 +210,13 @@ public class CoachRegistroIntegrantesController {
                 // --- BLOQUE A: CREACIÓN (Solo si NO es edición) ---
                 if (!esEdicion) {
                     // 1. Crear Equipo
-                    String sqlEquipo = "{call SP_NombreEquipoExiste(?, ?, ?, ?)}";
+                    String sqlEquipo = "{call SP_NombreEquipoExiste(?, ?, ?)}";
                     int nuevoEquipoId = 0;
                     try (CallableStatement stmtEq = conn.prepareCall(sqlEquipo)) {
                         stmtEq.setInt(1, session.getUserId());
                         stmtEq.setString(2, session.getTempCategoriaNombre());
                         stmtEq.setString(3, session.getTempNombreEquipo());
-                        stmtEq.setString(4, session.getTempInstitucion());
+                        // stmtEq.setString(4, session.getTempInstitucion());
 
                         if (stmtEq.execute()) {
                             try (ResultSet rs = stmtEq.getResultSet()) {

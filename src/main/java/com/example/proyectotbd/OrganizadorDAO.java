@@ -112,11 +112,14 @@ public class OrganizadorDAO {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
+                    // CORRECCIÓN CLAVE: Se añade el quinto argumento (0)
+                    // para el nuevo campo 'conteoJueces' requerido por EquipoItem.
                     lista.add(new EquipoItem(
                             rs.getInt("equipo_id"),
                             rs.getString("nombre_equipo"),
                             rs.getString("institucion_equipo"),
-                            rs.getString("estado_inscripcion")
+                            rs.getString("estado_inscripcion"),
+                            0 // <-- Conteo inicializado a 0
                     ));
                 }
             }

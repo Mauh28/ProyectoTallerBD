@@ -45,6 +45,7 @@ public class LoginController {
             if (rs.next()) {
                 int id = rs.getInt("usuario_id");
                 String nombre = rs.getString("nombre");
+                String institucion = rs.getString("institucion"); // <--- OBTENER DE LA BD
                 boolean esCoach = rs.getBoolean("coach");
                 boolean esJuez = rs.getBoolean("juez");
 
@@ -55,6 +56,8 @@ public class LoginController {
                 UserSession.getInstance().setUserId(id);
                 UserSession.getInstance().setUsername(usuario);
                 UserSession.getInstance().setNombreCompleto(nombre);
+                // --- GUARDAR EN SESIÓN ---
+                UserSession.getInstance().setInstitucionUsuario(institucion);
                 UserSession.getInstance().setCoach(esCoach);
                 UserSession.getInstance().setJuez(esJuez);
 

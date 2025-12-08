@@ -71,11 +71,6 @@
                         <Label text="3. NOMBRE DEL EQUIPO" textFill="#7f8c8d" style="-fx-font-weight:bold; -fx-font-size: 12;"/>
                         <TextField fx:id="txtNombreEquipo" promptText="Ej: RobotiX Alpha" prefHeight="40.0" style="-fx-background-color: #f4f6f8; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
                     </VBox>
-
-                    <VBox spacing="5.0" HBox.hgrow="ALWAYS">
-                        <Label text="INSTITUCIÓN" textFill="#7f8c8d" style="-fx-font-weight:bold; -fx-font-size: 12;"/>
-                        <TextField fx:id="txtInstitucion" promptText="Ej: Tec de Monterrey" prefHeight="40.0" style="-fx-background-color: #f4f6f8; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
-                    </VBox>
                 </HBox>
 
                 <Label fx:id="lblMensaje" visible="false" wrapText="true" style="-fx-font-weight: bold;"/>
