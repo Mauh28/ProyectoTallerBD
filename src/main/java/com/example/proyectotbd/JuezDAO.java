@@ -10,6 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class JuezDAO {
 
@@ -23,7 +25,7 @@ public class JuezDAO {
             stmt.setInt(2, eventoId);
             stmt.setInt(3, juezId);
 
-            try(ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     // Capturamos los 4 IDs que devuelve el SP
                     return new EvaluacionIds(
@@ -42,6 +44,7 @@ public class JuezDAO {
     public static class EvaluacionIds {
         public int evaluacionId;
         public int idDiseno, idProg, idConst;
+
         public EvaluacionIds(int evalId, int d, int p, int c) {
             this.evaluacionId = evalId;
             this.idDiseno = d;
@@ -130,20 +133,24 @@ public class JuezDAO {
     // Clase interna para transportar los 3 IDs
     public static class IdsAreas {
         public int idDiseno, idProg, idConst;
-        public IdsAreas(int d, int p, int c) { this.idDiseno=d; this.idProg=p; this.idConst=c; }
+
+        public IdsAreas(int d, int p, int c) {
+            this.idDiseno = d;
+            this.idProg = p;
+            this.idConst = c;
+        }
     }
 
-    public ObservableList<EquipoItem> obtenerEquiposPorEventoYCategoria(int eventoId, String categoriaNombre) throws SQLException {
+    public ObservableList<EquipoItem> obtenerEquiposPorEventoYCategoria(int eventoId, String categoriaNombre, int juezId) throws SQLException {
         ObservableList<EquipoItem> lista = FXCollections.observableArrayList();
-
-        // Llamada al procedimiento que acabamos de crear
-        String sql = "{call SP_ListarEquiposPorCategoria(?, ?)}";
+        String sql = "{call SP_ListarEquiposPorCategoria(?, ?, ?)}";
 
         try (Connection conn = ConexionDB.getConnection();
              CallableStatement stmt = conn.prepareCall(sql)) {
 
             stmt.setInt(1, eventoId);
             stmt.setString(2, categoriaNombre);
+            stmt.setInt(3, juezId);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -151,7 +158,8 @@ public class JuezDAO {
                             rs.getInt("equipo_id"),
                             rs.getString("nombre_equipo"),
                             rs.getString("institucion_equipo"),
-                            rs.getString("estado_evaluacion") // Retorna "EVALUADO" o "PENDIENTE"
+                            rs.getString("estado_evaluacion"),
+                            rs.getInt("conteo_jueces") // <--- LEER EL NUEVO DATO
                     ));
                 }
             }
@@ -209,5 +217,26 @@ public class JuezDAO {
             }
         }
         return lista;
+    }
+
+    public List<String> obtenerCategoriasAsignadas(int juezId, int eventoId) throws SQLException {
+        List<String> categorias = new ArrayList<>();
+
+        String sql = "{call SP_ObtenerCategoriaAsignada(?, ?)}";
+
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
+            stmt.setInt(1, juezId);
+            stmt.setInt(2, eventoId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    // Agregamos cada categoría encontrada a la lista
+                    categorias.add(rs.getString("nivel"));
+                }
+            }
+        }
+        return categorias;
     }
 }

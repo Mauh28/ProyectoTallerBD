@@ -21,14 +21,93 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 
 public class JuezEquiposUnificadoController {
 
     @FXML private VBox vboxListaEquipos;
     @FXML private Label lblCategoriaActual;
+    @FXML private HBox contenedorBotones; // <--- Referencia al nuevo HBox del FXML
 
     // Instancia exclusiva del DAO de Juez
     private JuezDAO juezDao = new JuezDAO();
+
+    @FXML
+    public void initialize() {
+        // --- CAMBIO: Carga automática al iniciar ---
+        cargarDatosInteligentes();
+    }
+
+    private void cargarDatosInteligentes() {
+        int juezId = UserSession.getInstance().getUserId();
+        int eventoId = UserSession.getInstance().getTempEventoId();
+
+        if (eventoId == 0) return;
+
+        try {
+            // 1. Obtenemos la LISTA de categorías
+            List<String> categorias = juezDao.obtenerCategoriasAsignadas(juezId, eventoId);
+
+            if (categorias.isEmpty()) {
+                lblCategoriaActual.setText("Sin asignación para este evento.");
+                lblCategoriaActual.setStyle("-fx-text-fill: #e74c3c;");
+                return;
+            }
+
+            // CASO A: Solo una categoría (Comportamiento Automático)
+            if (categorias.size() == 1) {
+                String unicaCategoria = categorias.get(0);
+                lblCategoriaActual.setText("Categoría Asignada: " + unicaCategoria);
+                lblCategoriaActual.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
+                contenedorBotones.getChildren().clear(); // Asegurar que esté limpio
+
+                cargarEquipos(unicaCategoria);
+            }
+            // CASO B: Múltiples categorías (Generar Botones)
+            else {
+                lblCategoriaActual.setText("Selecciona una Categoría:");
+                lblCategoriaActual.setStyle("-fx-text-fill: #2c3e50; -fx-font-weight: bold;");
+
+                contenedorBotones.getChildren().clear(); // Limpiar por si acaso
+
+                // Crear un botón por cada categoría encontrada
+                for (String cat : categorias) {
+                    Button btn = new Button(cat);
+                    // Estilo similar a tus botones anteriores
+                    btn.setStyle("-fx-background-color: white; -fx-text-fill: #2980b9; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 0);");
+                    btn.setPrefWidth(150);
+
+                    // Acción: Al hacer clic, carga esa categoría específica
+                    btn.setOnAction(e -> {
+                        lblCategoriaActual.setText("Viendo: " + cat);
+                        cargarEquipos(cat);
+
+                        // Opcional: Resaltar el botón seleccionado visualmente
+                        resetearEstilosBotones();
+                        btn.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold;");
+                    });
+
+                    contenedorBotones.getChildren().add(btn);
+                }
+
+                // Opcional: Cargar la primera por defecto para no dejar la lista vacía
+                cargarEquipos(categorias.get(0));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            lblCategoriaActual.setText("Error BD: " + e.getMessage());
+        }
+    }
+
+    // Método auxiliar para limpiar estilos visuales de los botones dinámicos
+    private void resetearEstilosBotones() {
+        for (Node node : contenedorBotones.getChildren()) {
+            if (node instanceof Button) {
+                node.setStyle("-fx-background-color: white; -fx-text-fill: #2980b9; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 0);");
+            }
+        }
+    }
 
     @FXML
     public void handleRegresar(ActionEvent event) {
@@ -48,89 +127,85 @@ public class JuezEquiposUnificadoController {
 
     private void cargarEquipos(String categoria) {
         vboxListaEquipos.getChildren().clear();
-
-        // Recuperar el Evento seleccionado (Guardado previamente en sesión al entrar al módulo)
-        // Nota: Asegúrate de que JuezEventoController haya hecho: UserSession.getInstance().setTempEventoId(id);
         int eventoId = UserSession.getInstance().getTempEventoId();
 
-        // Validación de seguridad por si no hay evento en sesión
-        if (eventoId == 0) {
-            Label error = new Label("Error: No se ha seleccionado un evento.");
-            error.setStyle("-fx-text-fill: red;");
-            vboxListaEquipos.getChildren().add(error);
-            return;
-        }
+        // Obtenemos el ID del juez actual
+        int juezId = UserSession.getInstance().getUserId();
 
         try {
-            // Llamada al JuezDAO
-            ObservableList<EquipoItem> equipos = juezDao.obtenerEquiposPorEventoYCategoria(eventoId, categoria);
+            // Llamamos al DAO pasando el juezId
+            ObservableList<EquipoItem> equipos = juezDao.obtenerEquiposPorEventoYCategoria(eventoId, categoria, juezId);
 
             if (equipos.isEmpty()) {
-                Label vacio = new Label("No hay equipos registrados en esta categoría.");
-                vacio.setStyle("-fx-text-fill: #95a5a6; -fx-padding: 20; -fx-font-size: 14;");
+                Label vacio = new Label("No hay equipos registrados en la categoría " + categoria + ".");
+                vacio.setStyle("-fx-text-fill: #95a5a6; -fx-padding: 20;");
                 vboxListaEquipos.getChildren().add(vacio);
                 return;
             }
 
-            // Generar tarjetas dinámicamente
             for (EquipoItem equipo : equipos) {
                 vboxListaEquipos.getChildren().add(crearTarjetaEquipo(equipo));
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
-            Label error = new Label("Error al cargar BD: " + e.getMessage());
-            error.setStyle("-fx-text-fill: red;");
-            vboxListaEquipos.getChildren().add(error);
+            // Manejo de error visual...
         }
     }
 
-    // Método para crear la tarjeta visual (HBox) de cada equipo
     private HBox crearTarjetaEquipo(EquipoItem equipo) {
         HBox tarjeta = new HBox();
         tarjeta.setAlignment(Pos.CENTER_LEFT);
-        tarjeta.setSpacing(10);
+        tarjeta.setSpacing(15); // Un poco más de espacio
         tarjeta.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15;");
         tarjeta.setEffect(new DropShadow(5, Color.color(0,0,0,0.1)));
 
-        // 1. Nombre del Equipo
+        // 1. Datos del Equipo
+        VBox infoEquipo = new VBox(5);
         Label lblNombre = new Label(equipo.getNombre());
-        lblNombre.setPrefWidth(400);
         lblNombre.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2c3e50;");
-
-        // 2. Institución
         Label lblInst = new Label(equipo.getInstitucion());
-        lblInst.setPrefWidth(300);
         lblInst.setStyle("-fx-text-fill: #7f8c8d;");
+        infoEquipo.getChildren().addAll(lblNombre, lblInst);
+        infoEquipo.setPrefWidth(350);
 
-        // 3. Estado (Pendiente/Evaluado)
+        // 2. NUEVO: Indicador de Progreso Global
+        // Muestra cuántos jueces han evaluado en total
+        Label lblProgreso = new Label("Jueces: " + equipo.getConteoJueces() + "/3");
+        lblProgreso.setPrefWidth(120);
+        // Cambia de color si ya está completo (3/3)
+        if (equipo.getConteoJueces() >= 3) {
+            lblProgreso.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold; -fx-font-size: 14px;");
+        } else {
+            lblProgreso.setStyle("-fx-text-fill: #e67e22; -fx-font-weight: bold; -fx-font-size: 14px;");
+        }
+
+        // 3. Estado Personal (Tu estado como juez)
         boolean yaEvaluado = "EVALUADO".equalsIgnoreCase(equipo.getEstado());
-
-        Label lblEstado = new Label(yaEvaluado ? "EVALUADO" : "PENDIENTE");
-        lblEstado.setPrefWidth(200);
+        Label lblEstado = new Label(yaEvaluado ? "TU ESTADO: LISTO" : "TU ESTADO: PENDIENTE");
+        lblEstado.setPrefWidth(180);
         lblEstado.setStyle(yaEvaluado
-                ? "-fx-text-fill: #27ae60; -fx-font-weight: bold;"
-                : "-fx-text-fill: #e67e22; -fx-font-weight: bold;");
+                ? "-fx-text-fill: #7f8c8d; -fx-font-size: 11px;"
+                : "-fx-text-fill: #e74c3c; -fx-font-weight: bold; -fx-font-size: 11px;");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // 4. LÓGICA DEL BOTÓN (CAMBIO AQUÍ)
+        // 4. Botón de Acción
         Button btnAccion = new Button();
-
         if (yaEvaluado) {
-            // Si ya evaluó: Botón gris, texto "COMPLETADO" y deshabilitado
             btnAccion.setText("COMPLETADO");
             btnAccion.setDisable(true);
             btnAccion.setStyle("-fx-background-color: #bdc3c7; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
         } else {
-            // Si no: Botón verde "EVALUAR" activo
+            // Si tú no has evaluado, el botón está activo (incluso si otros jueces ya evaluaron)
             btnAccion.setText("EVALUAR");
             btnAccion.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold; -fx-background-radius: 5;");
             btnAccion.setOnAction(e -> irAEvaluar(equipo));
         }
 
-        tarjeta.getChildren().addAll(lblNombre, lblInst, lblEstado, spacer, btnAccion);
+        // Añadir todo al HBox
+        tarjeta.getChildren().addAll(infoEquipo, lblProgreso, lblEstado, spacer, btnAccion);
         return tarjeta;
     }
 
