@@ -20,7 +20,7 @@ public class OrganizadorVerEventosController {
     @FXML private TableColumn<EventoItem, String> colNombre;
     @FXML private TableColumn<EventoItem, String> colLugar;
     @FXML private TableColumn<EventoItem, String> colFecha;
-    @FXML private TableColumn<EventoItem, String> colJueces; // Nueva referencia
+    @FXML private TableColumn<EventoItem, String> colJueces;
 
     private OrganizadorDAO dao = new OrganizadorDAO();
 
@@ -39,7 +39,7 @@ public class OrganizadorVerEventosController {
         try {
             tablaEventos.setItems(dao.obtenerTodosLosEventos());
         } catch (SQLException e) {
-            mostrarAlerta("Error", "No se pudieron cargar los eventos: " + e.getMessage());
+            mostrarAlerta("Error de BD", "No se pudieron cargar los eventos: " + e.getMessage(), true);
         }
     }
 
@@ -47,7 +47,7 @@ public class OrganizadorVerEventosController {
     public void handleEliminar(ActionEvent event) {
         EventoItem seleccionado = tablaEventos.getSelectionModel().getSelectedItem();
         if (seleccionado == null) {
-            mostrarAlerta("Atención", "Selecciona un evento para eliminar.");
+            mostrarAlerta("Atención", "Selecciona un evento para eliminar.", false);
             return;
         }
 
@@ -55,19 +55,50 @@ public class OrganizadorVerEventosController {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Confirmar Eliminación");
         confirm.setHeaderText("¿Eliminar evento '" + seleccionado.getNombre() + "'?");
-        confirm.setContentText("Esto borrará también todos los equipos y evaluaciones asociados.");
+        confirm.setContentText("Esto borrará también todos los equipos y evaluaciones asociados (Hard Delete).");
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
                 dao.eliminarEvento(seleccionado.getId());
                 cargarEventos(); // Refrescar la tabla
-                mostrarAlerta("Éxito", "Evento eliminado correctamente.");
+                mostrarAlerta("Éxito", "Evento eliminado correctamente.", false);
             } catch (SQLException e) {
-                mostrarAlerta("Error", "No se pudo eliminar: " + e.getMessage());
+                mostrarAlerta("Error de BD", "No se pudo eliminar: " + e.getMessage(), true);
             }
         }
     }
+
+    // =================================================================
+    //  NUEVA FUNCIÓN: VER REPORTES DETALLADOS (Hub de Eventos)
+    // =================================================================
+
+    /**
+     * Guarda el ID del evento seleccionado en sesión y navega a la vista
+     * consolidada de reportes por pestañas (organizador_verEquipos.fxml).
+     */
+    @FXML
+    public void handleVerReporteDetallado(ActionEvent event) {
+        EventoItem seleccionado = tablaEventos.getSelectionModel().getSelectedItem();
+
+        if (seleccionado == null) {
+            mostrarAlerta("Atención", "Selecciona un evento para ver sus reportes detallados.", false);
+            return;
+        }
+
+        // 1. Guardar el ID del evento seleccionado en la sesión
+        UserSession.getInstance().setTempEventoId(seleccionado.getId());
+
+        // Opcional: Si hubieras guardado el nombre del evento en UserSession,
+        // lo podrías usar para mostrar el título en la siguiente vista.
+
+        // 2. Navegar a la vista consolidada de reportes por pestañas
+        cambiarVista(event, "organizador_verEquipos.fxml");
+    }
+
+    // =================================================================
+    //  NAVEGACIÓN Y ALERTAS
+    // =================================================================
 
     @FXML
     public void handleRegresar(ActionEvent event) {
@@ -84,8 +115,15 @@ public class OrganizadorVerEventosController {
         } catch (IOException e) { e.printStackTrace(); }
     }
 
-    private void mostrarAlerta(String titulo, String msg) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    /**
+     * Muestra una alerta informativa o de error.
+     * @param titulo Título de la alerta.
+     * @param msg Mensaje a mostrar.
+     * @param esError True para Alert.AlertType.ERROR, False para Alert.AlertType.INFORMATION.
+     */
+    private void mostrarAlerta(String titulo, String msg, boolean esError) {
+        Alert.AlertType type = esError ? Alert.AlertType.ERROR : Alert.AlertType.INFORMATION;
+        Alert alert = new Alert(type);
         alert.setTitle(titulo);
         alert.setHeaderText(null);
         alert.setContentText(msg);

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.proyectotbd.OrganizadorVerEquiposController"
+            stylesheets="@estilos.css"
+            prefHeight="720.0" prefWidth="1280.0"
+            style="-fx-background-color: #f4f6f8;">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #2c3e50; -fx-padding: 20;">
+            <Button text="← Volver a Eventos"
+                    onAction="#handleRegresar"
+                    style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-font-size: 14; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
+
+            <Label text="Reporte Detallado del Evento" textFill="WHITE">
+                <font>
+                    <Font name="System Bold" size="24.0" />
+                </font>
+                <HBox.margin>
+                    <Insets left="10.0" />
+                </HBox.margin>
+            </Label>
+
+            <Label fx:id="lblEventoNombre" text="(Cargando...)" textFill="#bdc3c7">
+                <font>
+                    <Font size="16.0" />
+                </font>
+                <HBox.margin>
+                    <Insets left="15.0" />
+                </HBox.margin>
+            </Label>
+
+            <Region HBox.hgrow="ALWAYS" />
+
+            <Label text="Administrador" textFill="#bdc3c7">
+                <font>
+                    <Font size="16.0" />
+                </font>
+            </Label>
+        </HBox>
+    </top>
+
+    <center>
+        <TabPane fx:id="tabPaneCategorias" tabClosingPolicy="UNAVAILABLE" style="-fx-padding: 10;">
+            <BorderPane.margin>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+            </BorderPane.margin>
+
+        </TabPane>
+    </center>
+
+</BorderPane>
