@@ -14,31 +14,43 @@ public class OrganizadorMenuController {
 
     @FXML
     public void handleAsignarJuez(ActionEvent event) {
-        System.out.println("Ir a Lista de Eventos (Administrador)");
-        // Aquí podrías reutilizar 'juez_evento-view.fxml' si quieres ver la misma lista,
-        // o crear una nueva vista 'admin_lista_eventos.fxml' si el admin tiene botones de editar/borrar.
-        // Por ahora lo mandamos a la selección estándar:
+        System.out.println("Ir a Asignar Juez");
         cambiarVista(event, "organizador_asignarJuez.fxml");
     }
 
     @FXML
     public void handleCrearEvento(ActionEvent event) {
         System.out.println("Ir a Alta de Evento");
-        // Esta vista ya la creamos antes (el formulario de registro de evento)
         cambiarVista(event, "organizador_crearEvento.fxml");
     }
 
     @FXML
     public void handleCrearUsuario(ActionEvent event) {
         System.out.println("Ir a Crear Usuario");
-        // Esta vista también la tenemos (selección de rol para registro)
         cambiarVista(event, "organizador_crearUsuario.fxml");
+    }
+
+    @FXML
+    public void handleVerUsuarios(ActionEvent event) {
+        System.out.println("Ir a Ver Directorio de Usuarios");
+        cambiarVista(event, "organizador_verUsuarios.fxml");
+    }
+
+    /**
+     * Maneja la navegación al Directorio de Eventos. Esta vista consolidada
+     * ahora sirve como centro para el CRUD de eventos y la selección de reportes.
+     */
+    @FXML
+    public void handleVerEventos(ActionEvent event) {
+        System.out.println("Ir a Ver Eventos y Reportes (Consolidado)");
+        cambiarVista(event, "organizador_verEventos.fxml");
     }
 
     @FXML
     public void handleLogout(ActionEvent event) {
         System.out.println("Cerrando sesión de admin...");
-        // Regresa al login principal (el dividido)
+        // MEJORA DE ROBUSTEZ: Limpiar la sesión antes de redirigir al login
+        UserSession.getInstance().cleanUserSession();
         cambiarVista(event, "login.fxml");
     }
 
@@ -54,15 +66,5 @@ public class OrganizadorMenuController {
             e.printStackTrace();
             System.out.println("Error cargando vista: " + fxml);
         }
-    }
-
-    @FXML
-    public void handleVerUsuarios(ActionEvent event) {
-        cambiarVista(event, "organizador_verUsuarios.fxml");
-    }
-
-    @FXML
-    public void handleVerEventos(ActionEvent event) {
-        cambiarVista(event, "organizador_verEventos.fxml");
     }
 }

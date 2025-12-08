@@ -24,6 +24,7 @@ import java.sql.SQLException;
 public class JuezEvaluacionController {
 
     @FXML private Label lblNombreEquipo;
+    @FXML private ScrollPane scrollPane; // Añadido para mejor control del diseño si es necesario
 
     // --- DISEÑO ---
     @FXML private CheckBox chkBitRegistroFechas, chkBitJustificacion, chkBitDiagramas, chkBitOrtografia, chkBitPresentacion;
@@ -45,15 +46,30 @@ public class JuezEvaluacionController {
     public void initialize() {
         String nombre = UserSession.getInstance().getTempNombreEquipo();
         if (nombre != null) lblNombreEquipo.setText(nombre);
+
+        // TODO: Si es modo EDICIÓN, aquí se debería implementar la lógica para
+        // cargar los estados (true/false) de cada CheckBox desde la BD,
+        // usando los IDs de área almacenados en UserSession.
     }
 
     @FXML
     public void handleEnviar(ActionEvent event) {
-        int evalId = UserSession.getInstance().getEvaluacionIdTemp();
-        int juezId = UserSession.getInstance().getUserId();
+        UserSession session = UserSession.getInstance();
+        int evalId = session.getEvaluacionIdTemp();
 
-        if (evalId == 0) {
-            System.out.println("Error crítico: No hay ID de evaluación en sesión.");
+        // 1. Validaciones
+        if (evalId <= 0) {
+            mostrarAlertaError("Error de Sesión: ID de evaluación no válido o perdido.");
+            return;
+        }
+
+        // OPTIMIZACIÓN: Recuperamos los IDs de área directamente de la sesión
+        int idDiseno = session.getIdDisenoTemp();
+        int idProg = session.getIdProgramacionTemp();
+        int idConst = session.getIdConstruccionTemp();
+
+        if (idDiseno <= 0 || idProg <= 0 || idConst <= 0) {
+            mostrarAlertaError("Error de Sesión: IDs de áreas no válidos. Vuelve a seleccionar el equipo.");
             return;
         }
 
@@ -61,35 +77,33 @@ public class JuezEvaluacionController {
             conn.setAutoCommit(false); // INICIO TRANSACCIÓN
 
             try {
-                // --- CAMBIO AQUÍ ---
-                // Pasamos 'conn' como primer parámetro
-                JuezDAO.IdsAreas ids = juezDAO.obtenerIdsAreas(conn, evalId, juezId);
+                // ELIMINADO: La llamada a juezDAO.obtenerIdsAreas(conn, evalId, juezId)
 
-                // 2. Guardar DISEÑO
-                juezDAO.registrarBitacora(conn, ids.idDiseno,
+                // 2. Guardar DISEÑO (Usando idDiseno de la Sesión)
+                juezDAO.registrarBitacora(conn, idDiseno,
                         chkBitRegistroFechas.isSelected(), chkBitJustificacion.isSelected(), chkBitDiagramas.isSelected(), chkBitOrtografia.isSelected(), chkBitPresentacion.isSelected());
 
-                juezDAO.registrarMedioDigital(conn, ids.idDiseno,
+                juezDAO.registrarMedioDigital(conn, idDiseno,
                         chkDigVideo.isSelected(), chkDigModelado.isSelected(), chkDigAnalisis.isSelected(), chkDigEnsamble.isSelected(), chkDigModeloAcorde.isSelected(), chkDigSimulacion.isSelected(), chkDigRestricciones.isSelected());
 
-                // 3. Guardar Área: PROGRAMACIÓN
-                juezDAO.registrarInspeccionProg(conn, ids.idProg,
+                // 3. Guardar Área: PROGRAMACIÓN (Usando idProg de la Sesión)
+                juezDAO.registrarInspeccionProg(conn, idProg,
                         chkProgSoftware.isSelected(), chkProgFunciones.isSelected(), chkProgComplejidad.isSelected(), chkProgJustificacion.isSelected(), chkProgEstructuras.isSelected(), chkProgDepuracion.isSelected(), chkProgModular.isSelected());
 
-                juezDAO.registrarAutonomo(conn, ids.idProg,
+                juezDAO.registrarAutonomo(conn, idProg,
                         chkAutoDocumentacion.isSelected(), chkAutoVinculacion.isSelected(), chkAutoSensores.isSelected());
 
-                juezDAO.registrarManipulado(conn, ids.idProg,
+                juezDAO.registrarManipulado(conn, idProg,
                         chkManVinculo.isSelected(), chkManHabilidad.isSelected(), chkManRespuesta.isSelected(), chkManDocCodigo.isSelected());
 
-                juezDAO.registrarDemostracion(conn, ids.idProg,
+                juezDAO.registrarDemostracion(conn, idProg,
                         chkDemo15s.isSelected(), chkDemoNoIncon.isSelected(), chkDemoObjetivo.isSelected(), chkDemoExplicacion.isSelected());
 
-                // 4. Guardar Área: CONSTRUCCIÓN
-                juezDAO.registrarConstruccionInsp(conn, ids.idConst,
+                // 4. Guardar Área: CONSTRUCCIÓN (Usando idConst de la Sesión)
+                juezDAO.registrarConstruccionInsp(conn, idConst,
                         chkConsEstetico.isSelected(), chkConsEstable.isSelected(), chkConsTransmision.isSelected(), chkConsSensores.isSelected(), chkConsCableado.isSelected(), chkConsNeumatico.isSelected(), chkConsAlcance.isSelected(), chkConsVex.isSelected(), chkConsProcesador.isSelected());
 
-                juezDAO.registrarLibreta(conn, ids.idConst,
+                juezDAO.registrarLibreta(conn, idConst,
                         chkLibEstructuras.isSelected(), chkLibVelocidades.isSelected(), chkLibEngranes.isSelected(), chkLibGravedad.isSelected(), chkLibSistTrans.isSelected(), chkLibPotencia.isSelected(), chkLibTorque.isSelected(), chkLibVelocidad.isSelected());
 
                 // TODO CORRECTO -> COMMIT
@@ -98,26 +112,35 @@ public class JuezEvaluacionController {
                 mostrarNotificacionExito("¡Evaluación guardada correctamente!");
 
                 // Volver a la lista de equipos
-                cambiarVista(event, "juez_menu.fxml");
+                cambiarVista(event, "juez_equiposUnificado.fxml"); // Navegación corregida
 
             } catch (SQLException ex) {
                 conn.rollback();
                 ex.printStackTrace();
-                // Mostrar alerta de error (puedes implementar un showAlert)
-                System.err.println("Error SQL al guardar: " + ex.getMessage());
+                mostrarAlertaError("Error al guardar: " + ex.getMessage());
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
+            mostrarAlertaError("Error de Conexión: " + e.getMessage());
         }
     }
 
     @FXML
     public void handleRegresar(ActionEvent event) {
+        // Regresa a la lista de equipos (no al menú principal, para mantener el contexto)
         cambiarVista(event, "juez_equiposUnificado.fxml");
     }
 
-    // --- Helpers (PopUp y Loader) ---
+    // --- Helpers (PopUp, Loader y Alerta de Error) ---
+
+    private void mostrarAlertaError(String msg) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error de Evaluación");
+        alert.setHeaderText(null);
+        alert.setContentText(msg);
+        alert.showAndWait();
+    }
 
     private void mostrarNotificacionExito(String mensaje) {
         try {
@@ -149,11 +172,5 @@ public class JuezEvaluacionController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) { e.printStackTrace(); }
-    }
-
-    @FXML
-    public void handleIrAlMenu(ActionEvent event) {
-        // Salir directamente al menú principal
-        cambiarVista(event, "juez_menu.fxml");
     }
 }
