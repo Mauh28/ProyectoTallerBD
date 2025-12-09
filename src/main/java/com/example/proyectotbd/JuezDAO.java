@@ -16,19 +16,18 @@ import java.util.List;
 
 public class JuezDAO {
 
-    // --- MÉTODOS EXISTENTES ---
-    public EvaluacionIds iniciarEvaluacion(int equipoId, int eventoId, int juezId) throws SQLException {
+    // Nuevo método que acepta Connection para ser parte de la transacción de guardado
+    public EvaluacionIds iniciarEvaluacion(Connection conn, int equipoId, int eventoId, int juezId) throws SQLException {
         String sql = "{call SP_IniciarEvaluacionSegura(?, ?, ?, ?)}";
-        try (Connection conn = ConexionDB.getConnection();
-             CallableStatement stmt = conn.prepareCall(sql)) {
 
+        try (CallableStatement stmt = conn.prepareCall(sql)) {
             stmt.setInt(1, equipoId);
             stmt.setInt(2, eventoId);
             stmt.setInt(3, juezId);
+            stmt.setTimestamp(4, new java.sql.Timestamp(System.currentTimeMillis()));
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    // Capturamos los 4 IDs que devuelve el SP
                     return new EvaluacionIds(
                             rs.getInt("nueva_evaluacion_id"),
                             rs.getInt("id_disenio"),
@@ -38,7 +37,7 @@ public class JuezDAO {
                 }
             }
         }
-        throw new SQLException("Error: No se pudo iniciar ni recuperar la evaluación.");
+        throw new SQLException("No se pudieron generar los IDs de evaluación.");
     }
 
     // Clase auxiliar simple (similar a IdsAreas) para contener todos los IDs necesarios

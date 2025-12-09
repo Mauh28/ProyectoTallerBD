@@ -10,7 +10,6 @@ module com.example.proyectotbd {
     // AGREGA ESTAS LÍNEAS:
     requires java.sql;             // Para usar Connection, DriverManager, etc.
     requires mysql.connector.j;
-    requires com.jfoenix;    // Para permitir el acceso al driver de MySQL
 
     opens com.example.proyectotbd to javafx.fxml;
     exports com.example.proyectotbd;

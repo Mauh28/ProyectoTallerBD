@@ -219,35 +219,19 @@ public class JuezEquiposUnificadoController {
     }
 
     private void irAEvaluar(EquipoItem equipo) {
-        try {
-            int juezId = UserSession.getInstance().getUserId();
-            int eventoId = UserSession.getInstance().getTempEventoId();
+        // 1. Guardar datos de contexto en Sesión (NO insertamos nada en BD todavía)
+        UserSession session = UserSession.getInstance();
+        session.setEquipoIdTemp(equipo.getId()); // ID del equipo a evaluar
+        session.setTempNombreEquipo(equipo.getNombre()); // Nombre para el título
 
-            // 1. Llamada al método unificado: iniciarOObtenerEvaluacion
-            // Este método devuelve un objeto EvaluacionIds con los 4 IDs.
-            JuezDAO.EvaluacionIds ids = juezDao.iniciarEvaluacion(equipo.getId(), eventoId, juezId);
+        // Limpiamos IDs viejos por seguridad
+        session.setEvaluacionIdTemp(0);
+        session.setIdDisenoTemp(0);
+        session.setIdProgramacionTemp(0);
+        session.setIdConstruccionTemp(0);
 
-            // 2. Guardar todos los IDs y nombres en la Sesión (para evitar llamadas extra a la BD)
-            UserSession session = UserSession.getInstance();
-
-            session.setEvaluacionIdTemp(ids.evaluacionId);
-            session.setTempNombreEquipo(equipo.getNombre());
-
-            // Guardamos los IDs de las áreas para JuezEvaluacionController
-            session.setIdDisenoTemp(ids.idDiseno);
-            session.setIdProgramacionTemp(ids.idProg);
-            session.setIdConstruccionTemp(ids.idConst);
-
-            // 3. Ir a la Rúbrica. Si es edición, el controlador de evaluación se cargará con estos IDs.
-            cambiarVistaBoton(vboxListaEquipos, "juez_evaluacion.fxml");
-
-        } catch (SQLException ex) {
-            // Capturamos errores de negocio reales (ej: límite de 3 jueces) o de BD
-            System.err.println("Error de negocio o BD: " + ex.getMessage());
-
-            // Mostrar alerta al usuario con el mensaje de error de negocio
-            mostrarAlertaError(ex.getMessage());
-        }
+        // 2. Navegar directamente al formulario vacío
+        cambiarVistaBoton(vboxListaEquipos, "juez_evaluacion.fxml");
     }
 
 
