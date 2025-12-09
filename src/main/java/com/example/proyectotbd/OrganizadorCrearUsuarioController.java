@@ -33,6 +33,13 @@ public class OrganizadorCrearUsuarioController {
     @FXML private Label lblMensaje;
 
     @FXML
+    public void initialize() {
+        limitarLongitud(txtNombre, 50);
+        limitarLongitud(txtInstitucion, 50);
+        limitarLongitud(txtUsername, 50);
+    }
+
+    @FXML
     public void handleRegresar(ActionEvent event) {
         cambiarVista(event, "organizador_menu.fxml");
     }
@@ -149,5 +156,13 @@ public class OrganizadorCrearUsuarioController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void limitarLongitud(TextField tf, int maxLength) {
+        tf.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.length() > maxLength) {
+                tf.setText(oldValue); // Rechaza el cambio si excede el límite
+            }
+        });
     }
 }

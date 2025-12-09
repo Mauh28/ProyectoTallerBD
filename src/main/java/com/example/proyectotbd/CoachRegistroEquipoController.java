@@ -34,6 +34,8 @@ public class CoachRegistroEquipoController {
     public void initialize() {
         cargarEventos();
         recuperarDatosDeSesion(); // <--- NUEVO: Recuperar si volvemos atrás
+        // Activar validación de nombre en tiempo real ---
+        configurarValidacionNombre();
     }
 
     private void cargarEventos() {
@@ -92,12 +94,21 @@ public class CoachRegistroEquipoController {
     @FXML
     public void handleContinuar(ActionEvent event) {
         OpcionCombo eventoSeleccionado = cbEventos.getValue();
-        String nombre = txtNombreEquipo.getText();
+        String nombre = txtNombreEquipo.getText().trim();
 
         // 1. Validaciones Visuales
         if (eventoSeleccionado == null) { mostrarMensaje("Selecciona un evento.", true); return; }
         if (categoriaTexto == null) { mostrarMensaje("Selecciona una categoría.", true); return; }
         if (nombre.isEmpty()) { mostrarMensaje("Escribe el nombre del equipo.", true); return; } // <--- CAMBIO
+
+
+        // --- NUEVA VALIDACIÓN: BLOQUEAR SI NO HAY PALABRA REAL ---
+        // Verificamos si cumple el patrón de tener al menos 2 letras consecutivas
+        if (!nombre.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ]{2,}.*")) {
+            mostrarMensaje("El nombre debe contener al menos una palabra real (mínimo 2 letras seguidas).", true);
+            txtNombreEquipo.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;");
+            return;
+        }
 
         // 2. VALIDACIÓN EN BD (Sin Insertar)
         // Usamos la nueva Función FN_VerificarDisponibilidadEquipo
@@ -165,5 +176,28 @@ public class CoachRegistroEquipoController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    private void configurarValidacionNombre() {
+        txtNombreEquipo.textProperty().addListener((observable, oldValue, newValue) -> {
+
+            // 1. Validación de longitud (Protección BD)
+            if (newValue.length() > 50) {
+                txtNombreEquipo.setText(oldValue);
+                return;
+            }
+
+            // 2. NUEVA VALIDACIÓN: ¿Contiene al menos una "palabra" (2 letras seguidas)?
+            // Regex: busca cualquier cosa, luego 2+ letras juntas, luego cualquier cosa
+            boolean contienePalabra = newValue.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ]{2,}.*");
+
+            // Si hay texto pero NO contiene una palabra válida -> Borde Rojo
+            if (!newValue.isEmpty() && !contienePalabra) {
+                txtNombreEquipo.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;");
+            } else {
+                // Estilo normal (Limpio)
+                txtNombreEquipo.setStyle("");
+            }
+        });
     }
 }

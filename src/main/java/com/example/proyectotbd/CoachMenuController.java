@@ -92,4 +92,11 @@ public class CoachMenuController {
             e.printStackTrace();
         }
     }
+
+    @FXML
+    public void handleVerResultados(ActionEvent event) {
+        System.out.println("Navegando a Resultados de Evaluación...");
+        // Esta vista ahora cargará los datos reales desde la BD
+        cambiarVista(event, "coach_reportes.fxml");
+    }
 }

@@ -1,6 +1,5 @@
 package com.example.proyectotbd;
 
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -8,26 +7,31 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class CoachReportesController {
 
-    @FXML private TableView<ReporteItem> tablaReportes;
-    @FXML private TableColumn<ReporteItem, String> colEquipo;
-    @FXML private TableColumn<ReporteItem, String> colCategoria;
-    @FXML private TableColumn<ReporteItem, String> colEvento;
-    @FXML private TableColumn<ReporteItem, String> colDiseno;
-    @FXML private TableColumn<ReporteItem, String> colProg;
-    @FXML private TableColumn<ReporteItem, String> colConst;
-    @FXML private TableColumn<ReporteItem, String> colTotal;
+    // Cambiamos la referencia a la nueva clase ReporteCoachItem
+    @FXML private TableView<ReporteCoachItem> tablaReportes;
+    @FXML private TableColumn<ReporteCoachItem, String> colEquipo;
+    @FXML private TableColumn<ReporteCoachItem, String> colCategoria;
+    @FXML private TableColumn<ReporteCoachItem, String> colEvento;
+    @FXML private TableColumn<ReporteCoachItem, String> colDiseno;
+    @FXML private TableColumn<ReporteCoachItem, String> colProg;
+    @FXML private TableColumn<ReporteCoachItem, String> colConst;
+    @FXML private TableColumn<ReporteCoachItem, String> colTotal;
+
+    private CoachDAO coachDAO = new CoachDAO();
 
     @FXML
     public void initialize() {
-        // Configurar las columnas para que lean los datos de la clase ReporteItem
+        // Configuramos las columnas usando los getters de ReporteCoachItem
         colEquipo.setCellValueFactory(new PropertyValueFactory<>("equipo"));
         colCategoria.setCellValueFactory(new PropertyValueFactory<>("categoria"));
         colEvento.setCellValueFactory(new PropertyValueFactory<>("evento"));
@@ -36,19 +40,27 @@ public class CoachReportesController {
         colConst.setCellValueFactory(new PropertyValueFactory<>("ptsConst"));
         colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
 
-        // DATOS DE PRUEBA (CASCARÓN) - Solo para visualizar
-        ObservableList<ReporteItem> datos = FXCollections.observableArrayList(
-                new ReporteItem("RobotiX Alpha", "Secundaria", "Torneo Nacional 2025", "10", "12", "15", "37"),
-                new ReporteItem("Cyber VEX", "Preparatoria", "Regional Norte", "8", "14", "14", "36"),
-                new ReporteItem("Mecánicos Jr.", "Primaria", "Feria Escolar", "Pend.", "Pend.", "Pend.", "0")
-        );
+        cargarDatosReales();
+    }
 
-        tablaReportes.setItems(datos);
+    private void cargarDatosReales() {
+        int coachId = UserSession.getInstance().getUserId();
+        try {
+            // El DAO ahora devuelve la lista correcta
+            ObservableList<ReporteCoachItem> datos = coachDAO.obtenerReporteEvaluaciones(coachId);
+            tablaReportes.setItems(datos);
+
+            if (datos.isEmpty()) {
+                tablaReportes.setPlaceholder(new Label("No hay evaluaciones registradas aún."));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            tablaReportes.setPlaceholder(new Label("Error de conexión: " + e.getMessage()));
+        }
     }
 
     @FXML
     public void handleRegresar(ActionEvent event) {
-        // Regresa al Dashboard del Coach
         cambiarVista(event, "coach_menu.fxml");
     }
 
@@ -56,35 +68,10 @@ public class CoachReportesController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
             Parent root = loader.load();
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Error al cargar: " + fxml);
-        }
+            Scene scene = ((Node) event.getSource()).getScene();
+            scene.setRoot(root);
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
-    // Clase auxiliar simple para representar una fila en la tabla
-    public static class ReporteItem {
-        private final String equipo, categoria, evento, ptsDiseno, ptsProg, ptsConst, total;
-
-        public ReporteItem(String equipo, String categoria, String evento, String ptsDiseno, String ptsProg, String ptsConst, String total) {
-            this.equipo = equipo;
-            this.categoria = categoria;
-            this.evento = evento;
-            this.ptsDiseno = ptsDiseno;
-            this.ptsProg = ptsProg;
-            this.ptsConst = ptsConst;
-            this.total = total;
-        }
-
-        public String getEquipo() { return equipo; }
-        public String getCategoria() { return categoria; }
-        public String getEvento() { return evento; }
-        public String getPtsDiseno() { return ptsDiseno; }
-        public String getPtsProg() { return ptsProg; }
-        public String getPtsConst() { return ptsConst; }
-        public String getTotal() { return total; }
-    }
+    // NOTA: He eliminado la clase interna "ReporteItem" porque ahora usas "ReporteCoachItem.java"
 }

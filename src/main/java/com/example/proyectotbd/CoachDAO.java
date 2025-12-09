@@ -91,4 +91,30 @@ public class CoachDAO {
         }
         return lista;
     }
+
+    public ObservableList<ReporteCoachItem> obtenerReporteEvaluaciones(int coachId) throws SQLException {
+        ObservableList<ReporteCoachItem> lista = FXCollections.observableArrayList();
+        String sql = "{call SP_Coach_ObtenerReporteEvaluaciones(?)}";
+
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
+            stmt.setInt(1, coachId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(new ReporteCoachItem(
+                            rs.getString("nombre_equipo"),
+                            rs.getString("nombre_categoria"),
+                            rs.getString("nombre_evento"),
+                            rs.getString("pts_disenio"),
+                            rs.getString("pts_programacion"),
+                            rs.getString("pts_construccion"),
+                            rs.getString("total_promedio")
+                    ));
+                }
+            }
+        }
+        return lista;
+    }
 }

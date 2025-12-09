@@ -25,6 +25,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.Period;
+import java.util.regex.Pattern;
 
 public class CoachRegistroIntegrantesController {
 
@@ -43,13 +45,23 @@ public class CoachRegistroIntegrantesController {
     // Lista en memoria (aún no en BD)
     private ObservableList<String> participantes = FXCollections.observableArrayList();
     private final int MAX_PARTICIPANTES = 3;
-
     // Control para saber si estamos editando un item de la lista (-1 = No)
     private int indiceEdicion = -1;
+
+    // EXPRESIÓN REGULAR PARA NOMBRES:
+    // Permite letras (mayúsculas/minúsculas), acentos (áéí...), ñ y espacios.
+    // Rechaza números y símbolos.
+    private static final Pattern PATRON_NOMBRE = Pattern.compile("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]*$");
+
 
     @FXML
     public void initialize() {
         listaParticipantes.setItems(participantes);
+        // 1. CONFIGURAR VALIDACIÓN EN TIEMPO REAL PARA EL NOMBRE
+        configurarValidacionNombre();
+
+        // 2. CONFIGURAR VALIDACIÓN EN TIEMPO REAL PARA LA FECHA
+        configurarValidacionFecha();
 
         // 1. CARGAR DATOS SI ES MODO EDICIÓN
         if (UserSession.getInstance().isModoEdicion()) {
@@ -79,43 +91,131 @@ public class CoachRegistroIntegrantesController {
         actualizarContador();
     }
 
+    // --- NUEVO: VALIDACIÓN DE NOMBRE (SOLO TEXTO + LÍMITE 50 CHARS) ---
+    private void configurarValidacionNombre() {
+        txtNombre.textProperty().addListener((observable, oldValue, newValue) -> {
+            // A. Evitar que escriba más de 50 caracteres (Límite de BD)
+            if (newValue.length() > 50) {
+                txtNombre.setText(oldValue); // Rechazar el cambio
+                return;
+            }
+
+            // B. Validar que solo sean letras
+            if (!PATRON_NOMBRE.matcher(newValue).matches()) {
+                txtNombre.setText(oldValue); // Rechazar números o símbolos
+                // Opcional: Mostrar borde rojo momentáneo
+                txtNombre.setStyle("-fx-border-color: red;");
+            } else {
+                txtNombre.setStyle(""); // Restaurar estilo si es válido
+            }
+        });
+    }
+
+    // --- NUEVO: VALIDACIÓN DE FECHA (NO FUTURO + EDAD MÍNIMA) ---
+    private void configurarValidacionFecha() {
+        // A. Restringir el calendario visualmente para no elegir fechas futuras
+        dpNacimiento.setDayCellFactory(picker -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                // Deshabilitar fechas futuras
+                setDisable(empty || date.isAfter(LocalDate.now()));
+            }
+        });
+
+        // B. Listener para calcular edad al momento
+        dpNacimiento.valueProperty().addListener((observable, oldDate, newDate) -> {
+            if (newDate != null) {
+                if (newDate.isAfter(LocalDate.now())) {
+                    mostrarError("La fecha de nacimiento no puede ser futura.");
+                    dpNacimiento.setValue(null); // Borrar
+                    return;
+                }
+
+                // Cálculo rápido de edad para feedback
+                int edad = Period.between(newDate, LocalDate.now()).getYears();
+                if (edad < 6) {
+                    // Advertencia suave (Tu SP en BD tiene la lógica final por categoría,
+                    // pero < 6 años es casi seguro un error para cualquier categoría robótica).
+                    mostrarError("Advertencia: El participante parece tener " + edad + " años.");
+                } else {
+                    lblError.setVisible(false);
+                }
+            }
+        });
+    }
+
     // --- 1. GESTIÓN LOCAL DE LA LISTA (MEMORIA) ---
 
     @FXML
     public void handleAgregarOActualizar(ActionEvent event) {
-        String nombre = txtNombre.getText();
+        // 1. Obtener datos crudos
+        String rawNombre = txtNombre.getText();
         LocalDate nacimiento = dpNacimiento.getValue();
         String sexo = cbSexo.getValue();
 
-        // Validaciones locales
-        if (nombre.isEmpty() || nacimiento == null || sexo == null) {
-            lblError.setText("Por favor llena todos los campos.");
-            lblError.setStyle("-fx-text-fill: #e74c3c;"); // Rojo
-            lblError.setVisible(true);
+        // 2. Validaciones Básicas (Vacío)
+        if (rawNombre == null || rawNombre.trim().isEmpty() || nacimiento == null || sexo == null) {
+            mostrarError("Por favor llena todos los campos.");
             return;
         }
 
+        // 3. Normalización (Capitalizar Nombre: "juan perez" -> "Juan Perez")
+        String nombre = capitalizarTexto(rawNombre);
+
+        // 4. Validación de Nombre Completo (Mínimo un espacio)
+        if (!nombre.contains(" ")) {
+            mostrarError("Por favor ingresa nombre y apellido.");
+            return;
+        }
+
+        // 5. Validación de Duplicados (Local)
+        // Comparamos contra el nombre YA NORMALIZADO
+        for (int i = 0; i < participantes.size(); i++) {
+            if (i != indiceEdicion) { // Ignorar si me estoy editando a mí mismo
+                String[] datos = participantes.get(i).split(" \\| ");
+                if (datos[0].equalsIgnoreCase(nombre)) {
+                    mostrarError("El alumno '" + nombre + "' ya está en la lista.");
+                    return;
+                }
+            }
+        }
+
+        // 6. Crear el registro formateado
         String registro = nombre + " | " + nacimiento.toString() + " | " + sexo;
 
+        // 7. Lógica de Inserción / Edición
         if (indiceEdicion == -1) {
             // MODO AGREGAR
             if (participantes.size() >= MAX_PARTICIPANTES) {
-                lblError.setText("Límite alcanzado (" + MAX_PARTICIPANTES + "). Elimina o edita uno existente.");
-                lblError.setVisible(true);
+                mostrarError("Límite alcanzado (" + MAX_PARTICIPANTES + ").");
                 return;
             }
             participantes.add(registro);
         } else {
-            // MODO ACTUALIZAR
+            // MODO EDITAR
             participantes.set(indiceEdicion, registro);
-            handleLimpiar(); // Salir del modo edición
+            handleLimpiar(); // Salir del modo edición y limpiar selección
         }
 
+        // 8. Actualizar interfaz
         actualizarContador();
         lblError.setVisible(false);
 
-        // Limpiar campos si estábamos agregando
-        if (indiceEdicion == -1) handleLimpiar();
+        // Limpiar campos solo si estábamos agregando (para facilitar ingreso rápido)
+        if (indiceEdicion == -1) {
+            txtNombre.clear();
+            dpNacimiento.setValue(null);
+            cbSexo.getSelectionModel().clearSelection();
+            txtNombre.requestFocus(); // Poner el foco listo para el siguiente
+        }
+    }
+
+    // Método auxiliar para mostrar errores
+    private void mostrarError(String mensaje) {
+        lblError.setText(mensaje);
+        lblError.setStyle("-fx-text-fill: #e74c3c;");
+        lblError.setVisible(true);
     }
 
     @FXML
@@ -144,11 +244,11 @@ public class CoachRegistroIntegrantesController {
         txtNombre.clear();
         dpNacimiento.setValue(null);
         cbSexo.getSelectionModel().clearSelection();
+        txtNombre.setStyle(""); // Limpiar bordes rojos si quedaron
 
-        // Resetear a modo agregar
         indiceEdicion = -1;
         btnAccion.setText("AGREGAR A LA LISTA");
-        btnAccion.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold;"); // Azul
+        btnAccion.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold;");
         listaParticipantes.getSelectionModel().clearSelection();
         lblError.setVisible(false);
     }
@@ -348,6 +448,25 @@ public class CoachRegistroIntegrantesController {
         UserSession.getInstance().setModoEdicion(false);
 
         cambiarVista(event, "coach_menu.fxml");
+    }
+
+    // --- EL MÉTODO AUXILIAR NECESARIO (Cópialo al final de la clase) ---
+    private String capitalizarTexto(String texto) {
+        if (texto == null || texto.isEmpty()) return texto;
+
+        String[] palabras = texto.trim().split("\\s+");
+        StringBuilder resultado = new StringBuilder();
+
+        for (String palabra : palabras) {
+            if (!palabra.isEmpty()) {
+                resultado.append(Character.toUpperCase(palabra.charAt(0)));
+                if (palabra.length() > 1) {
+                    resultado.append(palabra.substring(1).toLowerCase());
+                }
+                resultado.append(" ");
+            }
+        }
+        return resultado.toString().trim();
     }
 
 }
