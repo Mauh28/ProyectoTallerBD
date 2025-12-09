@@ -1,6 +1,5 @@
 package com.example.proyectotbd;
 
-import com.example.proyectotbd.ConexionDB;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -24,6 +23,7 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.regex.Pattern;
@@ -35,41 +35,40 @@ public class CoachRegistroIntegrantesController {
     @FXML private ComboBox<String> cbSexo;
     @FXML private Label lblError;
 
-    // Botón que cambia de texto (AGREGAR / GUARDAR CAMBIOS)
     @FXML private Button btnAccion;
     @FXML private Button btnRegresar;
-
     @FXML private ListView<String> listaParticipantes;
     @FXML private Label lblContador;
 
-    // Lista en memoria (aún no en BD)
     private ObservableList<String> participantes = FXCollections.observableArrayList();
     private final int MAX_PARTICIPANTES = 3;
-    // Control para saber si estamos editando un item de la lista (-1 = No)
     private int indiceEdicion = -1;
-
-    // EXPRESIÓN REGULAR PARA NOMBRES:
-    // Permite letras (mayúsculas/minúsculas), acentos (áéí...), ñ y espacios.
-    // Rechaza números y símbolos.
     private static final Pattern PATRON_NOMBRE = Pattern.compile("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]*$");
-
 
     @FXML
     public void initialize() {
         listaParticipantes.setItems(participantes);
-        // 1. CONFIGURAR VALIDACIÓN EN TIEMPO REAL PARA EL NOMBRE
+
+        // Obtenemos la categoría seleccionada al inicio
+        int categoriaId = UserSession.getInstance().getTempCategoriaId();
+
+        // 1. CONFIGURAR VALIDACIÓN CON RESTRICCIÓN DE EDAD DINÁMICA
+        if (categoriaId != 0) {
+            configurarValidacionFecha(categoriaId);
+        } else {
+            // Si el ID es 0, no se seleccionó categoría. Aplicar solo restricción futura.
+            configurarValidacionFecha(0);
+        }
+
+        // 2. CONFIGURAR VALIDACIÓN EN TIEMPO REAL PARA EL NOMBRE
         configurarValidacionNombre();
 
-        // 2. CONFIGURAR VALIDACIÓN EN TIEMPO REAL PARA LA FECHA
-        configurarValidacionFecha();
-
-        // 1. CARGAR DATOS SI ES MODO EDICIÓN
+        // 3. CARGAR DATOS SI ES MODO EDICIÓN
         if (UserSession.getInstance().isModoEdicion()) {
             int idEquipo = UserSession.getInstance().getEquipoIdTemp();
             System.out.println("Cargando alumnos para equipo ID: " + idEquipo);
 
             try {
-                // Llama a tu DAO (CoachDAO)
                 CoachDAO dao = new CoachDAO();
                 ObservableList<String> existentes = dao.obtenerParticipantes(idEquipo);
 
@@ -81,66 +80,108 @@ public class CoachRegistroIntegrantesController {
                 lblError.setVisible(true);
             }
 
-            // 2. OCULTAR BOTÓN DE REGRESAR
-            // (Necesitas agregar @FXML private Button btnRegresar; en la clase)
             if (btnRegresar != null) {
-                btnRegresar.setVisible(false); // O .setDisable(true);
+                btnRegresar.setVisible(false);
             }
         }
 
         actualizarContador();
     }
 
-    // --- NUEVO: VALIDACIÓN DE NOMBRE (SOLO TEXTO + LÍMITE 50 CHARS) ---
-    private void configurarValidacionNombre() {
-        txtNombre.textProperty().addListener((observable, oldValue, newValue) -> {
-            // A. Evitar que escriba más de 50 caracteres (Límite de BD)
-            if (newValue.length() > 50) {
-                txtNombre.setText(oldValue); // Rechazar el cambio
-                return;
-            }
+    // --- NUEVO: VALIDACIÓN DE FECHA (CON RESTRICCIÓN DE RANGO POR CATEGORÍA) ---
+    private void configurarValidacionFecha(int categoriaId) {
+        final LocalDate HOY = LocalDate.now();
+        LocalDate limiteMinimoFecha; // Fecha más antigua permitida
+        LocalDate limiteMaximoFecha; // Fecha más reciente permitida
 
-            // B. Validar que solo sean letras
-            if (!PATRON_NOMBRE.matcher(newValue).matches()) {
-                txtNombre.setText(oldValue); // Rechazar números o símbolos
-                // Opcional: Mostrar borde rojo momentáneo
-                txtNombre.setStyle("-fx-border-color: red;");
-            } else {
-                txtNombre.setStyle(""); // Restaurar estilo si es válido
-            }
-        });
-    }
 
-    // --- NUEVO: VALIDACIÓN DE FECHA (NO FUTURO + EDAD MÍNIMA) ---
-    private void configurarValidacionFecha() {
-        // A. Restringir el calendario visualmente para no elegir fechas futuras
+// --- Definición de Rangos por Categoría (CORREGIDO) ---
+        switch (categoriaId) {
+            case 1: // Primaria: 6 a 12 años
+                // Máximo 12 años: Debe haber nacido DESPUÉS de (HOY - 12 años)
+                limiteMinimoFecha = HOY.minusYears(12).minusDays(1);
+                // Mínimo 6 años: Debe haber nacido ANTES de (HOY - 6 años)
+                limiteMaximoFecha = HOY.minusYears(6).plusDays(1);
+                break;
+
+            case 2: // Secundaria: 12 a 15 años
+                // Máximo 15 años: Debe haber nacido DESPUÉS de (HOY - 15 años)
+                limiteMinimoFecha = HOY.minusYears(15).minusDays(1);
+                // Mínimo 12 años: Debe haber nacido ANTES de (HOY - 12 años)
+                limiteMaximoFecha = HOY.minusYears(12).plusDays(1);
+                break;
+
+            case 3: // Preparatoria: 15 a 18 años
+                // Máximo 18 años: Debe haber nacido DESPUÉS de (HOY - 18 años)
+                limiteMinimoFecha = HOY.minusYears(18).minusDays(1);
+                // Mínimo 15 años: Debe haber nacido ANTES de (HOY - 15 años)
+                limiteMaximoFecha = HOY.minusYears(15).plusDays(1);
+                break;
+
+            case 4: // Profesional: 18 años en adelante
+                // Mínimo 18 años: Debe haber nacido ANTES de (HOY - 18 años)
+                limiteMaximoFecha = HOY.minusYears(18).plusDays(1);
+                // Sin límite de edad superior (Edad máxima arbitraria de 100 años)
+                limiteMinimoFecha = HOY.minusYears(100);
+                break;
+
+            default: // Caso sin categoría (o error)
+                limiteMinimoFecha = HOY.minusYears(100);
+                limiteMaximoFecha = HOY; // Máximo hoy (no futuro)
+        }
+
+        final LocalDate minDate = limiteMinimoFecha;
+        final LocalDate maxDate = limiteMaximoFecha;
+
+        // A. Restringir el calendario visualmente
         dpNacimiento.setDayCellFactory(picker -> new DateCell() {
             @Override
             public void updateItem(LocalDate date, boolean empty) {
                 super.updateItem(date, empty);
-                // Deshabilitar fechas futuras
-                setDisable(empty || date.isAfter(LocalDate.now()));
-            }
-        });
 
-        // B. Listener para calcular edad al momento
-        dpNacimiento.valueProperty().addListener((observable, oldDate, newDate) -> {
-            if (newDate != null) {
-                if (newDate.isAfter(LocalDate.now())) {
-                    mostrarError("La fecha de nacimiento no puede ser futura.");
-                    dpNacimiento.setValue(null); // Borrar
+                // Deshabilitar fechas futuras
+                if (date.isAfter(HOY)) {
+                    setDisable(true);
+                    setStyle("-fx-background-color: #ffcdd2;");
                     return;
                 }
 
-                // Cálculo rápido de edad para feedback
-                int edad = Period.between(newDate, LocalDate.now()).getYears();
-                if (edad < 6) {
-                    // Advertencia suave (Tu SP en BD tiene la lógica final por categoría,
-                    // pero < 6 años es casi seguro un error para cualquier categoría robótica).
-                    mostrarError("Advertencia: El participante parece tener " + edad + " años.");
+                // Aplicar la restricción del rango de edad para la categoría
+                if (date.isBefore(minDate) || date.isAfter(maxDate)) {
+                    setDisable(true);
+                    setStyle("-fx-background-color: #fce4ec;");
+                } else {
+                    setDisable(false);
+                    setStyle("");
+                }
+            }
+        });
+
+        // B. Listener para avisar si la fecha es inválida (aunque el calendario esté filtrado, si la pegan)
+        dpNacimiento.valueProperty().addListener((observable, oldDate, newDate) -> {
+            if (newDate != null) {
+                // Validación estricta en el momento del cambio
+                if (newDate.isBefore(minDate) || newDate.isAfter(maxDate)) {
+                    mostrarError("Fecha fuera del rango de edad permitido para la categoría seleccionada.");
                 } else {
                     lblError.setVisible(false);
                 }
+            }
+        });
+    }
+
+    // --- NUEVO: VALIDACIÓN DE NOMBRE (SOLO TEXTO + LÍMITE 50 CHARS) ---
+    private void configurarValidacionNombre() {
+        txtNombre.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.length() > 50) {
+                txtNombre.setText(oldValue);
+                return;
+            }
+            if (!PATRON_NOMBRE.matcher(newValue).matches()) {
+                txtNombre.setText(oldValue);
+                txtNombre.setStyle("-fx-border-color: red;");
+            } else {
+                txtNombre.setStyle("");
             }
         });
     }
@@ -154,25 +195,38 @@ public class CoachRegistroIntegrantesController {
         LocalDate nacimiento = dpNacimiento.getValue();
         String sexo = cbSexo.getValue();
 
+        int categoriaId = UserSession.getInstance().getTempCategoriaId();
+        final LocalDate HOY = LocalDate.now();
+
         // 2. Validaciones Básicas (Vacío)
         if (rawNombre == null || rawNombre.trim().isEmpty() || nacimiento == null || sexo == null) {
             mostrarError("Por favor llena todos los campos.");
             return;
         }
 
-        // 3. Normalización (Capitalizar Nombre: "juan perez" -> "Juan Perez")
-        String nombre = capitalizarTexto(rawNombre);
+        // 3. Validación de Rango de Edad (Doble chequeo si la restricción visual falló)
+        LocalDate limiteMinimo, limiteMaximo;
+        switch (categoriaId) {
+            case 1: limiteMinimo = HOY.minusYears(12).minusDays(1); limiteMaximo = HOY.minusYears(8).plusDays(1); break;
+            case 2: limiteMinimo = HOY.minusYears(15).minusDays(1); limiteMaximo = HOY.minusYears(13).plusDays(1); break;
+            default: limiteMinimo = HOY.minusYears(100); limiteMaximo = HOY; // Sin restricción fuerte
+        }
 
-        // 4. Validación de Nombre Completo (Mínimo un espacio)
+        if (nacimiento.isBefore(limiteMinimo) || nacimiento.isAfter(limiteMaximo)) {
+            mostrarError("La fecha de nacimiento no cumple con la edad requerida para la categoría '" + UserSession.getInstance().getTempCategoriaNombre() + "'.");
+            return;
+        }
+
+        // 4. Normalización y Validación de Nombre Completo
+        String nombre = capitalizarTexto(rawNombre);
         if (!nombre.contains(" ")) {
             mostrarError("Por favor ingresa nombre y apellido.");
             return;
         }
 
         // 5. Validación de Duplicados (Local)
-        // Comparamos contra el nombre YA NORMALIZADO
         for (int i = 0; i < participantes.size(); i++) {
-            if (i != indiceEdicion) { // Ignorar si me estoy editando a mí mismo
+            if (i != indiceEdicion) {
                 String[] datos = participantes.get(i).split(" \\| ");
                 if (datos[0].equalsIgnoreCase(nombre)) {
                     mostrarError("El alumno '" + nombre + "' ya está en la lista.");
@@ -195,19 +249,18 @@ public class CoachRegistroIntegrantesController {
         } else {
             // MODO EDITAR
             participantes.set(indiceEdicion, registro);
-            handleLimpiar(); // Salir del modo edición y limpiar selección
+            handleLimpiar();
         }
 
         // 8. Actualizar interfaz
         actualizarContador();
         lblError.setVisible(false);
 
-        // Limpiar campos solo si estábamos agregando (para facilitar ingreso rápido)
         if (indiceEdicion == -1) {
             txtNombre.clear();
             dpNacimiento.setValue(null);
             cbSexo.getSelectionModel().clearSelection();
-            txtNombre.requestFocus(); // Poner el foco listo para el siguiente
+            txtNombre.requestFocus();
         }
     }
 
@@ -224,16 +277,14 @@ public class CoachRegistroIntegrantesController {
         if (index != -1) {
             String item = listaParticipantes.getSelectionModel().getSelectedItem();
             try {
-                // Recuperar datos del texto para ponerlos en los campos
                 String[] datos = item.split(" \\| ");
                 txtNombre.setText(datos[0]);
                 dpNacimiento.setValue(LocalDate.parse(datos[1]));
                 cbSexo.setValue(datos[2]);
 
-                // Activar modo edición visual
                 indiceEdicion = index;
                 btnAccion.setText("GUARDAR CAMBIOS");
-                btnAccion.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold;"); // Naranja
+                btnAccion.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold;");
                 lblError.setVisible(false);
             } catch (Exception e) { e.printStackTrace(); }
         }
@@ -244,11 +295,11 @@ public class CoachRegistroIntegrantesController {
         txtNombre.clear();
         dpNacimiento.setValue(null);
         cbSexo.getSelectionModel().clearSelection();
-        txtNombre.setStyle(""); // Limpiar bordes rojos si quedaron
+        txtNombre.setStyle("");
 
         indiceEdicion = -1;
         btnAccion.setText("AGREGAR A LA LISTA");
-        btnAccion.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold;");
+        btnAccion.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold;");
         listaParticipantes.getSelectionModel().clearSelection();
         lblError.setVisible(false);
     }
@@ -274,28 +325,24 @@ public class CoachRegistroIntegrantesController {
 
     @FXML
     public void handleFinalizar(ActionEvent event) {
-        // CAMBIA ESTO: antes decía isEmpty(), ahora debe validar que sean 3 exactos
         if (participantes.size() != 3) {
             lblError.setText("Regla del Torneo: El equipo debe tener exactamente 3 integrantes.");
-            lblError.setStyle("-fx-text-fill: #e74c3c;"); // Rojo
+            lblError.setStyle("-fx-text-fill: #e74c3c;");
             lblError.setVisible(true);
-            return; // Detenemos aquí, no molestamos a la Base de Datos
+            return;
         }
 
         UserSession session = UserSession.getInstance();
         int equipoId = session.getEquipoIdTemp();
-        boolean esEdicion = session.isModoEdicion(); // <--- IMPORTANTE
+        boolean esEdicion = session.isModoEdicion();
 
-        // VALIDACIÓN DIFERENCIADA
         if (!esEdicion) {
-            // Solo si es NUEVO validamos que existan los datos temporales
             if (session.getTempNombreEquipo() == null || session.getTempCategoriaNombre() == null) {
                 lblError.setText("Error: Datos de sesión perdidos. Vuelve a iniciar.");
                 lblError.setVisible(true);
                 return;
             }
         } else {
-            // Si es EDICIÓN, validamos solo el ID
             if (equipoId == 0) {
                 lblError.setText("Error crítico: No se encontró el ID del equipo a editar.");
                 lblError.setVisible(true);
@@ -316,7 +363,6 @@ public class CoachRegistroIntegrantesController {
                         stmtEq.setInt(1, session.getUserId());
                         stmtEq.setString(2, session.getTempCategoriaNombre());
                         stmtEq.setString(3, session.getTempNombreEquipo());
-                        // stmtEq.setString(4, session.getTempInstitucion());
 
                         if (stmtEq.execute()) {
                             try (ResultSet rs = stmtEq.getResultSet()) {
@@ -325,7 +371,7 @@ public class CoachRegistroIntegrantesController {
                         }
                     }
                     if (nuevoEquipoId == 0) throw new SQLException("No se generó ID.");
-                    equipoId = nuevoEquipoId; // Actualizamos ID para usarlo abajo
+                    equipoId = nuevoEquipoId;
 
                     // 2. Inscribir
                     String sqlEvento = "{call SP_RegistrarEquipoEnEvento(?, ?)}";
@@ -388,8 +434,6 @@ public class CoachRegistroIntegrantesController {
 
     @FXML
     public void handleRegresar(ActionEvent event) {
-        // Regresa a la pantalla de datos del equipo.
-        // Como los datos siguen en UserSession, se llenarán solos.
         cambiarVista(event, "coach_registroEquipo.fxml");
     }
 
@@ -442,7 +486,6 @@ public class CoachRegistroIntegrantesController {
 
     @FXML
     public void handleIrAlMenu(ActionEvent event) {
-        // Limpiamos la sesión para evitar datos basura en el próximo intento
         UserSession.getInstance().setTempNombreEquipo(null);
         UserSession.getInstance().setTempInstitucion(null);
         UserSession.getInstance().setModoEdicion(false);
@@ -450,7 +493,6 @@ public class CoachRegistroIntegrantesController {
         cambiarVista(event, "coach_menu.fxml");
     }
 
-    // --- EL MÉTODO AUXILIAR NECESARIO (Cópialo al final de la clase) ---
     private String capitalizarTexto(String texto) {
         if (texto == null || texto.isEmpty()) return texto;
 
@@ -468,5 +510,4 @@ public class CoachRegistroIntegrantesController {
         }
         return resultado.toString().trim();
     }
-
 }

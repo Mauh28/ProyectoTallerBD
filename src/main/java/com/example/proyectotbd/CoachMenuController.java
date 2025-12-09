@@ -52,9 +52,13 @@ public class CoachMenuController {
         }
     }
 
+    /**
+     * CORRECCIÓN: Ahora navega a la vista de listado de eventos (coach_verEventos.fxml)
+     * para que el Coach pueda seleccionar el evento antes de registrar el equipo.
+     */
     @FXML
     public void handleRegistrarEquipo(ActionEvent event) {
-        cambiarVista(event, "coach_registroEquipo.fxml"); // Actualizado para ir directo al registro unificado
+        cambiarVista(event, "coach_verEventos.fxml");
     }
 
     @FXML
@@ -71,7 +75,6 @@ public class CoachMenuController {
     @FXML
     public void handleLogout(ActionEvent event) {
         System.out.println("Cerrando sesión...");
-        // Ahora usamos el método estándar porque el botón es un Nodo normal
         cambiarVista(event, "login.fxml");
     }
 
@@ -83,7 +86,7 @@ public class CoachMenuController {
             // Obtener el Stage (ventana) actual
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 
-            // Crear nueva escena SIN estilos extra
+            // Crear nueva escena
             Scene scene = new Scene(root);
 
             stage.setScene(scene);
@@ -96,7 +99,6 @@ public class CoachMenuController {
     @FXML
     public void handleVerResultados(ActionEvent event) {
         System.out.println("Navegando a Resultados de Evaluación...");
-        // Esta vista ahora cargará los datos reales desde la BD
         cambiarVista(event, "coach_reportes.fxml");
     }
 }

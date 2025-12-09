@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -19,14 +20,79 @@ import java.sql.SQLException;
 public class LoginAdminController {
 
     @FXML private TextField txtUsuario;
-    @FXML private PasswordField txtPassword;
     @FXML private Label lblError;
 
+    // --- CAMPOS DE CONTRASEÑA CORREGIDOS ---
+    @FXML private PasswordField pfContrasena;         // Campo oculto (reemplaza txtPassword)
+    @FXML private TextField txtContrasenaVisible;     // Campo de texto visible
+    @FXML private Button btnVerContrasena;           // Botón de alternar
+
+    // Bandera para rastrear el estado
+    private boolean contrasenaVisible = false;
+
+    @FXML
+    public void initialize() {
+        // En tu FXML, el ID para PasswordField era 'txtPassword', lo he renombrado a 'pfContrasena'.
+        // Si el FXML sigue usando 'txtPassword', ajusta aquí. (Asumo que usas 'pfContrasena' ahora).
+
+        // --- SINCRONIZACIÓN DE CONTENIDO ---
+        // 1. Si el usuario escribe en el PasswordField (oculto), actualiza el campo visible.
+        pfContrasena.textProperty().addListener((obs, oldV, newV) -> {
+            if (!contrasenaVisible) {
+                txtContrasenaVisible.setText(newV);
+            }
+        });
+
+        // 2. Si el usuario escribe en el TextField visible, actualiza el PasswordField oculto.
+        txtContrasenaVisible.textProperty().addListener((obs, oldV, newV) -> {
+            if (contrasenaVisible) {
+                pfContrasena.setText(newV);
+            }
+        });
+    }
+
+    // =================================================================
+    // GESTIÓN DE LA VISIBILIDAD DE CONTRASEÑA
+    // =================================================================
+
+    @FXML
+    public void handleAlternarVisibilidad(ActionEvent event) {
+        if (!contrasenaVisible) {
+            // Actualmente Oculto (pfContrasena visible) -> Cambiar a Mostrar
+            txtContrasenaVisible.setText(pfContrasena.getText());
+            txtContrasenaVisible.setVisible(true);
+            pfContrasena.setVisible(false);
+            btnVerContrasena.setText("🔒"); // Ícono de candado
+        } else {
+            // Actualmente Visible (txtContrasenaVisible visible) -> Cambiar a Ocultar
+            pfContrasena.setText(txtContrasenaVisible.getText());
+            pfContrasena.setVisible(true);
+            txtContrasenaVisible.setVisible(false);
+            btnVerContrasena.setText("👁️"); // Ícono de ojo
+        }
+
+        // Invertir la bandera de estado
+        contrasenaVisible = !contrasenaVisible;
+
+        // Asegurar el foco
+        if (contrasenaVisible) {
+            txtContrasenaVisible.requestFocus();
+        } else {
+            pfContrasena.requestFocus();
+        }
+    }
+
+
+    // =================================================================
+    // LÓGICA DE INICIO DE SESIÓN
+    // =================================================================
 
     @FXML
     public void handleAdminLogin(ActionEvent event) {
         String usuario = txtUsuario.getText();
-        String password = txtPassword.getText();
+
+        // Obtener la contraseña del campo principal (siempre está sincronizado)
+        String password = pfContrasena.getText();
 
         if (usuario.isEmpty() || password.isEmpty()) {
             lblError.setText("Por favor, ingrese usuario y clave de acceso.");
@@ -51,6 +117,9 @@ public class LoginAdminController {
 
                     System.out.println("Login Admin Correcto. ID: " + adminId);
                     cambiarVista(event, "organizador_menu.fxml");
+                } else {
+                    lblError.setText("Credenciales de administrador inválidas.");
+                    lblError.setVisible(true);
                 }
             }
         } catch (SQLException e) {

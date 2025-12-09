@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -11,41 +16,37 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.proyectotbd.JuezEventoController"
-            prefHeight="720.0" prefWidth="1280.0"
-            style="-fx-background-color: #f4f6f8;">
+<BorderPane prefHeight="720.0" prefWidth="1280.0" style="-fx-background-color: #f4f6f8;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.proyectotbd.JuezEventoController">
 
     <top>
         <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #2c3e50; -fx-padding: 20;">
-
-            <Button text="← Regresar"
-                    onAction="#handleRegresar"
-                    style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-font-size: 14; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
-
-            <Label text="Sistema de Gestión" textFill="WHITE">
-                <font>
-                    <Font name="System Bold" size="24.0" />
-                </font>
-                <HBox.margin>
-                    <Insets left="10.0" />
-                </HBox.margin>
-            </Label>
-
-            <Region HBox.hgrow="ALWAYS" />
-
-            <HBox alignment="CENTER" spacing="15.0">
-                <Label text="Bienvenido" textFill="#bdc3c7">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-
-                <Button text="Cerrar Sesión"
-                        onAction="#handleLogout"
-                        style="-fx-background-color: transparent; -fx-text-fill: #ecf0f1; -fx-border-color: #ecf0f1; -fx-border-radius: 5; -fx-cursor: hand; -fx-padding: 5 15;"/>
-            </HBox>
+           <children>
+   
+               <Button onAction="#handleRegresar" style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-font-size: 14; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;" text="← Regresar" />
+   
+               <Label text="Sistema de Gestión" textFill="WHITE">
+                   <font>
+                       <Font name="System Bold" size="24.0" />
+                   </font>
+                   <HBox.margin>
+                       <Insets left="10.0" />
+                   </HBox.margin>
+               </Label>
+   
+               <Region HBox.hgrow="ALWAYS" />
+   
+               <HBox alignment="CENTER" spacing="15.0">
+      <children>
+                      <Label text="Bienvenido" textFill="#bdc3c7">
+                          <font>
+                              <Font size="16.0" />
+                          </font>
+                      </Label>
+      
+                      <Button onAction="#handleLogout" style="-fx-background-color: transparent; -fx-text-fill: #ecf0f1; -fx-border-color: #ecf0f1; -fx-border-radius: 5; -fx-cursor: hand; -fx-padding: 5 15;" text="Cerrar Sesión" />
+      </children>
+               </HBox>
+           </children>
         </HBox>
     </top>
 
@@ -54,43 +55,52 @@
             <padding>
                 <Insets bottom="40.0" left="60.0" right="60.0" top="40.0" />
             </padding>
-
-            <HBox alignment="CENTER_LEFT" spacing="20.0">
-                <VBox>
-                    <Label text="Selecciona un Evento" textFill="#2c3e50">
-                        <font>
-                            <Font name="System Bold" size="28.0" />
-                        </font>
-                    </Label>
-                    <Label text="Elige el evento activo para continuar" textFill="#7f8c8d">
-                        <font>
-                            <Font size="16.0" />
-                        </font>
-                    </Label>
-                </VBox>
-
-                <Region HBox.hgrow="ALWAYS" />
-
-                <TextField promptText="Buscar evento..."
-                           prefHeight="40.0"
-                           prefWidth="300.0"
-                           style="-fx-background-radius: 20; -fx-border-color: #bdc3c7; -fx-border-radius: 20; -fx-padding: 0 15; -fx-font-size: 14;"/>
-            </HBox>
-
-            <HBox spacing="10.0" style="-fx-padding: 10 20;">
-                <Label text="NOMBRE DEL EVENTO" textFill="#95a5a6" prefWidth="400.0" style="-fx-font-weight: bold;"/>
-                <Label text="LUGAR" textFill="#95a5a6" prefWidth="250.0" style="-fx-font-weight: bold;"/>
-                <Label text="FECHA" textFill="#95a5a6" prefWidth="150.0" style="-fx-font-weight: bold;"/>
-                <Region HBox.hgrow="ALWAYS" />
-                <Label text="ACCIÓN" textFill="#95a5a6" style="-fx-font-weight: bold; -fx-padding: 0 20 0 0;"/>
-            </HBox>
-
-            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
-                <content>
-                    <VBox fx:id="vboxListaEventos" spacing="15.0" style="-fx-padding: 5;">
+           <children>
+   
+               <HBox alignment="CENTER_LEFT" spacing="20.0">
+      <children>
+                      <VBox>
+                         <children>
+                             <Label text="Selecciona un Evento" textFill="#2c3e50">
+                                 <font>
+                                     <Font name="System Bold" size="28.0" />
+                                 </font>
+                             </Label>
+                             <Label text="Elige el evento activo para continuar" textFill="#7f8c8d">
+                                 <font>
+                                     <Font size="16.0" />
+                                 </font>
+                             </Label>
+                         </children>
+                      </VBox>
+      
+                      <Region HBox.hgrow="ALWAYS" />
+      
+                      <TextField prefHeight="40.0" prefWidth="300.0" promptText="Buscar evento..." style="-fx-background-radius: 20; -fx-border-color: #bdc3c7; -fx-border-radius: 20; -fx-padding: 0 15; -fx-font-size: 14;" />
+      </children>
+               </HBox>
+   
+               <HBox spacing="10.0" style="-fx-padding: 10 20;">
+      <children>
+                      <Label prefWidth="350.0" style="-fx-font-weight: bold;" text="NOMBRE DEL EVENTO" textFill="#95a5a6" />
+                      <Label prefWidth="200.0" style="-fx-font-weight: bold;" text="LUGAR" textFill="#95a5a6" />
+                      <Label prefWidth="120.0" style="-fx-font-weight: bold;" text="FECHA" textFill="#95a5a6" />
+      
+                      <Label prefWidth="80.0" style="-fx-font-weight: bold;" text="INICIO" textFill="#95a5a6" />
+                      <Label prefWidth="80.0" style="-fx-font-weight: bold;" text="FIN" textFill="#95a5a6" />
+      
+                      <Region HBox.hgrow="ALWAYS" />
+                      <Label style="-fx-font-weight: bold; -fx-padding: 0 20 0 0;" text="ACCIÓN" textFill="#95a5a6" />
+      </children>
+               </HBox>
+   
+               <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+                   <content>
+                       <VBox fx:id="vboxListaEventos" spacing="13.0" style="-fx-padding: 5;">
                     </VBox>
-                </content>
-            </ScrollPane>
+                   </content>
+               </ScrollPane>
+           </children>
 
         </VBox>
     </center>

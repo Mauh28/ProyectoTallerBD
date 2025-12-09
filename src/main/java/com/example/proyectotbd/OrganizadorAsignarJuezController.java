@@ -138,7 +138,7 @@ public class OrganizadorAsignarJuezController {
         } catch (SQLException e) {
             // Errores de negocio (cupo lleno, conflicto de interés, faltan equipos)
             e.printStackTrace();
-            mostrarMensaje("Error: " + e.getMessage(), true);
+            mostrarMensaje(e.getMessage(), true);
         }
     }
 

@@ -49,16 +49,17 @@
             </Label>
 
             <HBox alignment="CENTER" spacing="40.0">
+
                 <Button onAction="#handleRegistrarEquipo" prefHeight="250.0" prefWidth="250.0"
                         style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0); -fx-cursor: hand; -fx-border-color: #e67e22; -fx-border-width: 0 0 6 0; -fx-border-radius: 20;">
                     <graphic>
                         <VBox alignment="CENTER" spacing="10.0">
-                            <Label text="📝" textFill="#e67e22" style="-fx-font-size: 50px;" />
-                            <Label text="REGISTRAR" textFill="#e67e22" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
+                            <Label text="📅" textFill="#e67e22" style="-fx-font-size: 50px;" />
+                            <Label text="EVENTOS" textFill="#e67e22" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
+                            <Label text="(Inscripción)" textFill="#e67e22" style="-fx-font-size: 14px;" />
                         </VBox>
                     </graphic>
                 </Button>
-
                 <Button fx:id="btnVerReportes" onAction="#handleVerReportes" prefHeight="250.0" prefWidth="250.0"
                         style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0); -fx-cursor: hand; -fx-border-color: #2980b9; -fx-border-width: 0 0 6 0; -fx-border-radius: 20;">
                     <graphic>

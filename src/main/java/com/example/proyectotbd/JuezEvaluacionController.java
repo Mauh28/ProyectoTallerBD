@@ -117,12 +117,12 @@ public class JuezEvaluacionController {
             } catch (SQLException ex) {
                 conn.rollback();
                 ex.printStackTrace();
-                mostrarAlertaError("Error al guardar: " + ex.getMessage());
+                mostrarAlertaError(ex.getMessage());
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
-            mostrarAlertaError("Error de Conexión: " + e.getMessage());
+            mostrarAlertaError(e.getMessage());
         }
     }
 

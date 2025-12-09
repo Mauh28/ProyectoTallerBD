@@ -8,6 +8,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
 
 <HBox xmlns="http://javafx.com/javafx/17"
@@ -66,10 +67,30 @@
 
             <VBox spacing="5.0">
                 <Label text="CLAVE DE ACCESO" textFill="#7f8c8d" style="-fx-font-weight:bold; -fx-font-size: 12;"/>
-                <PasswordField fx:id="txtPassword"
+
+                <StackPane alignment="CENTER_RIGHT" prefHeight="50.0">
+
+                    <TextField fx:id="txtContrasenaVisible"
                                promptText="••••••••"
+                               visible="false"
                                prefHeight="50.0"
-                               style="-fx-background-color: #f4f6f8; -fx-border-color: transparent; -fx-font-size: 14px;" />
+                               style="-fx-background-color: #f4f6f8; -fx-border-color: transparent; -fx-font-size: 14px; -fx-padding: 0 45 0 10;"/>
+
+                    <PasswordField fx:id="pfContrasena"
+                                   promptText="••••••••"
+                                   prefHeight="50.0"
+                                   style="-fx-background-color: #f4f6f8; -fx-border-color: transparent; -fx-font-size: 14px; -fx-padding: 0 45 0 10;"/>
+
+                    <Button fx:id="btnVerContrasena"
+                            onAction="#handleAlternarVisibilidad"
+                            text="👁️"
+                            style="-fx-background-color: null; -fx-font-size: 18px; -fx-cursor: hand; -fx-padding: 0 10 0 0;"
+                            alignment="CENTER_RIGHT">
+                        <StackPane.margin>
+                            <Insets right="5.0"/>
+                        </StackPane.margin>
+                    </Button>
+                </StackPane>
             </VBox>
 
             <Label fx:id="lblError" textFill="#e74c3c" visible="false" wrapText="true"/>

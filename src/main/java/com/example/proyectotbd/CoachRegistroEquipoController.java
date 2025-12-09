@@ -1,6 +1,5 @@
 package com.example.proyectotbd;
 
-import com.example.proyectotbd.ConexionDB;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -13,17 +12,16 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 
 public class CoachRegistroEquipoController {
 
     @FXML private TextField txtNombreEquipo;
-    // @FXML private TextField txtInstitucion;
     @FXML private Label lblMensaje;
 
-    @FXML private ComboBox<OpcionCombo> cbEventos;
+    // Campo del ComboBox ELIMINADO: Ya no se inyecta cbEventos
+    @FXML private Label lblEventoSeleccionado; // Etiqueta añadida en la vista para mostrar el evento
     @FXML private Label lblCategoriaSeleccionada;
 
     private String categoriaTexto = null;
@@ -32,27 +30,39 @@ public class CoachRegistroEquipoController {
 
     @FXML
     public void initialize() {
-        cargarEventos();
-        recuperarDatosDeSesion(); // <--- NUEVO: Recuperar si volvemos atrás
-        // Activar validación de nombre en tiempo real ---
+        // Ya no cargamos eventos aquí: cargarEventos();
+
+        // El FXML ya no necesita ComboBox, pero sí necesitamos mostrar qué evento se seleccionó
+        mostrarEventoSeleccionado();
+
+        recuperarDatosDeSesion();
         configurarValidacionNombre();
     }
 
-    private void cargarEventos() {
-        try {
-            cbEventos.setItems(dao.obtenerEventosFuturos());
-        } catch (SQLException e) {
-            mostrarMensaje("Error al cargar eventos: " + e.getMessage(), true);
+    /**
+     * Muestra el nombre del evento seleccionado, obtenido desde la sesión temporal.
+     */
+    private void mostrarEventoSeleccionado() {
+        // Asumiendo que has añadido UserSession.getInstance().getTempEventoNombre() o similar
+        // Si no lo tienes, solo muestra el ID, pero un nombre es mejor para UX.
+        int eventoId = UserSession.getInstance().getTempEventoId();
+
+        if (eventoId != 0 && lblEventoSeleccionado != null) {
+            // NOTA: Si necesitas el nombre real del evento aquí, tendrías que hacer una pequeña
+            // consulta al DAO para buscar el nombre por eventoId. Por ahora, solo indicamos que está seleccionado.
+            lblEventoSeleccionado.setText("Inscribiendo al Evento ID: " + eventoId);
+        } else {
+            lblEventoSeleccionado.setText("Error: Evento no preseleccionado.");
         }
     }
 
-    // Restaurar datos si el usuario regresó para corregir
+    // El método cargarEventos() fue eliminado.
+
     private void recuperarDatosDeSesion() {
         UserSession session = UserSession.getInstance();
 
-        // 1. Restaurar Texto
+        // 1. Restaurar Nombre de Equipo
         if (session.getTempNombreEquipo() != null) txtNombreEquipo.setText(session.getTempNombreEquipo());
-        // if (session.getTempInstitucion() != null) txtInstitucion.setText(session.getTempInstitucion());
 
         // 2. Restaurar Categoría (Visual y Lógica)
         if (session.getTempCategoriaNombre() != null) {
@@ -62,15 +72,7 @@ public class CoachRegistroEquipoController {
             lblCategoriaSeleccionada.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold; -fx-font-style: italic;");
         }
 
-        // 3. Restaurar Evento (Un poco más complejo en ComboBox, buscamos por ID)
-        if (session.getTempEventoId() != 0) {
-            for (OpcionCombo item : cbEventos.getItems()) {
-                if (item.getId() == session.getTempEventoId()) {
-                    cbEventos.getSelectionModel().select(item);
-                    break;
-                }
-            }
-        }
+        // 3. Ya no necesitamos restaurar el ComboBox del evento.
     }
 
     @FXML
@@ -93,25 +95,27 @@ public class CoachRegistroEquipoController {
 
     @FXML
     public void handleContinuar(ActionEvent event) {
-        OpcionCombo eventoSeleccionado = cbEventos.getValue();
+        // El ID del evento se obtiene de la sesión, no del ComboBox.
+        int eventoId = UserSession.getInstance().getTempEventoId();
         String nombre = txtNombreEquipo.getText().trim();
 
-        // 1. Validaciones Visuales
-        if (eventoSeleccionado == null) { mostrarMensaje("Selecciona un evento.", true); return; }
+        // 1. Validaciones
+        if (eventoId == 0) {
+            mostrarMensaje("Error: Debe seleccionar un evento en la vista anterior.", true);
+            return;
+        }
         if (categoriaTexto == null) { mostrarMensaje("Selecciona una categoría.", true); return; }
-        if (nombre.isEmpty()) { mostrarMensaje("Escribe el nombre del equipo.", true); return; } // <--- CAMBIO
+        if (nombre.isEmpty()) { mostrarMensaje("Escribe el nombre del equipo.", true); return; }
 
 
         // --- NUEVA VALIDACIÓN: BLOQUEAR SI NO HAY PALABRA REAL ---
-        // Verificamos si cumple el patrón de tener al menos 2 letras consecutivas
         if (!nombre.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ]{2,}.*")) {
             mostrarMensaje("El nombre debe contener al menos una palabra real (mínimo 2 letras seguidas).", true);
             txtNombreEquipo.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;");
             return;
         }
 
-        // 2. VALIDACIÓN EN BD (Sin Insertar)
-        // Usamos la nueva Función FN_VerificarDisponibilidadEquipo
+        // 2. VALIDACIÓN EN BD (Verificar Nombre Duplicado en Categoría)
         String sql = "{? = call FN_VerificarDisponibilidadEquipo(?, ?)}";
 
         try (Connection conn = ConexionDB.getConnection();
@@ -132,15 +136,13 @@ public class CoachRegistroEquipoController {
 
             // 3. SI TODO ESTÁ BIEN: GUARDAR EN SESIÓN Y AVANZAR
             UserSession session = UserSession.getInstance();
-            session.setTempEventoId(eventoSeleccionado.getId());
+            session.setTempEventoId(eventoId); // Mantenemos el ID de la sesión
             session.setTempCategoriaId(categoriaId);
             session.setTempCategoriaNombre(categoriaTexto);
             session.setTempNombreEquipo(nombre);
 
-            // --- CAMBIO IMPORTANTE ---
             // Tomamos la institución del perfil del usuario logueado
             session.setTempInstitucion(session.getInstitucionUsuario());
-            // -------------------------
             System.out.println("Institución asignada automáticamente: " + session.getInstitucionUsuario());
 
             System.out.println("Datos guardados en memoria. Pasando a integrantes...");
@@ -154,12 +156,14 @@ public class CoachRegistroEquipoController {
 
     @FXML
     public void handleRegresar(ActionEvent event) {
-        // Limpiamos los temporales si cancela todo el proceso
-        UserSession.getInstance().setTempNombreEquipo(null);
-        UserSession.getInstance().setTempInstitucion(null);
-        // ... (opcional limpiar resto)
+        // Regresar a la vista de selección de eventos
+        cambiarVista(event, "coach_verEventos.fxml");
 
-        cambiarVista(event, "coach_menu.fxml");
+        // Limpiamos los temporales si regresa para elegir otro evento o categoría
+        UserSession.getInstance().setTempNombreEquipo(null);
+        UserSession.getInstance().setTempCategoriaNombre(null);
+        UserSession.getInstance().setTempCategoriaId(0);
+        // NOTA: Podrías optar por NO limpiar TempEventoId si quieres que el usuario siga con el evento preseleccionado al regresar.
     }
 
     private void mostrarMensaje(String msg, boolean error) {
@@ -188,7 +192,6 @@ public class CoachRegistroEquipoController {
             }
 
             // 2. NUEVA VALIDACIÓN: ¿Contiene al menos una "palabra" (2 letras seguidas)?
-            // Regex: busca cualquier cosa, luego 2+ letras juntas, luego cualquier cosa
             boolean contienePalabra = newValue.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ]{2,}.*");
 
             // Si hay texto pero NO contiene una palabra válida -> Borde Rojo

@@ -1,6 +1,5 @@
 package com.example.proyectotbd;
 
-import com.example.proyectotbd.ConexionDB;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -18,14 +17,73 @@ import java.sql.SQLException;
 
 public class LoginController {
 
+    // Campos de usuario y mensaje de error
     @FXML private TextField txtUsuario;
-    @FXML private PasswordField txtPassword;
     @FXML private Label lblError;
+
+    // Campos para la funcionalidad de 'ojo'
+    @FXML private PasswordField pfContrasena;
+    @FXML private TextField txtContrasenaVisible;
+    @FXML private Button btnVerContrasena;
+
+    private boolean contrasenaVisible = false;
+
+    @FXML
+    public void initialize() {
+        // Sincronización de Contenido
+        pfContrasena.textProperty().addListener((obs, oldV, newV) -> {
+            if (!contrasenaVisible) {
+                txtContrasenaVisible.setText(newV);
+            }
+        });
+
+        txtContrasenaVisible.textProperty().addListener((obs, oldV, newV) -> {
+            if (contrasenaVisible) {
+                pfContrasena.setText(newV);
+            }
+        });
+
+        // Inicializar el botón con el ícono correcto (el ojo, para ver)
+        btnVerContrasena.setText("👁️");
+    }
+
+    // =================================================================
+    // GESTIÓN DE LA VISIBILIDAD DE CONTRASEÑA (CORREGIDO)
+    // =================================================================
+
+    @FXML
+    public void handleAlternarVisibilidad(ActionEvent event) {
+        if (!contrasenaVisible) {
+            // Actualmente Oculto (pfContrasena visible) -> Cambiar a Mostrar
+            txtContrasenaVisible.setText(pfContrasena.getText());
+            txtContrasenaVisible.setVisible(true);
+            pfContrasena.setVisible(false);
+            btnVerContrasena.setText("🔒"); // <-- Solo el carácter Unicode
+        } else {
+            // Actualmente Visible (txtContrasenaVisible visible) -> Cambiar a Ocultar
+            pfContrasena.setText(txtContrasenaVisible.getText());
+            pfContrasena.setVisible(true);
+            txtContrasenaVisible.setVisible(false);
+            btnVerContrasena.setText("👁️"); // <-- Solo el carácter Unicode
+        }
+
+        contrasenaVisible = !contrasenaVisible;
+
+        if (contrasenaVisible) {
+            txtContrasenaVisible.requestFocus();
+        } else {
+            pfContrasena.requestFocus();
+        }
+    }
+
+    // =================================================================
+    // LÓGICA DE INICIO DE SESIÓN (SIN CAMBIOS)
+    // =================================================================
 
     @FXML
     public void handleLogin(ActionEvent event) {
         String usuario = txtUsuario.getText();
-        String pass = txtPassword.getText();
+        String pass = pfContrasena.getText(); // Usa pfContrasena que siempre está sincronizado
 
         if (usuario.isEmpty() || pass.isEmpty()) {
             mostrarMensaje("Por favor ingresa usuario y contraseña.", true);
@@ -45,18 +103,17 @@ public class LoginController {
             if (rs.next()) {
                 int id = rs.getInt("usuario_id");
                 String nombre = rs.getString("nombre");
-                String institucion = rs.getString("institucion"); // <--- OBTENER DE LA BD
+                String institucion = rs.getString("institucion");
                 boolean esCoach = rs.getBoolean("coach");
                 boolean esJuez = rs.getBoolean("juez");
 
-                // DEBUG: Ver en consola qué detectó
                 System.out.println("Usuario: " + nombre + " | Coach: " + esCoach + " | Juez: " + esJuez);
 
+                // --- GESTIÓN DE SESIÓN ---
                 UserSession.getInstance().cleanUserSession();
                 UserSession.getInstance().setUserId(id);
                 UserSession.getInstance().setUsername(usuario);
                 UserSession.getInstance().setNombreCompleto(nombre);
-                // --- GUARDAR EN SESIÓN ---
                 UserSession.getInstance().setInstitucionUsuario(institucion);
                 UserSession.getInstance().setCoach(esCoach);
                 UserSession.getInstance().setJuez(esJuez);
@@ -71,6 +128,8 @@ public class LoginController {
                 } else {
                     mostrarMensaje("Tu usuario no tiene roles asignados.", true);
                 }
+            } else {
+                mostrarMensaje("Credenciales inválidas. Verifica tu usuario y contraseña.", true);
             }
 
         } catch (SQLException e) {
@@ -94,13 +153,8 @@ public class LoginController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
             Parent root = loader.load();
-
-            // Obtener el Stage (ventana) actual
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-
-            // Crear nueva escena SIN estilos extra
             Scene scene = new Scene(root);
-
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
