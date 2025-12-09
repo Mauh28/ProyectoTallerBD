@@ -15,23 +15,27 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.proyectotbd.OrganizadorCrearEventoController"
+            fx:controller="com.example.proyectotbd.OrganizadorEditarEventoController"
             prefHeight="720.0" prefWidth="1280.0"
             style="-fx-background-color: #f4f6f8;">
 
     <top>
         <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #2c3e50; -fx-padding: 20;">
-            <Button text="← Regresar al Menú"
+            <Button text="← Regresar a Eventos"
                     onAction="#handleRegresar"
                     style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-font-size: 14; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
 
-            <Label text="Gestión de Eventos" textFill="WHITE">
+            <Label text="Edición de Evento" textFill="WHITE">
                 <font>
                     <Font name="System Bold" size="24.0" />
                 </font>
                 <HBox.margin>
                     <Insets left="15.0" />
                 </HBox.margin>
+            </Label>
+
+            <Label fx:id="lblEventoId" text="ID: N/A" textFill="#bdc3c7">
+                <font> <Font size="16.0" /> </font>
             </Label>
 
             <Region HBox.hgrow="ALWAYS" />
@@ -51,12 +55,12 @@
                 </effect>
 
                 <VBox spacing="5.0" alignment="CENTER_LEFT">
-                    <Label text="Crear Nuevo Evento" textFill="#27ae60">
+                    <Label text="MODIFICAR DATOS DEL EVENTO" textFill="#27ae60">
                         <font>
                             <Font name="System Bold" size="24.0" />
                         </font>
                     </Label>
-                    <Label text="Ingresa los detalles logísticos del torneo o feria." textFill="#95a5a6"/>
+                    <Label text="Asegúrate de que la fecha y las horas cumplan con las reglas de negocio." textFill="#95a5a6"/>
                 </VBox>
 
                 <VBox spacing="5.0">
@@ -105,8 +109,8 @@
                 </HBox>
                 <Label fx:id="lblMensaje" visible="false" style="-fx-font-weight: bold;"/>
 
-                <Button text="GUARDAR EVENTO"
-                        onAction="#handleGuardarEvento"
+                <Button text="GUARDAR CAMBIOS"
+                        onAction="#handleGuardarEdicion"
                         prefHeight="50.0"
                         maxWidth="Infinity"
                         style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-background-radius: 5; -fx-cursor: hand;">

@@ -1,6 +1,5 @@
 package com.example.proyectotbd;
 
-import com.example.proyectotbd.ConexionDB;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -9,6 +8,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Date;
+import java.sql.Time; // Necesario para obtener las horas
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,10 +57,8 @@ public class JuezDAO {
     // --- MÉTODO CORREGIDO ---
     // Ahora recibe la Connection 'conn' como parámetro
     public IdsAreas obtenerIdsAreas(Connection conn, int evaluacionId, int juezId) throws SQLException {
-        String sql = "{call SP_ObtenerIdsAreas(?, ?)}"; // Asegúrate que el nombre coincida con tu SQL
+        String sql = "{call SP_ObtenerIdsAreas(?, ?)}";
 
-        // OJO: NO usamos try(Connection...) aquí, porque eso la cerraría.
-        // Solo usamos try para el CallableStatement.
         try (CallableStatement stmt = conn.prepareCall(sql)) {
             stmt.setInt(1, evaluacionId);
             stmt.setInt(2, juezId);
@@ -159,7 +158,7 @@ public class JuezDAO {
                             rs.getString("nombre_equipo"),
                             rs.getString("institucion_equipo"),
                             rs.getString("estado_evaluacion"),
-                            rs.getInt("conteo_jueces") // <--- LEER EL NUEVO DATO
+                            rs.getInt("conteo_jueces")
                     ));
                 }
             }
@@ -204,14 +203,16 @@ public class JuezDAO {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    // Reutilizamos la clase EventoItem
-                    // Nota: El SP no devuelve 'jueces', así que mandamos "Asignado" o null
+                    // CORRECCIÓN CLAVE: Se añaden hora_inicio y hora_fin
+                    // para coincidir con el constructor de 7 argumentos de EventoItem.
                     lista.add(new EventoItem(
                             rs.getInt("evento_id"),
                             rs.getString("nombre_evento"),
                             rs.getString("lugar"),
                             rs.getDate("fecha").toString(),
-                            "Tú estás asignado"
+                            "Tú estás asignado", // lista_jueces
+                            rs.getTime("hora_inicio").toString(), // Hora de inicio
+                            rs.getTime("hora_fin").toString()     // Hora de fin
                     ));
                 }
             }

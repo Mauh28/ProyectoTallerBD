@@ -7,6 +7,8 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Date;
+import java.sql.Time;
 
 public class OrganizadorDAO {
 
@@ -94,6 +96,50 @@ public class OrganizadorDAO {
     }
 
     // -----------------------------------------------------------------
+    // MÉTODOS DE GESTIÓN (ADMIN: CREAR Y EDITAR EVENTO)
+    // -----------------------------------------------------------------
+
+    /**
+     * Registra un nuevo evento, incluyendo fecha, hora de inicio y hora de fin.
+     */
+    public void crearEvento(String nombre, String lugar, Date fecha, Time horaInicio, Time horaFin) throws SQLException {
+        String sql = "{call SP_ValidarNombreEvento(?, ?, ?, ?, ?)}"; // 5 parámetros
+
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
+            stmt.setString(1, nombre);
+            stmt.setString(2, lugar);
+            stmt.setDate(3, fecha);
+            stmt.setTime(4, horaInicio);
+            stmt.setTime(5, horaFin);
+
+            stmt.execute();
+        }
+    }
+
+    /**
+     * Actualiza los datos de un evento existente.
+     */
+    public void editarEvento(int id, String nombre, String lugar, Date fecha, Time horaInicio, Time horaFin) throws SQLException {
+        String sql = "{call SP_Admin_EditarEvento(?, ?, ?, ?, ?, ?)}"; // 6 parámetros (ID, 4 campos, 1 campo)
+
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
+            stmt.setInt(1, id); // ID del evento a editar
+            stmt.setString(2, nombre);
+            stmt.setString(3, lugar);
+            stmt.setDate(4, fecha);
+            stmt.setTime(5, horaInicio);
+            stmt.setTime(6, horaFin);
+
+            stmt.execute();
+        }
+    }
+
+
+    // -----------------------------------------------------------------
     // MÉTODOS DE REPORTE DE EQUIPOS Y ASIGNACIONES (ADMIN)
     // -----------------------------------------------------------------
 
@@ -112,14 +158,13 @@ public class OrganizadorDAO {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    // CORRECCIÓN CLAVE: Se añade el quinto argumento (0)
-                    // para el nuevo campo 'conteoJueces' requerido por EquipoItem.
+                    // Se asume 0 para 'conteoJueces' para mantener compatibilidad con el constructor de 5 args.
                     lista.add(new EquipoItem(
                             rs.getInt("equipo_id"),
                             rs.getString("nombre_equipo"),
                             rs.getString("institucion_equipo"),
                             rs.getString("estado_inscripcion"),
-                            0 // <-- Conteo inicializado a 0
+                            0
                     ));
                 }
             }
@@ -153,7 +198,7 @@ public class OrganizadorDAO {
         return lista;
     }
 
-    // --- NUEVO MÉTODO IMPLEMENTADO ---
+    // --- RESULTADOS FINALES ---
     /**
      * Calcula y obtiene los resultados finales (puntajes promedio) de todos los equipos
      * inscritos en un evento.
@@ -229,19 +274,23 @@ public class OrganizadorDAO {
      */
     public ObservableList<EventoItem> obtenerTodosLosEventos() throws SQLException {
         ObservableList<EventoItem> lista = FXCollections.observableArrayList();
-        String sql = "{call SP_Admin_ListarEventos()}";
+        String sql = "{call SP_Admin_ListarEventos()}"; // ASUMIR que este SP devuelve hora_inicio y hora_fin
 
         try (Connection conn = ConexionDB.getConnection();
              CallableStatement stmt = conn.prepareCall(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
+                // El constructor de EventoItem ahora espera 7 argumentos.
                 lista.add(new EventoItem(
                         rs.getInt("evento_id"),
                         rs.getString("nombre_evento"),
                         rs.getString("lugar"),
                         rs.getDate("fecha").toString(),
-                        rs.getString("lista_jueces")
+                        rs.getString("lista_jueces"),
+                        // CAMPOS DE HORA AÑADIDOS
+                        rs.getTime("hora_inicio").toString(), // Asumimos que el SP lo devuelve
+                        rs.getTime("hora_fin").toString()     // Asumimos que el SP lo devuelve
                 ));
             }
         }
