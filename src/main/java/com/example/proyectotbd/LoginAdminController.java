@@ -124,7 +124,7 @@ public class LoginAdminController {
             }
         } catch (SQLException e) {
             // Capturamos el mensaje de error de 'SIGNAL SQLSTATE'
-            e.printStackTrace();
+            // e.printStackTrace();
             lblError.setText(e.getMessage());
             lblError.setVisible(true);
         }

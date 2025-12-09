@@ -133,7 +133,7 @@ public class LoginController {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             mostrarMensaje(e.getMessage(), true);
         }
     }
