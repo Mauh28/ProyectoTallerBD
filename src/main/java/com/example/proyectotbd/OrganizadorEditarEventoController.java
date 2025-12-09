@@ -21,53 +21,93 @@ import java.sql.SQLException;
 import java.sql.Date;
 import java.sql.Time;
 import java.time.LocalDate;
-import java.time.LocalTime; // Necesario para la manipulación de tiempo
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException; // Para manejar errores de formato de hora
 
+public class OrganizadorEditarEventoController {
 
-public class OrganizadorCrearEventoController {
-
+    // Campos FXML de la vista
     @FXML private TextField txtNombreEvento;
     @FXML private TextField txtLugar;
     @FXML private DatePicker dpFecha;
-
-    // --- NUEVOS CAMPOS SPINNER ---
     @FXML private Spinner<Integer> spnHoraInicio;
     @FXML private Spinner<Integer> spnMinutoInicio;
     @FXML private Spinner<Integer> spnHoraFin;
     @FXML private Spinner<Integer> spnMinutoFin;
-    // -----------------------------
-
     @FXML private Label lblMensaje;
+    @FXML private Label lblEventoId; // Para mostrar el ID y confirmación
 
     private OrganizadorDAO dao = new OrganizadorDAO();
+    private EventoItem eventoActual; // Objeto que guarda los datos originales del evento
 
     @FXML
     public void initialize() {
-        // Inicialización de Spinners: Restringe la entrada a rangos válidos.
-        spnHoraInicio.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 8)); // 08:00 default
+        // Inicializar Spinners con rangos válidos (0-23 horas, 0-59 minutos)
+        spnHoraInicio.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 8));
         spnMinutoInicio.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
-        spnHoraFin.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 17)); // 17:00 default
+        spnHoraFin.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 17));
         spnMinutoFin.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
 
-        // 1. Inicializar el listener de la fecha (VALIDACIÓN DE DÍA)
-        dpFecha.valueProperty().addListener((observable, oldValue, newValue) -> {
-            validarFechaSeleccionada(newValue);
-        });
-
-        // 2. Establecer el día mínimo como mañana
+        // Establecer el día mínimo como mañana (prevención frontend)
         dpFecha.setDayCellFactory(picker -> new DateCell() {
             @Override
             public void updateItem(LocalDate date, boolean empty) {
                 super.updateItem(date, empty);
+                // No permitir seleccionar hoy o días pasados
                 setDisable(empty || date.isBefore(LocalDate.now().plusDays(1)));
             }
         });
 
-        // Con Spinner, ya no necesitamos validar formato con regex en tiempo real.
+        // Listener para la validación de la fecha en tiempo real (mismo día o pasado)
+        dpFecha.valueProperty().addListener((observable, oldValue, newValue) -> {
+            validarFechaSeleccionada(newValue);
+        });
+    }
+
+    /**
+     * Método llamado por el controlador anterior (p. ej., OrganizadorVerEventosController)
+     * para pasar los datos del evento a editar.
+     */
+    public void setEventoItem(EventoItem evento) {
+        this.eventoActual = evento;
+
+        if (evento != null) {
+            lblEventoId.setText("ID: " + evento.getId() + " - " + evento.getNombre());
+            cargarDatosEnFormulario(evento);
+        }
+    }
+
+    /**
+     * Llena los campos de la vista con los datos del evento actual.
+     */
+    private void cargarDatosEnFormulario(EventoItem evento) {
+        txtNombreEvento.setText(evento.getNombre());
+        txtLugar.setText(evento.getLugar());
+
+        // FECHA: Convertir String (yyyy-MM-dd) a LocalDate
+        try {
+            dpFecha.setValue(LocalDate.parse(evento.getFecha()));
+        } catch (DateTimeParseException e) {
+            System.err.println("Error al parsear la fecha: " + evento.getFecha());
+        }
+
+        // HORAS: Convertir String (HH:MM:SS) a LocalTime y luego actualizar Spinners
+        try {
+            LocalTime inicio = LocalTime.parse(evento.getHoraInicio());
+            LocalTime fin = LocalTime.parse(evento.getHoraFin());
+
+            spnHoraInicio.getValueFactory().setValue(inicio.getHour());
+            spnMinutoInicio.getValueFactory().setValue(inicio.getMinute());
+            spnHoraFin.getValueFactory().setValue(fin.getHour());
+            spnMinutoFin.getValueFactory().setValue(fin.getMinute());
+
+        } catch (DateTimeParseException e) {
+            System.err.println("Error al parsear la hora: " + e.getMessage());
+        }
     }
 
     // =================================================================
-    // MÉTODOS DE VALIDACIÓN FRONTEND
+    // MÉTODOS DE VALIDACIÓN FRONTEND (Reutilizados de CrearEvento)
     // =================================================================
 
     private boolean validarFechaSeleccionada(LocalDate fecha) {
@@ -76,12 +116,13 @@ public class OrganizadorCrearEventoController {
             return false;
         }
 
+        // Regla: La fecha debe ser estrictamente posterior al día actual
         if (fecha.isAfter(LocalDate.now())) {
             mostrarMensaje("", false);
             dpFecha.setStyle("-fx-font-size: 14px; -fx-background-color: #f4f6f8; -fx-border-color: #27ae60; -fx-border-radius: 5;");
             return true;
         } else {
-            mostrarMensaje("Error: La fecha del evento debe ser al menos el día siguiente al día de hoy.", true);
+            mostrarMensaje("Error: La fecha debe ser posterior al día de hoy. No se permite editar eventos activos o expirados.", true);
             dpFecha.setStyle("-fx-font-size: 14px; -fx-background-color: #f4f6f8; -fx-border-color: #e74c3c; -fx-border-radius: 5;");
             return false;
         }
@@ -94,33 +135,37 @@ public class OrganizadorCrearEventoController {
 
     @FXML
     public void handleRegresar(ActionEvent event) {
-        cambiarVista(event, "organizador_menu.fxml");
+        // Asumo que se regresa a la vista de lista de eventos
+        cambiarVista(event, "organizador_verEventos.fxml");
     }
 
     @FXML
-    public void handleGuardarEvento(ActionEvent event) {
-        // 1. Obtener datos de la interfaz
+    public void handleGuardarEdicion(ActionEvent event) {
+        if (eventoActual == null) {
+            mostrarMensaje("Error interno: No se ha cargado el evento a editar.", true);
+            return;
+        }
+
+        // 1. Obtener datos
         String nombre = txtNombreEvento.getText();
         String lugar = txtLugar.getText();
         LocalDate fechaLocal = dpFecha.getValue();
 
-        // Captura los valores enteros de los Spinners
         Integer horaInicioInt = spnHoraInicio.getValue();
         Integer minutoInicioInt = spnMinutoInicio.getValue();
         Integer horaFinInt = spnHoraFin.getValue();
         Integer minutoFinInt = spnMinutoFin.getValue();
 
-
-        // 2. Validación Básica Frontend (Campos vacíos o Spinner sin valor por alguna razón)
+        // 2. Validación Básica Frontend
         if (nombre.isEmpty() || lugar.isEmpty() || fechaLocal == null ||
                 horaInicioInt == null || minutoInicioInt == null ||
                 horaFinInt == null || minutoFinInt == null) {
 
-            mostrarMensaje("Error: Todos los campos son obligatorios (incluyendo las horas).", true);
+            mostrarMensaje("Error: Todos los campos son obligatorios.", true);
             return;
         }
 
-        // 3. Revalidación de la fecha (usa el método que implementa el listener)
+        // 3. Revalidación de la fecha
         if (!validarFechaSeleccionada(fechaLocal)) {
             return;
         }
@@ -128,7 +173,6 @@ public class OrganizadorCrearEventoController {
         // 4. Conversión a SQL Types
         Date sqlFecha = java.sql.Date.valueOf(fechaLocal);
 
-        // Construcción de la cadena de tiempo HH:MM:SS
         String horaInicioStr = String.format("%02d:%02d:00", horaInicioInt, minutoInicioInt);
         String horaFinStr = String.format("%02d:%02d:00", horaFinInt, minutoFinInt);
 
@@ -136,17 +180,24 @@ public class OrganizadorCrearEventoController {
         Time sqlHoraFin = Time.valueOf(horaFinStr);
 
 
-        // 5. LLAMADA AL DAO
+        // 5. LLAMADA AL DAO (Editar)
         try {
-            dao.crearEvento(nombre, lugar, sqlFecha, sqlHoraInicio, sqlHoraFin);
+            dao.editarEvento(
+                    eventoActual.getId(), // Usamos el ID original
+                    nombre,
+                    lugar,
+                    sqlFecha,
+                    sqlHoraInicio,
+                    sqlHoraFin
+            );
 
             // --- ÉXITO ---
-            System.out.println("Evento creado en BD: " + nombre);
-            mostrarNotificacionExito("¡Evento '" + nombre + "' creado exitosamente!");
-            cambiarVista(event, "organizador_verEventos.fxml"); // Asumo que vas a la lista de eventos
+            System.out.println("Evento editado en BD: " + nombre);
+            mostrarNotificacionExito("¡Evento '" + nombre + "' actualizado exitosamente!");
+            cambiarVista(event, "organizador_verEventos.fxml");
 
         } catch (SQLException e) {
-            // Aquí atrapamos los errores del SP (duplicado, duración < 1h, inicio > fin, etc.)
+            // Atrapamos errores del SP (ej: nombre duplicado, duración, horario inválido)
             e.printStackTrace();
             mostrarMensaje(e.getMessage(), true);
         }
@@ -155,12 +206,11 @@ public class OrganizadorCrearEventoController {
     // --- MÉTODOS AUXILIARES ---
 
     private void mostrarNotificacionExito(String mensaje) {
-        // Lógica de notificación (sin cambios)
         try {
             Stage toastStage = new Stage();
             toastStage.initStyle(StageStyle.TRANSPARENT);
             toastStage.setAlwaysOnTop(true);
-            Label label = new Label("📅 " + mensaje);
+            Label label = new Label("✅ " + mensaje);
             label.setStyle("-fx-background-color: #27ae60;-fx-text-fill: white;-fx-font-weight: bold;-fx-font-size: 16px;-fx-padding: 20px;-fx-background-radius: 10px;-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);");
             StackPane root = new StackPane(label);
             root.setStyle("-fx-background-color: transparent;");

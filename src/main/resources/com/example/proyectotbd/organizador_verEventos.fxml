@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -11,52 +15,58 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.proyectotbd.OrganizadorVerEventosController"
-            prefHeight="720.0" prefWidth="1280.0" style="-fx-background-color: #f4f6f8;">
+<BorderPane prefHeight="720.0" prefWidth="1280.0" style="-fx-background-color: #f4f6f8;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.proyectotbd.OrganizadorVerEventosController">
 
     <top>
         <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #2c3e50; -fx-padding: 20;">
-            <Button text="← Volver al Menú" onAction="#handleRegresar"
-                    style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
-            <Label text="Gestión y Reportes de Eventos" textFill="WHITE">
-                <font> <Font name="System Bold" size="24.0" /> </font>
-            </Label>
-            <Region HBox.hgrow="ALWAYS" />
-            <Label text="Administrador" textFill="#bdc3c7"/>
+           <children>
+               <Button onAction="#handleRegresar" style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;" text="← Volver al Menú" />
+               <Label text="Gestión y Reportes de Eventos" textFill="WHITE">
+                   <font> <Font name="System Bold" size="24.0" /> </font>
+               </Label>
+               <Region HBox.hgrow="ALWAYS" />
+               <Label text="Administrador" textFill="#bdc3c7" />
+           </children>
         </HBox>
     </top>
 
     <center>
         <VBox spacing="20.0" style="-fx-padding: 30;">
-            <Label text="Eventos Registrados" textFill="#2c3e50">
-                <font> <Font name="System Bold" size="20.0" /> </font>
-            </Label>
-
-            <Label text="Selecciona un evento para gestionar o ver el reporte detallado." textFill="#7f8c8d"/>
-
-            <TableView fx:id="tablaEventos" VBox.vgrow="ALWAYS" style="-fx-background-color: white; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;">
-                <columns>
-                    <TableColumn fx:id="colId" text="ID" prefWidth="50.0" style="-fx-alignment: CENTER;"/>
-                    <TableColumn fx:id="colNombre" text="NOMBRE DEL EVENTO" prefWidth="250.0" />
-                    <TableColumn fx:id="colLugar" text="LUGAR / SEDE" prefWidth="200.0" />
-                    <TableColumn fx:id="colFecha" text="FECHA" prefWidth="120.0" style="-fx-alignment: CENTER;"/>
-                    <TableColumn fx:id="colJueces" text="CATEGORÍAS Y JUECES ASIGNADOS" prefWidth="500.0" />
-                </columns>
-                <columnResizePolicy>
-                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                </columnResizePolicy>
-            </TableView>
-
-            <HBox alignment="CENTER_RIGHT" spacing="15.0">
-
-                <Button text="🗑️ ELIMINAR EVENTO" onAction="#handleEliminar"
-                        style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 5;"/>
-
-                <Button text="📊 VER REPORTES DETALLADOS" onAction="#handleVerReporteDetallado"
-                        style="-fx-background-color: #d35400; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 5;"/>
-
-            </HBox>
+           <children>
+               <Label text="Eventos Registrados" textFill="#2c3e50">
+                   <font> <Font name="System Bold" size="20.0" /> </font>
+               </Label>
+   
+               <Label text="Selecciona un evento para gestionar o ver el reporte detallado." textFill="#7f8c8d" />
+   
+               <TableView fx:id="tablaEventos" style="-fx-background-color: white; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;" VBox.vgrow="ALWAYS">
+                   <columns>
+                       <TableColumn fx:id="colId" prefWidth="50.0" style="-fx-alignment: CENTER;" text="ID" />
+                       <TableColumn fx:id="colNombre" prefWidth="250.0" text="NOMBRE DEL EVENTO" />
+                       <TableColumn fx:id="colLugar" prefWidth="200.0" text="LUGAR / SEDE" />
+                       <TableColumn fx:id="colFecha" prefWidth="120.0" style="-fx-alignment: CENTER;" text="FECHA" />
+                       <TableColumn fx:id="colHoraInicio" prefWidth="80.0" style="-fx-alignment: CENTER;" text="INICIO" />
+                       <TableColumn fx:id="colHoraFin" prefWidth="80.0" style="-fx-alignment: CENTER;" text="FIN" />
+   
+                       <TableColumn fx:id="colJueces" prefWidth="300.0" text="JUECES ASIGNADOS" />
+                   </columns>
+                   <columnResizePolicy>
+                       <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                   </columnResizePolicy>
+               </TableView>
+   
+               <HBox alignment="CENTER_RIGHT" spacing="15.0">
+      <children>
+      
+                      <Button onAction="#handleEditarEvento" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 5;" text="✏️ EDITAR EVENTO" />
+      
+                      <Button onAction="#handleEliminar" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 5;" text="🗑️ ELIMINAR EVENTO" />
+      
+                      <Button onAction="#handleVerReporteDetallado" style="-fx-background-color: #d35400; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 5;" text="🗑📊 VER REPORTES DETALLADOS" />
+      </children>
+   
+               </HBox>
+           </children>
         </VBox>
     </center>
 </BorderPane>
