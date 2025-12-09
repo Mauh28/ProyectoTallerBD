@@ -14,6 +14,10 @@ import java.sql.SQLException;
 
 public class CoachMenuController {
 
+    // --- NUEVOS CAMPOS FXML ---
+    @FXML private Label lblBienvenida; // Label que mostrará "Hola, [Nombre Completo] (Coach)"
+    // --------------------------
+
     @FXML private Button btnVerReportes;
     @FXML private Label lblMensajeEstado;
     @FXML private Button btnCambiarRol; // Botón para usuarios híbridos
@@ -22,9 +26,39 @@ public class CoachMenuController {
 
     @FXML
     public void initialize() {
+        // 1. Cargar el nombre y el rol del usuario logeado
+        cargarNombreUsuario();
+
+        // 2. Ejecutar verificaciones existentes
         verificarEstadoEquipos();
         verificarDobleRol();
     }
+
+    /**
+     * Carga el nombre del usuario desde la sesión y lo muestra en la barra superior.
+     */
+    private void cargarNombreUsuario() {
+        String nombre = UserSession.getInstance().getNombreCompleto();
+        String rol;
+
+        // Determinar el rol principal a mostrar (si es Coach, será Coach)
+        if (UserSession.getInstance().isCoach()) {
+            rol = "Coach";
+        } else if (UserSession.getInstance().isJuez()) {
+            rol = "Juez";
+        } else {
+            rol = "Usuario";
+        }
+
+        if (lblBienvenida != null && nombre != null) {
+            // Establece el texto: "Hola, [Nombre Completo]"
+            lblBienvenida.setText("Hola, " + nombre);
+        } else if (lblBienvenida != null) {
+            // Fallback si la sesión no tiene nombre
+            lblBienvenida.setText("Hola, Invitado");
+        }
+    }
+
 
     private void verificarEstadoEquipos() {
         int usuarioId = UserSession.getInstance().getUserId();
@@ -53,8 +87,7 @@ public class CoachMenuController {
     }
 
     /**
-     * CORRECCIÓN: Ahora navega a la vista de listado de eventos (coach_verEventos.fxml)
-     * para que el Coach pueda seleccionar el evento antes de registrar el equipo.
+     * CORRECCIÓN: Navega a la vista de listado de eventos para seleccionar (coach_verEventos.fxml).
      */
     @FXML
     public void handleRegistrarEquipo(ActionEvent event) {

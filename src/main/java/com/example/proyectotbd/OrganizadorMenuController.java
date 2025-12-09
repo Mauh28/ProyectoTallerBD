@@ -6,11 +6,39 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label; // Importación necesaria para Label
 import javafx.stage.Stage;
 
 import java.io.IOException;
 
 public class OrganizadorMenuController {
+
+    // --- NUEVO CAMPO FXML ---
+    @FXML private Label lblBienvenida; // Label que mostrará "Hola, [Nombre Completo] (Admin)"
+    // --------------------------
+
+    @FXML
+    public void initialize() {
+        // Cargar el nombre y el rol del usuario logueado al inicio
+        cargarNombreUsuario();
+    }
+
+    /**
+     * Carga el nombre del usuario desde la sesión y lo muestra en la barra superior.
+     */
+    private void cargarNombreUsuario() {
+        String nombre = UserSession.getInstance().getNombreCompleto();
+        String rol = "Admin"; // Para esta vista siempre se asume el rol de Admin
+
+        if (lblBienvenida != null && nombre != null) {
+            // Establece el texto: "Hola, [Nombre Completo]"
+            lblBienvenida.setText("Hola, " + nombre);
+        } else if (lblBienvenida != null) {
+            // Fallback
+            lblBienvenida.setText("Hola, Administrador");
+        }
+    }
+
 
     @FXML
     public void handleAsignarJuez(ActionEvent event) {
@@ -49,7 +77,7 @@ public class OrganizadorMenuController {
     @FXML
     public void handleLogout(ActionEvent event) {
         System.out.println("Cerrando sesión de admin...");
-        // MEJORA DE ROBUSTEZ: Limpiar la sesión antes de redirigir al login
+        // Limpiar la sesión antes de redirigir al login
         UserSession.getInstance().cleanUserSession();
         cambiarVista(event, "login.fxml");
     }

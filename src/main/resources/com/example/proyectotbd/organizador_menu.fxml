@@ -23,10 +23,12 @@
                 <font> <Font name="System Bold" size="24.0" /> </font>
             </Label>
             <Region HBox.hgrow="ALWAYS" />
+
             <HBox alignment="CENTER" spacing="15.0">
-                <Label text="Hola, Admin" textFill="#bdc3c7">
+                <Label fx:id="lblBienvenida" text="Hola, Admin" textFill="#bdc3c7">
                     <font> <Font size="16.0" /> </font>
                 </Label>
+
                 <Button text="Cerrar Sesión" onAction="#handleLogout"
                         style="-fx-background-color: transparent; -fx-text-fill: #ecf0f1; -fx-border-color: #ecf0f1; -fx-border-radius: 5; -fx-cursor: hand; -fx-padding: 5 15;"/>
             </HBox>
