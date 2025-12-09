@@ -11,8 +11,7 @@ public class UserSession {
     private String nombreCompleto;
     private boolean coach;
     private boolean juez;
-    // --- NUEVO CAMPO ---
-    private String institucionUsuario;
+    private String institucionUsuario; // Institución fija del perfil
 
     // --- CAMPOS TEMPORALES DEL COACH (Registro/Edición de Equipo) ---
     private int equipoIdTemp;
@@ -21,13 +20,14 @@ public class UserSession {
     private int tempCategoriaId;
     private String tempCategoriaNombre;
     private String tempNombreEquipo;
+    // Se mantiene 'tempInstitucion' para consistencia con los temporales
     private String tempInstitucion;
 
     // --- CAMPOS TEMPORALES DEL JUEZ (Evaluación Activa) ---
     private int evaluacionIdTemp;
-    private int idDisenoTemp;        // ¡Añadido! ID del registro de Diseño
-    private int idProgramacionTemp;  // ¡Añadido! ID del registro de Programación
-    private int idConstruccionTemp;  // ¡Añadido! ID del registro de Construcción
+    private int idDisenoTemp;
+    private int idProgramacionTemp;
+    private int idConstruccionTemp;
 
     // Constructor privado para el patrón Singleton
     private UserSession() {}
@@ -52,6 +52,7 @@ public class UserSession {
         nombreCompleto = null;
         coach = false;
         juez = false;
+        institucionUsuario = null; // Limpieza de campo principal
 
         equipoIdTemp = 0;
         modoEdicion = false;
@@ -59,18 +60,16 @@ public class UserSession {
         tempCategoriaId = 0;
         tempCategoriaNombre = null;
         tempNombreEquipo = null;
-        tempInstitucion = null;
+        tempInstitucion = null; // Limpieza de campo temporal
 
         evaluacionIdTemp = 0;
-        idDisenoTemp = 0;         // Limpieza de campos de Juez
-        idProgramacionTemp = 0;   // Limpieza de campos de Juez
-        idConstruccionTemp = 0;   // Limpieza de campos de Juez
-
-        institucionUsuario = null; // <--- Limpiarlo
+        idDisenoTemp = 0;
+        idProgramacionTemp = 0;
+        idConstruccionTemp = 0;
     }
 
     // =================================================================
-    //  GETTERS Y SETTERS PRINCIPALES (Usuario, Roles, Edición Coach)
+    //  GETTERS Y SETTERS PRINCIPALES (Perfil de Usuario Logueado)
     // =================================================================
 
     public int getUserId() { return userId; }
@@ -87,6 +86,15 @@ public class UserSession {
 
     public boolean isJuez() { return juez; }
     public void setJuez(boolean juez) { this.juez = juez; }
+
+    // Getter y Setter para la institución del perfil
+    public String getInstitucionUsuario() { return institucionUsuario; }
+    public void setInstitucionUsuario(String institucionUsuario) { this.institucionUsuario = institucionUsuario; }
+
+
+    // =================================================================
+    //  GETTERS Y SETTERS TEMPORALES (Registro/Edición Coach)
+    // =================================================================
 
     public int getEquipoIdTemp() { return equipoIdTemp; }
     public void setEquipoIdTemp(int equipoIdTemp) { this.equipoIdTemp = equipoIdTemp; }
@@ -106,6 +114,7 @@ public class UserSession {
     public String getTempNombreEquipo() { return tempNombreEquipo; }
     public void setTempNombreEquipo(String tempNombreEquipo) { this.tempNombreEquipo = tempNombreEquipo; }
 
+    // Getter y Setter para la institución temporal (usada durante la inscripción)
     public String getTempInstitucion() { return tempInstitucion; }
     public void setTempInstitucion(String tempInstitucion) { this.tempInstitucion = tempInstitucion; }
 
@@ -116,7 +125,6 @@ public class UserSession {
     public int getEvaluacionIdTemp() { return evaluacionIdTemp; }
     public void setEvaluacionIdTemp(int evaluacionIdTemp) { this.evaluacionIdTemp = evaluacionIdTemp; }
 
-    // Nuevos métodos para los IDs de las áreas
     public int getIdDisenoTemp() { return idDisenoTemp; }
     public void setIdDisenoTemp(int idDisenoTemp) { this.idDisenoTemp = idDisenoTemp; }
 
@@ -125,7 +133,4 @@ public class UserSession {
 
     public int getIdConstruccionTemp() { return idConstruccionTemp; }
     public void setIdConstruccionTemp(int idConstruccionTemp) { this.idConstruccionTemp = idConstruccionTemp; }
-
-    public String getInstitucionUsuario() { return institucionUsuario; }
-    public void setInstitucionUsuario(String institucionUsuario) { this.institucionUsuario = institucionUsuario; }
 }

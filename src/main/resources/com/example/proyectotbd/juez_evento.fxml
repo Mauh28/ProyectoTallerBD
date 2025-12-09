@@ -75,8 +75,6 @@
                       </VBox>
       
                       <Region HBox.hgrow="ALWAYS" />
-      
-                      <TextField prefHeight="40.0" prefWidth="300.0" promptText="Buscar evento..." style="-fx-background-radius: 20; -fx-border-color: #bdc3c7; -fx-border-radius: 20; -fx-padding: 0 15; -fx-font-size: 14;" />
       </children>
                </HBox>
    
