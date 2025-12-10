@@ -210,11 +210,11 @@ public class OrganizadorCrearUsuarioController {
             lblMensaje.setVisible(true);
             aplicarEstiloPassword("-fx-border-color: #27ae60; -fx-border-width: 2px;");
         } else {
-            StringBuilder faltantes = new StringBuilder("Faltan: ");
-            if (!cumpleLongitud) faltantes.append("8 chars, ");
-            if (!cumpleMayuscula) faltantes.append("Mayúscula, ");
-            if (!cumpleNumero) faltantes.append("Número, ");
-            if (!cumpleEspecial) faltantes.append("Símbolo, ");
+            StringBuilder faltantes = new StringBuilder("La contraseña necesita: ");
+            if (!cumpleLongitud) faltantes.append("8 caracteres, ");
+            if (!cumpleMayuscula) faltantes.append("1 Mayúscula, ");
+            if (!cumpleNumero) faltantes.append("1 Número, ");
+            if (!cumpleEspecial) faltantes.append("1 Símbolo, ");
 
             String msg = faltantes.substring(0, faltantes.length() - 2);
             lblMensaje.setText(msg);
@@ -323,7 +323,7 @@ public class OrganizadorCrearUsuarioController {
             cambiarVista(event, "organizador_menu.fxml");
 
         } catch (SQLException e) {
-            mostrarMensaje("Error BD: " + e.getMessage(), true);
+            mostrarMensaje(e.getMessage(), true);
         }
     }
 
