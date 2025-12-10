@@ -88,18 +88,18 @@
                     <VBox spacing="5.0" HBox.hgrow="ALWAYS">
                         <Label text="HORA DE INICIO (HH:MM)" textFill="#7f8c8d" style="-fx-font-weight:bold; -fx-font-size: 12;"/>
                         <HBox spacing="5.0" alignment="CENTER_LEFT">
-                            <Spinner fx:id="spnHoraInicio" editable="true" prefWidth="65.0" />
+                            <Spinner fx:id="spnHoraInicio" editable="false" prefWidth="65.0" />
                             <Label text=":" style="-fx-font-weight: bold;"/>
-                            <Spinner fx:id="spnMinutoInicio" editable="true" prefWidth="65.0" />
+                            <Spinner fx:id="spnMinutoInicio" editable="false" prefWidth="65.0" />
                         </HBox>
                     </VBox>
 
                     <VBox spacing="5.0" HBox.hgrow="ALWAYS">
                         <Label text="HORA DE FIN (HH:MM)" textFill="#7f8c8d" style="-fx-font-weight:bold; -fx-font-size: 12;"/>
                         <HBox spacing="5.0" alignment="CENTER_LEFT">
-                            <Spinner fx:id="spnHoraFin" editable="true" prefWidth="65.0" />
+                            <Spinner fx:id="spnHoraFin" editable="false" prefWidth="65.0" />
                             <Label text=":" style="-fx-font-weight: bold;"/>
-                            <Spinner fx:id="spnMinutoFin" editable="true" prefWidth="65.0" />
+                            <Spinner fx:id="spnMinutoFin" editable="false" prefWidth="65.0" />
                         </HBox>
                     </VBox>
                 </HBox>
