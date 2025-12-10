@@ -21,22 +21,47 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 public class JuezEquiposUnificadoController {
 
     @FXML private VBox vboxListaEquipos;
     @FXML private Label lblCategoriaActual;
-    @FXML private HBox contenedorBotones; // <--- Referencia al nuevo HBox del FXML
+    @FXML private HBox contenedorBotones;
 
     // Instancia exclusiva del DAO de Juez
     private JuezDAO juezDao = new JuezDAO();
+
+    // Variable para guardar la hora de inicio del evento
+    private LocalDateTime horaInicioEvento;
 
     @FXML
     public void initialize() {
         // --- CAMBIO: Carga automática al iniciar ---
         cargarDatosInteligentes();
+        // 1. Verificar y cargar la hora del evento al inicio
+        verificarYEstablecerHoraEvento();
     }
+
+    private void verificarYEstablecerHoraEvento() {
+        int eventoId = UserSession.getInstance().getTempEventoId();
+        if (eventoId == 0) return;
+
+        try {
+            horaInicioEvento = juezDao.obtenerFechaHoraInicioEvento(eventoId);
+            if (horaInicioEvento == null) {
+                // Manejo si la BD no devuelve la hora, el botón se deshabilitará por defecto
+                System.err.println("Advertencia: No se pudo obtener la hora de inicio del evento.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            mostrarAlertaError("Error BD al cargar horario.");
+            // Si hay error, horaInicioEvento seguirá siendo null o la evaluación será bloqueada.
+        }
+    }
+
 
     private void cargarDatosInteligentes() {
         int juezId = UserSession.getInstance().getUserId();
@@ -59,7 +84,7 @@ public class JuezEquiposUnificadoController {
                 String unicaCategoria = categorias.get(0);
                 lblCategoriaActual.setText("Categoría Asignada: " + unicaCategoria);
                 lblCategoriaActual.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
-                contenedorBotones.getChildren().clear(); // Asegurar que esté limpio
+                contenedorBotones.getChildren().clear();
 
                 cargarEquipos(unicaCategoria);
             }
@@ -68,21 +93,17 @@ public class JuezEquiposUnificadoController {
                 lblCategoriaActual.setText("Selecciona una Categoría:");
                 lblCategoriaActual.setStyle("-fx-text-fill: #2c3e50; -fx-font-weight: bold;");
 
-                contenedorBotones.getChildren().clear(); // Limpiar por si acaso
+                contenedorBotones.getChildren().clear();
 
-                // Crear un botón por cada categoría encontrada
                 for (String cat : categorias) {
                     Button btn = new Button(cat);
-                    // Estilo similar a tus botones anteriores
                     btn.setStyle("-fx-background-color: white; -fx-text-fill: #2980b9; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 0);");
                     btn.setPrefWidth(150);
 
-                    // Acción: Al hacer clic, carga esa categoría específica
                     btn.setOnAction(e -> {
                         lblCategoriaActual.setText("Viendo: " + cat);
                         cargarEquipos(cat);
 
-                        // Opcional: Resaltar el botón seleccionado visualmente
                         resetearEstilosBotones();
                         btn.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold;");
                     });
@@ -90,7 +111,7 @@ public class JuezEquiposUnificadoController {
                     contenedorBotones.getChildren().add(btn);
                 }
 
-                // Opcional: Cargar la primera por defecto para no dejar la lista vacía
+                // Cargar la primera por defecto
                 cargarEquipos(categorias.get(0));
             }
 
@@ -117,23 +138,19 @@ public class JuezEquiposUnificadoController {
     @FXML
     public void handleFiltroCategoria(ActionEvent event) {
         Button btn = (Button) event.getSource();
-        String categoria = btn.getText(); // "PRIMARIA", "SECUNDARIA", etc.
+        String categoria = btn.getText();
 
         lblCategoriaActual.setText("Viendo: " + categoria);
 
-        // Cargar datos reales
         cargarEquipos(categoria);
     }
 
     private void cargarEquipos(String categoria) {
         vboxListaEquipos.getChildren().clear();
         int eventoId = UserSession.getInstance().getTempEventoId();
-
-        // Obtenemos el ID del juez actual
         int juezId = UserSession.getInstance().getUserId();
 
         try {
-            // Llamamos al DAO pasando el juezId
             ObservableList<EquipoItem> equipos = juezDao.obtenerEquiposPorEventoYCategoria(eventoId, categoria, juezId);
 
             if (equipos.isEmpty()) {
@@ -144,6 +161,7 @@ public class JuezEquiposUnificadoController {
             }
 
             for (EquipoItem equipo : equipos) {
+                // Pasar la hora del evento a la tarjeta
                 vboxListaEquipos.getChildren().add(crearTarjetaEquipo(equipo));
             }
 
@@ -156,11 +174,11 @@ public class JuezEquiposUnificadoController {
     private HBox crearTarjetaEquipo(EquipoItem equipo) {
         HBox tarjeta = new HBox();
         tarjeta.setAlignment(Pos.CENTER_LEFT);
-        tarjeta.setSpacing(15); // Un poco más de espacio
+        tarjeta.setSpacing(15);
         tarjeta.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15;");
         tarjeta.setEffect(new DropShadow(5, Color.color(0,0,0,0.1)));
 
-        // 1. Datos del Equipo
+        // --- 1. Datos del Equipo ---
         VBox infoEquipo = new VBox(5);
         Label lblNombre = new Label(equipo.getNombre());
         lblNombre.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2c3e50;");
@@ -169,18 +187,17 @@ public class JuezEquiposUnificadoController {
         infoEquipo.getChildren().addAll(lblNombre, lblInst);
         infoEquipo.setPrefWidth(350);
 
-        // 2. NUEVO: Indicador de Progreso Global
-        // Muestra cuántos jueces han evaluado en total
+        // --- 2. Indicador de Progreso Global ---
         Label lblProgreso = new Label("Jueces: " + equipo.getConteoJueces() + "/3");
         lblProgreso.setPrefWidth(120);
-        // Cambia de color si ya está completo (3/3)
+
         if (equipo.getConteoJueces() >= 3) {
             lblProgreso.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold; -fx-font-size: 14px;");
         } else {
             lblProgreso.setStyle("-fx-text-fill: #e67e22; -fx-font-weight: bold; -fx-font-size: 14px;");
         }
 
-        // 3. Estado Personal (Tu estado como juez)
+        // --- 3. Estado Personal (Tu estado como juez) ---
         boolean yaEvaluado = "EVALUADO".equalsIgnoreCase(equipo.getEstado());
         Label lblEstado = new Label(yaEvaluado ? "TU ESTADO: LISTO" : "TU ESTADO: PENDIENTE");
         lblEstado.setPrefWidth(180);
@@ -191,17 +208,33 @@ public class JuezEquiposUnificadoController {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // 4. Botón de Acción
+        // --- 4. Botón de Acción y Lógica de Deshabilitación por Hora ---
         Button btnAccion = new Button();
+        boolean deshabilitadoPorTiempo = false;
+
         if (yaEvaluado) {
             btnAccion.setText("COMPLETADO");
             btnAccion.setDisable(true);
             btnAccion.setStyle("-fx-background-color: #bdc3c7; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
         } else {
-            // Si tú no has evaluado, el botón está activo (incluso si otros jueces ya evaluaron)
-            btnAccion.setText("EVALUAR");
-            btnAccion.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold; -fx-background-radius: 5;");
-            btnAccion.setOnAction(e -> irAEvaluar(equipo));
+            // Verificar si el evento aún no ha comenzado
+            if (horaInicioEvento != null && LocalDateTime.now().isBefore(horaInicioEvento)) {
+                deshabilitadoPorTiempo = true;
+
+                long minutosRestantes = ChronoUnit.MINUTES.between(LocalDateTime.now(), horaInicioEvento);
+                long horas = minutosRestantes / 60;
+                long minutos = minutosRestantes % 60;
+
+                btnAccion.setText(String.format("INICIA EN %d H %d M", horas, minutos));
+                btnAccion.setDisable(true);
+                btnAccion.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
+            } else {
+                // Evaluación activa (tiempo cumplido)
+                btnAccion.setText("EVALUAR");
+                btnAccion.setDisable(false);
+                btnAccion.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold; -fx-background-radius: 5;");
+                btnAccion.setOnAction(e -> irAEvaluar(equipo));
+            }
         }
 
         // Añadir todo al HBox
@@ -219,10 +252,10 @@ public class JuezEquiposUnificadoController {
     }
 
     private void irAEvaluar(EquipoItem equipo) {
-        // 1. Guardar datos de contexto en Sesión (NO insertamos nada en BD todavía)
+        // 1. Guardar datos de contexto en Sesión
         UserSession session = UserSession.getInstance();
-        session.setEquipoIdTemp(equipo.getId()); // ID del equipo a evaluar
-        session.setTempNombreEquipo(equipo.getNombre()); // Nombre para el título
+        session.setEquipoIdTemp(equipo.getId());
+        session.setTempNombreEquipo(equipo.getNombre());
 
         // Limpiamos IDs viejos por seguridad
         session.setEvaluacionIdTemp(0);
@@ -233,7 +266,6 @@ public class JuezEquiposUnificadoController {
         // 2. Navegar directamente al formulario vacío
         cambiarVistaBoton(vboxListaEquipos, "juez_evaluacion.fxml");
     }
-
 
 
     private void cambiarVista(ActionEvent event, String fxml) {
