@@ -48,6 +48,10 @@ public class OrganizadorEditarEventoController {
         spnHoraFin.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 17));
         spnMinutoFin.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
 
+        // --- CAMBIO: Bloquear escritura manual en el DatePicker ---
+        dpFecha.setEditable(false); // El usuario solo podrá usar el calendario emergente
+        // ----------------------------------------------------------
+
         // Establecer el día mínimo como mañana (prevención frontend)
         dpFecha.setDayCellFactory(picker -> new DateCell() {
             @Override

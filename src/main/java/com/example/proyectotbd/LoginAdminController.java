@@ -89,7 +89,8 @@ public class LoginAdminController {
 
     @FXML
     public void handleAdminLogin(ActionEvent event) {
-        String usuario = txtUsuario.getText();
+        // --- RECOMENDACIÓN: Usar trim() ---
+        String usuario = txtUsuario.getText().trim(); // Quita espacios al inicio y final
 
         // Obtener la contraseña del campo principal (siempre está sincronizado)
         String password = pfContrasena.getText();

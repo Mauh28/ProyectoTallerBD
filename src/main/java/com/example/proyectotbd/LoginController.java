@@ -82,8 +82,9 @@ public class LoginController {
 
     @FXML
     public void handleLogin(ActionEvent event) {
-        String usuario = txtUsuario.getText();
-        String pass = pfContrasena.getText(); // Usa pfContrasena que siempre está sincronizado
+        // --- RECOMENDACIÓN: Usar trim() ---
+        String usuario = txtUsuario.getText().trim(); // Quita espacios al inicio y final
+        String pass = pfContrasena.getText();
 
         if (usuario.isEmpty() || pass.isEmpty()) {
             mostrarMensaje("Por favor ingresa usuario y contraseña.", true);
