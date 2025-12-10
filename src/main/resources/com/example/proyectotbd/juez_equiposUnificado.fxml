@@ -1,15 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -20,61 +14,71 @@
 
     <top>
         <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-background-color: #2c3e50; -fx-padding: 20;">
-           <children>
-               <Button onAction="#handleRegresar" style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-font-size: 14; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;" text="← Cambiar Evento" />
-               <Button onAction="#handleIrAlMenu" style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-font-size: 14; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;" text="🏠 Ir al Menú" />
-               <Label text="Evaluación de Equipos" textFill="WHITE"> <font> <Font name="System Bold" size="24.0" /> </font> <HBox.margin> <Insets left="10.0" /> </HBox.margin> </Label>
-               <Region HBox.hgrow="ALWAYS" />
-               <Label text="Panel de Juez" textFill="#bdc3c7"> <font> <Font size="16.0" /> </font> </Label>
-           </children>
+            <children>
+                <Button onAction="#handleRegresar" style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-font-size: 14; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;" text="← Cambiar Evento" />
+                <Button onAction="#handleIrAlMenu" style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-font-size: 14; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;" text="🏠 Ir al Menú" />
+                <Label text="Evaluación de Equipos" textFill="WHITE">
+                    <font> <Font name="System Bold" size="24.0" /> </font>
+                    <HBox.margin> <Insets left="10.0" /> </HBox.margin>
+                </Label>
+                <Region HBox.hgrow="ALWAYS" />
+                <Label text="Panel de Juez" textFill="#bdc3c7"> <font> <Font size="16.0" /> </font> </Label>
+            </children>
         </HBox>
     </top>
 
     <center>
         <VBox spacing="20.0">
             <padding> <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" /> </padding>
-           <children>
-   
-               <VBox spacing="10.0">
-      <children>
-                      <Label fx:id="lblCategoriaActual" text="Cargando categoría asignada..." textFill="#2c3e50">
-                          <font> <Font name="System Bold" size="22.0" /> </font>
-                      </Label>
-                      <HBox fx:id="contenedorBotones" alignment="CENTER_LEFT" spacing="15.0" />
-                      <Label text="Estos son los equipos registrados en tu categoría y evento." textFill="#7f8c8d" />
-      </children>
-               </VBox>
-   
-               <VBox spacing="10.0">
-      <children>
-                      <HBox alignment="CENTER_LEFT">
-                         <children>
-                             <Label text="Lista de Equipos" textFill="#2c3e50">
-                                 <font> <Font name="System Bold" size="20.0" /> </font>
-                             </Label>
-                             <Region HBox.hgrow="ALWAYS" />
-                         </children>
-                      </HBox>
-      
-                      <HBox spacing="0.0" style="-fx-padding: 0 20 0 20; -fx-background-color: #e0e0e0; -fx-background-radius: 5;">
-         <children>
-                             <Label prefWidth="400.0" style="-fx-font-weight: bold; -fx-padding: 10;" text="EQUIPO" textFill="#555" />
-                             <Label prefWidth="300.0" style="-fx-font-weight: bold; -fx-padding: 10;" text="INSTITUCIÓN" textFill="#555" />
-                             <Label prefWidth="200.0" style="-fx-font-weight: bold; -fx-padding: 10;" text="ESTADO" textFill="#555" />
-                             <Region HBox.hgrow="ALWAYS" />
-                             <Label style="-fx-font-weight: bold; -fx-padding: 10;" text="ACCIÓN" textFill="#555" />
-         </children>
-                      </HBox>
-      </children>
-               </VBox>
-   
-               <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
-                   <content>
-                       <VBox fx:id="vboxListaEquipos" spacing="10.0" style="-fx-padding: 5;">
-                    </VBox>
-                   </content>
-               </ScrollPane>
-           </children>
+            <children>
+
+                <VBox spacing="10.0">
+                    <children>
+                        <Label fx:id="lblCategoriaActual" text="Cargando categoría asignada..." textFill="#2c3e50">
+                            <font> <Font name="System Bold" size="22.0" /> </font>
+                        </Label>
+                        <HBox fx:id="contenedorBotones" alignment="CENTER_LEFT" spacing="15.0" />
+                        <Label text="Estos son los equipos registrados en tu categoría y evento." textFill="#7f8c8d" />
+
+                        <Label fx:id="lblMensajeEstado" text="Verificando horario..." textFill="#2c3e50" visible="false">
+                            <font> <Font name="System Italic" size="14.0" /> </font>
+                        </Label>
+                    </children>
+                </VBox>
+
+                <VBox spacing="10.0">
+                    <children>
+                        <HBox alignment="CENTER_LEFT">
+                            <children>
+                                <Label text="Lista de Equipos" textFill="#2c3e50">
+                                    <font> <Font name="System Bold" size="20.0" /> </font>
+                                </Label>
+                                <Region HBox.hgrow="ALWAYS" />
+                            </children>
+                        </HBox>
+
+                        <HBox spacing="0.0" style="-fx-padding: 0 20 0 20; -fx-background-color: #e0e0e0; -fx-background-radius: 5;">
+                            <children>
+                                <Label prefWidth="400.0" style="-fx-font-weight: bold; -fx-padding: 10;" text="EQUIPO" textFill="#555" />
+                                <Label prefWidth="300.0" style="-fx-font-weight: bold; -fx-padding: 10;" text="INSTITUCIÓN" textFill="#555" />
+
+                                <Label prefWidth="180.0" style="-fx-font-weight: bold; -fx-padding: 10;" text="TU ESTADO" textFill="#555" />
+                                <Label prefWidth="180.0" style="-fx-font-weight: bold; -fx-padding: 10;" text="ESTADO GLOBAL" textFill="#555" />
+
+                                <Region HBox.hgrow="ALWAYS" />
+                                <Label style="-fx-font-weight: bold; -fx-padding: 10;" text="ACCIÓN" textFill="#555" />
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+
+                <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+                    <content>
+                        <VBox fx:id="vboxListaEquipos" spacing="10.0" style="-fx-padding: 5;">
+                        </VBox>
+                    </content>
+                </ScrollPane>
+            </children>
 
         </VBox>
     </center>

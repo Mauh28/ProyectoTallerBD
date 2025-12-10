@@ -36,155 +36,162 @@
 
             <Region HBox.hgrow="ALWAYS" />
 
-            <Button text="ENVIAR EVALUACIÓN"
+            <Button fx:id="btnEnviar"
+                    text="ENVIAR EVALUACIÓN"
                     onAction="#handleEnviar"
                     style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14; -fx-cursor: hand; -fx-padding: 8 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 2);"/>
         </HBox>
     </top>
 
     <center>
-        <TabPane tabClosingPolicy="UNAVAILABLE" style="-fx-background-color: white;">
+        <VBox spacing="10.0" style="-fx-padding: 15 40 15 40;">
 
-            <Tab text="DISEÑO Y DOCUMENTACIÓN">
-                <ScrollPane fitToWidth="true" style="-fx-background-color: white; -fx-padding: 0;">
-                    <VBox spacing="30.0">
-                        <padding> <Insets top="30.0" bottom="30.0" left="40.0" right="40.0"/> </padding>
+            <Label fx:id="lblMensajeEstado" text="Verificando el estado de la evaluación..." visible="true">
+                <font> <Font name="System Bold" size="14.0" /> </font>
+                <VBox.margin> <Insets top="5.0" /> </VBox.margin> </Label>
+            <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" style="-fx-background-color: white;">
 
-                        <VBox spacing="10.0">
-                            <Label text="1. Bitácora de Ingeniería" textFill="#2980b9">
-                                <font> <Font name="System Bold" size="18.0" /> </font>
-                            </Label>
-                            <VBox spacing="12.0" style="-fx-padding: 15; -fx-background-color: #fcfcfc; -fx-border-color: #ecf0f1; -fx-border-radius: 5;">
-                                <CheckBox fx:id="chkBitRegistroFechas" text="Registro de fechas" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkBitJustificacion" text="Justificación de cambios en prototipos" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkBitDiagramas" text="Diagramas e imágenes" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkBitOrtografia" text="Ortografía y redacción" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkBitPresentacion" text="Presentación general" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                            </VBox>
-                        </VBox>
+                <Tab text="DISEÑO Y DOCUMENTACIÓN">
+                    <ScrollPane fitToWidth="true" style="-fx-background-color: white; -fx-padding: 0;">
+                        <VBox spacing="30.0">
+                            <padding> <Insets top="30.0" bottom="30.0" left="40.0" right="40.0"/> </padding>
 
-                        <VBox spacing="10.0">
-                            <Label text="2. Medio Digital (CAD/Animación)" textFill="#2980b9">
-                                <font> <Font name="System Bold" size="18.0" /> </font>
-                            </Label>
-                            <VBox spacing="12.0" style="-fx-padding: 15; -fx-background-color: #fcfcfc; -fx-border-color: #ecf0f1; -fx-border-radius: 5;">
-                                <CheckBox fx:id="chkDigVideo" text="Video de animación" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkDigModelado" text="Diseño y modelado" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkDigAnalisis" text="Análisis de elementos" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkDigEnsamble" text="Ensamble del prototipo" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkDigModeloAcorde" text="Modelo acorde al robot físico" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkDigSimulacion" text="Simulación acorde a cálculos" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkDigRestricciones" text="Restricciones de movimientos" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                            </VBox>
-                        </VBox>
-                    </VBox>
-                </ScrollPane>
-            </Tab>
-
-            <Tab text="PROGRAMACIÓN">
-                <ScrollPane fitToWidth="true" style="-fx-background-color: white; -fx-padding: 0;">
-                    <VBox spacing="30.0">
-                        <padding> <Insets top="30.0" bottom="30.0" left="40.0" right="40.0"/> </padding>
-
-                        <VBox spacing="10.0">
-                            <Label text="1. Inspección de Código" textFill="#8e44ad">
-                                <font> <Font name="System Bold" size="18.0" /> </font>
-                            </Label>
-                            <VBox spacing="12.0" style="-fx-padding: 15; -fx-background-color: #fcfcfc; -fx-border-color: #ecf0f1; -fx-border-radius: 5;">
-                                <CheckBox fx:id="chkProgSoftware" text="Uso de Software RobotC / Compatible" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkProgFunciones" text="Uso de funciones" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkProgComplejidad" text="Complejidad del programa" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkProgJustificacion" text="Justificación del código" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkProgEstructuras" text="Conocimiento de estructuras de control" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkProgDepuracion" text="Rutinas de depuración" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkProgModular" text="Creación de código modular" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                            </VBox>
-                        </VBox>
-
-                        <HBox spacing="50.0">
-                            <VBox spacing="10.0" HBox.hgrow="ALWAYS">
-                                <Label text="2. Sistema Autónomo" textFill="#8e44ad">
+                            <VBox spacing="10.0">
+                                <Label text="1. Bitácora de Ingeniería" textFill="#2980b9">
                                     <font> <Font name="System Bold" size="18.0" /> </font>
                                 </Label>
                                 <VBox spacing="12.0" style="-fx-padding: 15; -fx-background-color: #fcfcfc; -fx-border-color: #ecf0f1; -fx-border-radius: 5;">
-                                    <CheckBox fx:id="chkAutoDocumentacion" text="Documentación" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                    <CheckBox fx:id="chkAutoVinculacion" text="Vinculación" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                    <CheckBox fx:id="chkAutoSensores" text="Declaración de sensores" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkBitRegistroFechas" text="Registro de fechas" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkBitJustificacion" text="Justificación de cambios en prototipos" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkBitDiagramas" text="Diagramas e imágenes" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkBitOrtografia" text="Ortografía y redacción" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkBitPresentacion" text="Presentación general" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
                                 </VBox>
                             </VBox>
 
-                            <VBox spacing="10.0" HBox.hgrow="ALWAYS">
-                                <Label text="3. Sistema Manipulado (Driver)" textFill="#8e44ad">
+                            <VBox spacing="10.0">
+                                <Label text="2. Medio Digital (CAD/Animación)" textFill="#2980b9">
                                     <font> <Font name="System Bold" size="18.0" /> </font>
                                 </Label>
                                 <VBox spacing="12.0" style="-fx-padding: 15; -fx-background-color: #fcfcfc; -fx-border-color: #ecf0f1; -fx-border-radius: 5;">
-                                    <CheckBox fx:id="chkManVinculo" text="Vínculo con el robot" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                    <CheckBox fx:id="chkManHabilidad" text="Habilidad de manipulación" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                    <CheckBox fx:id="chkManRespuesta" text="Respuesta del dispositivo" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                    <CheckBox fx:id="chkManDocCodigo" text="Documentación del código" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkDigVideo" text="Video de animación" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkDigModelado" text="Diseño y modelado" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkDigAnalisis" text="Análisis de elementos" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkDigEnsamble" text="Ensamble del prototipo" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkDigModeloAcorde" text="Modelo acorde al robot físico" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkDigSimulacion" text="Simulación acorde a cálculos" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkDigRestricciones" text="Restricciones de movimientos" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
                                 </VBox>
                             </VBox>
-                        </HBox>
-
-                        <VBox spacing="10.0">
-                            <Label text="4. Demostración en Campo" textFill="#8e44ad">
-                                <font> <Font name="System Bold" size="18.0" /> </font>
-                            </Label>
-                            <VBox spacing="12.0" style="-fx-padding: 15; -fx-background-color: #fcfcfc; -fx-border-color: #ecf0f1; -fx-border-radius: 5;">
-                                <CheckBox fx:id="chkDemo15s" text="Demostración de 15 segundos" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkDemoNoIncon" text="No inconvenientes durante la prueba" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkDemoObjetivo" text="Cumplimiento del objetivo (Driver)" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkDemoExplicacion" text="Explicación del modo autónomo" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                            </VBox>
                         </VBox>
+                    </ScrollPane>
+                </Tab>
 
-                    </VBox>
-                </ScrollPane>
-            </Tab>
+                <Tab text="PROGRAMACIÓN">
+                    <ScrollPane fitToWidth="true" style="-fx-background-color: white; -fx-padding: 0;">
+                        <VBox spacing="30.0">
+                            <padding> <Insets top="30.0" bottom="30.0" left="40.0" right="40.0"/> </padding>
 
-            <Tab text="CONSTRUCCIÓN">
-                <ScrollPane fitToWidth="true" style="-fx-background-color: white; -fx-padding: 0;">
-                    <VBox spacing="30.0">
-                        <padding> <Insets top="30.0" bottom="30.0" left="40.0" right="40.0"/> </padding>
-
-                        <VBox spacing="10.0">
-                            <Label text="1. Inspección del Robot" textFill="#d35400">
-                                <font> <Font name="System Bold" size="18.0" /> </font>
-                            </Label>
-                            <VBox spacing="12.0" style="-fx-padding: 15; -fx-background-color: #fcfcfc; -fx-border-color: #ecf0f1; -fx-border-radius: 5;">
-                                <CheckBox fx:id="chkConsEstetico" text="Prototipo estético" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkConsEstable" text="Estructuras estables" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkConsTransmision" text="Sistemas de transmisión" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkConsSensores" text="Uso adecuado de sensores" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkConsCableado" text="Cableado adecuado y ordenado" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkConsNeumatico" text="Sistema neumático (si aplica)" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkConsAlcance" text="Conocimiento del alcance del robot" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkConsVex" text="Uso de piezas VEX Robotics" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkConsProcesador" text="Un solo procesador" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                            <VBox spacing="10.0">
+                                <Label text="1. Inspección de Código" textFill="#8e44ad">
+                                    <font> <Font name="System Bold" size="18.0" /> </font>
+                                </Label>
+                                <VBox spacing="12.0" style="-fx-padding: 15; -fx-background-color: #fcfcfc; -fx-border-color: #ecf0f1; -fx-border-radius: 5;">
+                                    <CheckBox fx:id="chkProgSoftware" text="Uso de Software RobotC / Compatible" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkProgFunciones" text="Uso de funciones" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkProgComplejidad" text="Complejidad del programa" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkProgJustificacion" text="Justificación del código" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkProgEstructuras" text="Conocimiento de estructuras de control" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkProgDepuracion" text="Rutinas de depuración" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkProgModular" text="Creación de código modular" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                </VBox>
                             </VBox>
-                        </VBox>
 
-                        <VBox spacing="10.0">
-                            <Label text="2. Libreta de Ingeniería (Cálculos)" textFill="#d35400">
-                                <font> <Font name="System Bold" size="18.0" /> </font>
-                            </Label>
-                            <VBox spacing="12.0" style="-fx-padding: 15; -fx-background-color: #fcfcfc; -fx-border-color: #ecf0f1; -fx-border-radius: 5;">
-                                <CheckBox fx:id="chkLibEstructuras" text="Análisis de estructuras" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkLibVelocidades" text="Relación de velocidades" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkLibEngranes" text="Tren de engranes" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkLibGravedad" text="Centro de gravedad" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkLibSistTrans" text="Análisis de sistemas de transmisión" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkLibPotencia" text="Cálculos de potencia" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkLibTorque" text="Cálculos de torque" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
-                                <CheckBox fx:id="chkLibVelocidad" text="Cálculos de velocidad" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                            <HBox spacing="50.0">
+                                <VBox spacing="10.0" HBox.hgrow="ALWAYS">
+                                    <Label text="2. Sistema Autónomo" textFill="#8e44ad">
+                                        <font> <Font name="System Bold" size="18.0" /> </font>
+                                    </Label>
+                                    <VBox spacing="12.0" style="-fx-padding: 15; -fx-background-color: #fcfcfc; -fx-border-color: #ecf0f1; -fx-border-radius: 5;">
+                                        <CheckBox fx:id="chkAutoDocumentacion" text="Documentación" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                        <CheckBox fx:id="chkAutoVinculacion" text="Vinculación" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                        <CheckBox fx:id="chkAutoSensores" text="Declaración de sensores" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    </VBox>
+                                </VBox>
+
+                                <VBox spacing="10.0" HBox.hgrow="ALWAYS">
+                                    <Label text="3. Sistema Manipulado (Driver)" textFill="#8e44ad">
+                                        <font> <Font name="System Bold" size="18.0" /> </font>
+                                    </Label>
+                                    <VBox spacing="12.0" style="-fx-padding: 15; -fx-background-color: #fcfcfc; -fx-border-color: #ecf0f1; -fx-border-radius: 5;">
+                                        <CheckBox fx:id="chkManVinculo" text="Vínculo con el robot" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                        <CheckBox fx:id="chkManHabilidad" text="Habilidad de manipulación" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                        <CheckBox fx:id="chkManRespuesta" text="Respuesta del dispositivo" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                        <CheckBox fx:id="chkManDocCodigo" text="Documentación del código" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    </VBox>
+                                </VBox>
+                            </HBox>
+
+                            <VBox spacing="10.0">
+                                <Label text="4. Demostración en Campo" textFill="#8e44ad">
+                                    <font> <Font name="System Bold" size="18.0" /> </font>
+                                </Label>
+                                <VBox spacing="12.0" style="-fx-padding: 15; -fx-background-color: #fcfcfc; -fx-border-color: #ecf0f1; -fx-border-radius: 5;">
+                                    <CheckBox fx:id="chkDemo15s" text="Demostración de 15 segundos" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkDemoNoIncon" text="No inconvenientes durante la prueba" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkDemoObjetivo" text="Cumplimiento del objetivo (Driver)" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkDemoExplicacion" text="Explicación del modo autónomo" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                </VBox>
                             </VBox>
+
                         </VBox>
+                    </ScrollPane>
+                </Tab>
 
-                    </VBox>
-                </ScrollPane>
-            </Tab>
+                <Tab text="CONSTRUCCIÓN">
+                    <ScrollPane fitToWidth="true" style="-fx-background-color: white; -fx-padding: 0;">
+                        <VBox spacing="30.0">
+                            <padding> <Insets top="30.0" bottom="30.0" left="40.0" right="40.0"/> </padding>
 
-        </TabPane>
+                            <VBox spacing="10.0">
+                                <Label text="1. Inspección del Robot" textFill="#d35400">
+                                    <font> <Font name="System Bold" size="18.0" /> </font>
+                                </Label>
+                                <VBox spacing="12.0" style="-fx-padding: 15; -fx-background-color: #fcfcfc; -fx-border-color: #ecf0f1; -fx-border-radius: 5;">
+                                    <CheckBox fx:id="chkConsEstetico" text="Prototipo estético" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkConsEstable" text="Estructuras estables" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkConsTransmision" text="Sistemas de transmisión" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkConsSensores" text="Uso adecuado de sensores" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkConsCableado" text="Cableado adecuado y ordenado" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkConsNeumatico" text="Sistema neumático (si aplica)" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkConsAlcance" text="Conocimiento del alcance del robot" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkConsVex" text="Uso de piezas VEX Robotics" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkConsProcesador" text="Un solo procesador" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                </VBox>
+                            </VBox>
+
+                            <VBox spacing="10.0">
+                                <Label text="2. Libreta de Ingeniería (Cálculos)" textFill="#d35400">
+                                    <font> <Font name="System Bold" size="18.0" /> </font>
+                                </Label>
+                                <VBox spacing="12.0" style="-fx-padding: 15; -fx-background-color: #fcfcfc; -fx-border-color: #ecf0f1; -fx-border-radius: 5;">
+                                    <CheckBox fx:id="chkLibEstructuras" text="Análisis de estructuras" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkLibVelocidades" text="Relación de velocidades" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkLibEngranes" text="Tren de engranes" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkLibGravedad" text="Centro de gravedad" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkLibSistTrans" text="Análisis de sistemas de transmisión" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkLibPotencia" text="Cálculos de potencia" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkLibTorque" text="Cálculos de torque" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                    <CheckBox fx:id="chkLibVelocidad" text="Cálculos de velocidad" style="-fx-font-size: 14px; -fx-cursor: hand;"/>
+                                </VBox>
+                            </VBox>
+
+                        </VBox>
+                    </ScrollPane>
+                </Tab>
+
+            </TabPane>
+        </VBox>
     </center>
 
 </BorderPane>

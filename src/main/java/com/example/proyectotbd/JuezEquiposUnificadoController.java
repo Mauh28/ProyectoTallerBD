@@ -55,7 +55,6 @@ public class JuezEquiposUnificadoController {
         } catch (SQLException e) {
             e.printStackTrace();
             mostrarAlertaError("Error BD al cargar horario.");
-            // Si hay error, horaInicioEvento seguirá siendo null o la evaluación será bloqueada.
         }
     }
 
@@ -148,6 +147,7 @@ public class JuezEquiposUnificadoController {
         int juezId = UserSession.getInstance().getUserId();
 
         try {
+            // El SP ahora devuelve 0 o 1 en conteoJueces
             ObservableList<EquipoItem> equipos = juezDao.obtenerEquiposPorEventoYCategoria(eventoId, categoria, juezId);
 
             if (equipos.isEmpty()) {
@@ -182,39 +182,49 @@ public class JuezEquiposUnificadoController {
         infoEquipo.getChildren().addAll(lblNombre, lblInst);
         infoEquipo.setPrefWidth(350);
 
-        // --- 2. Indicador de Progreso Global ---
-        Label lblProgreso = new Label("Jueces: " + equipo.getConteoJueces() + "/3");
-        lblProgreso.setPrefWidth(120);
+        // --- 2. Indicador de Progreso Global (Ajustado a 1/1) ---
+        final int MAX_JUECES = 1;
+        boolean evaluadoTotal = equipo.getConteoJueces() >= MAX_JUECES;
 
-        if (equipo.getConteoJueces() >= 3) {
+        Label lblProgreso = new Label("Estado: " + (evaluadoTotal ? "EVALUADO (1/1)" : "PENDIENTE (0/1)"));
+        lblProgreso.setPrefWidth(180); // Ajustar ancho para el nuevo mensaje
+
+        if (evaluadoTotal) {
             lblProgreso.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold; -fx-font-size: 14px;");
         } else {
             lblProgreso.setStyle("-fx-text-fill: #e67e22; -fx-font-weight: bold; -fx-font-size: 14px;");
         }
 
         // --- 3. Estado Personal (Tu estado como juez) ---
-        boolean yaEvaluado = "EVALUADO".equalsIgnoreCase(equipo.getEstado());
-        Label lblEstado = new Label(yaEvaluado ? "TU ESTADO: LISTO" : "TU ESTADO: PENDIENTE");
+        boolean yaEvaluadoPorTi = "EVALUADO".equalsIgnoreCase(equipo.getEstado());
+        Label lblEstado = new Label(yaEvaluadoPorTi ? "TU ESTADO: LISTO" : "TU ESTADO: PENDIENTE");
         lblEstado.setPrefWidth(180);
-        lblEstado.setStyle(yaEvaluado
+        lblEstado.setStyle(yaEvaluadoPorTi
                 ? "-fx-text-fill: #7f8c8d; -fx-font-size: 11px;"
                 : "-fx-text-fill: #e74c3c; -fx-font-weight: bold; -fx-font-size: 11px;");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // --- 4. Botón de Acción y Lógica de Deshabilitación por Hora ---
+        // --- 4. Botón de Acción y Lógica de Deshabilitación por Hora y Regla 1/1 ---
         Button btnAccion = new Button();
-        boolean deshabilitadoPorTiempo = false;
 
-        if (yaEvaluado) {
-            btnAccion.setText("COMPLETADO");
+        // Caso 1: Tú ya evaluaste (COMPLETADO)
+        if (yaEvaluadoPorTi) {
+            btnAccion.setText("YA EVALUASTE");
             btnAccion.setDisable(true);
             btnAccion.setStyle("-fx-background-color: #bdc3c7; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
-        } else {
+        }
+        // Caso 2: Otro juez ya evaluó y el equipo está CERRADO (1/1)
+        else if (evaluadoTotal) {
+            btnAccion.setText("CERRADO (1/1)");
+            btnAccion.setDisable(true);
+            btnAccion.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
+        }
+        // Caso 3: Evaluación pendiente y verificación de hora
+        else {
             // Verificar si el evento aún no ha comenzado
             if (horaInicioEvento != null && LocalDateTime.now().isBefore(horaInicioEvento)) {
-                deshabilitadoPorTiempo = true;
 
                 long minutosRestantes = ChronoUnit.MINUTES.between(LocalDateTime.now(), horaInicioEvento);
                 long horas = minutosRestantes / 60;
