@@ -270,10 +270,16 @@ public class JuezEquiposUnificadoController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            // Muestra un error más claro en la consola sobre la fuente del problema
+            System.err.println("\n*** ERROR CRÍTICO DE NAVEGACIÓN ***");
+            System.err.println("Fallo al cargar la vista FXML: " + fxml);
+            System.err.println("Causa más probable: 1) Nombre de archivo incorrecto; 2) Error de sintaxis en el FXML de destino.");
+            System.err.println("***********************************\n");
+        }
     }
 
-    // Método auxiliar para cambiar vista desde un evento de código (no ActionEvent directo)
+    // Metodo auxiliar para cambiar vista desde un evento de código (no ActionEvent directo)
     private void cambiarVistaBoton(Node nodo, String fxml) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
@@ -281,7 +287,13 @@ public class JuezEquiposUnificadoController {
             Stage stage = (Stage) nodo.getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            // Muestra un error más claro en la consola sobre la fuente del problema
+            System.err.println("\n*** ERROR CRÍTICO DE NAVEGACIÓN ***");
+            System.err.println("Fallo al cargar la vista FXML: " + fxml);
+            System.err.println("Causa más probable: 1) Nombre de archivo incorrecto; 2) Error de sintaxis en el FXML de destino.");
+            System.err.println("***********************************\n");
+        }
     }
 
     @FXML

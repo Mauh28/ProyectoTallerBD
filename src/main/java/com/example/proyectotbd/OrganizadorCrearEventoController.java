@@ -29,17 +29,31 @@ import java.util.regex.Pattern; // Importación necesaria
 
 public class OrganizadorCrearEventoController {
 
-    @FXML private TextField txtNombreEvento;
-    @FXML private TextField txtLugar;
-    @FXML private DatePicker dpFecha;
+    @FXML
+    private TextField txtNombreEvento;
+    @FXML
+    private TextField txtLugar;
+    @FXML
+    private DatePicker dpFecha;
 
     // --- CAMPOS SPINNER ---
-    @FXML private Spinner<Integer> spnHoraInicio;
-    @FXML private Spinner<Integer> spnMinutoInicio;
-    @FXML private Spinner<Integer> spnHoraFin;
-    @FXML private Spinner<Integer> spnMinutoFin;
+    @FXML
+    private Spinner<Integer> spnHoraInicio;
+    @FXML
+    private Spinner<Integer> spnMinutoInicio;
+    @FXML
+    private Spinner<Integer> spnHoraFin;
+    @FXML
+    private Spinner<Integer> spnMinutoFin;
 
-    @FXML private Label lblMensaje;
+    @FXML
+    private Label lblMensaje;
+
+    // Regex mejorado: Permite letras, números, espacios y signos comunes en direcciones (., #, -)
+    private static final Pattern PATRON_CARACTERES_VALIDOS = Pattern.compile("^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ.,#\\-\\s]*$");
+
+    // Regex para detectar repeticiones excesivas (ej: "aaa")
+    private static final Pattern PATRON_REPETICION = Pattern.compile("(.)\\1{2,}");
 
     private OrganizadorDAO dao = new OrganizadorDAO();
 
@@ -69,6 +83,9 @@ public class OrganizadorCrearEventoController {
         dpFecha.valueProperty().addListener((observable, oldValue, newValue) -> {
             validarFechaSeleccionada(newValue);
         });
+        // Validación en tiempo real con la nueva lógica
+        configurarValidacionTexto(txtNombreEvento);
+        configurarValidacionTexto(txtLugar);
 
         // --- VALIDACIONES DE TEXTO ---
         configurarValidacionTexto(txtNombreEvento);
@@ -76,34 +93,47 @@ public class OrganizadorCrearEventoController {
     }
 
 
-    // --- MÉTODO DE VALIDACIÓN EN TIEMPO REAL (GENÉRICO) ---
+    // --- MÉTODO DE VALIDACIÓN EN TIEMPO REAL MEJORADO ---
     private void configurarValidacionTexto(TextField field) {
         field.textProperty().addListener((observable, oldValue, newValue) -> {
 
-            // 1. Limitar longitud a 50 caracteres (Restricción de BD)
+            // 1. Limitar longitud
             if (newValue.length() > 50) {
                 field.setText(oldValue);
                 return;
             }
 
-            // 2. Validación estricta: Permite letras, acentos, espacios Y NÚMEROS
-            if (!PATRON_LETRAS_NUMEROS_ESPACIOS.matcher(newValue).matches()) {
-                field.setText(oldValue); // Revierte al valor anterior
-                field.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;");
+            // 2. Validar caracteres permitidos (Si escribe un símbolo raro, lo borra)
+            if (!PATRON_CARACTERES_VALIDOS.matcher(newValue).matches()) {
+                field.setText(oldValue);
                 return;
             }
 
-            // 3. Validación de contenido mínimo (al menos una letra)
-            boolean tieneLetra = newValue.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ].*");
-
-            if (!newValue.isEmpty() && !tieneLetra) {
-                // Borde ROJO si es inválido (solo espacios o solo números)
-                field.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;");
+            // 3. Feedback Visual: ¿Tiene sentido lo que escribió?
+            // Si está vacío o NO es lógico, borde rojo. Si es lógico, borde normal.
+            if (!newValue.isEmpty() && !esTextoLogico(newValue)) {
+                field.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;"); // Rojo
             } else {
-                // Estilo limpio
-                field.setStyle("");
+                field.setStyle(""); // Limpio
             }
         });
+    }
+
+    // --- NUEVA FUNCIÓN: LÓGICA DE SENTIDO COMÚN ---
+    private boolean esTextoLogico(String texto) {
+        String limpio = texto.trim();
+
+        // Regla A: Longitud mínima de 3 caracteres reales
+        if (limpio.length() < 3) return false;
+
+        // Regla B: Debe contener al menos una letra (no solo números o símbolos "123 #")
+        boolean tieneLetra = limpio.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ].*");
+        if (!tieneLetra) return false;
+
+        // Regla C: No tener 3 caracteres idénticos seguidos (Anti-spam "Hooolaaa")
+        if (PATRON_REPETICION.matcher(limpio).find()) return false;
+
+        return true;
     }
 
     private boolean validarFechaSeleccionada(LocalDate fecha) {
@@ -145,40 +175,42 @@ public class OrganizadorCrearEventoController {
             return;
         }
 
-        // 3. Validaciones de Contenido (Nombre y Lugar)
-        if (!rawNombre.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ].*")) {
-            mostrarMensaje("El nombre del evento debe contener texto descriptivo (no solo espacios o números).", true);
+        // 3. NUEVA VALIDACIÓN: Lógica del Nombre
+        if (!esTextoLogico(rawNombre)) {
+            mostrarMensaje("El nombre del evento no parece válido (muy corto, repetitivo o solo números).", true);
             txtNombreEvento.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;");
             return;
         }
-        if (!rawLugar.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ].*")) {
-            mostrarMensaje("El lugar debe ser un nombre válido (no solo espacios o números).", true);
+
+        // 4. NUEVA VALIDACIÓN: Lógica del Lugar
+        if (!esTextoLogico(rawLugar)) {
+            mostrarMensaje("El lugar no parece válido (muy corto, repetitivo o solo números).", true);
             txtLugar.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;");
             return;
         }
 
-        // --- VALIDACIÓN DE HORARIO ---
+        // 5. Validación de Horario (Lógica de negocio: Fin > Inicio y Duración >= 1h)
         if (!validarHorario(horaInicioInt, minutoInicioInt, horaFinInt, minutoFinInt)) {
-            return;
+            return; // El metodo validarHorario ya muestra el mensaje y pinta los bordes
         }
 
-        // 4. Validar Fecha
+        // 6. Validar Fecha (Futura)
         if (!validarFechaSeleccionada(fechaLocal)) {
-            return;
+            return; // El metodo validarFechaSeleccionada ya muestra el mensaje
         }
 
-        // 5. NORMALIZACIÓN
+        // 7. NORMALIZACIÓN (Capitalizar textos para que se vean bien en reportes)
         String nombre = capitalizarTexto(rawNombre);
         String lugar = capitalizarTexto(rawLugar);
 
-        // 6. Preparar datos SQL
+        // 8. Preparar datos SQL
         Date sqlFecha = java.sql.Date.valueOf(fechaLocal);
         String horaInicioStr = String.format("%02d:%02d:00", horaInicioInt, minutoInicioInt);
         String horaFinStr = String.format("%02d:%02d:00", horaFinInt, minutoFinInt);
         Time sqlHoraInicio = Time.valueOf(horaInicioStr);
         Time sqlHoraFin = Time.valueOf(horaFinStr);
 
-        // 7. Guardar en BD
+        // 9. Guardar en BD
         try {
             dao.crearEvento(nombre, lugar, sqlFecha, sqlHoraInicio, sqlHoraFin);
 
@@ -187,7 +219,7 @@ public class OrganizadorCrearEventoController {
             cambiarVista(event, "organizador_verEventos.fxml");
 
         } catch (SQLException e) {
-            //e.printStackTrace();
+            // Manejo de errores de BD (ej: Nombre duplicado, cruce de horarios detectado por el SP)
             mostrarMensaje(e.getMessage(), true);
         }
     }
@@ -285,7 +317,7 @@ public class OrganizadorCrearEventoController {
         return true;
     }
 
-    // Método auxiliar para pintar los spinners de rojo/verde
+    // Metodo auxiliar para pintar los spinners de rojo/verde
     private void estilarErrorHorario(boolean error) {
         String estiloError = "-fx-border-color: #e74c3c; -fx-border-width: 2px;";
         String estiloNormal = "";

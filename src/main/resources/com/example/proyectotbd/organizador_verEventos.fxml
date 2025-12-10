@@ -60,7 +60,7 @@
       
                       <Button onAction="#handleEditarEvento" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 5;" text="✏️ EDITAR EVENTO" />
       
-                      <Button onAction="#handleEliminar" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 5;" text="🗑️ ELIMINAR EVENTO" />
+                      <Button onAction="#handleEliminar" visible="false" managed="false" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 5;" text="🗑️ ELIMINAR EVENTO" />
       
                       <Button onAction="#handleVerReporteDetallado" style="-fx-background-color: #d35400; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 5;" text="🗑📊 VER REPORTES DETALLADOS" />
       </children>

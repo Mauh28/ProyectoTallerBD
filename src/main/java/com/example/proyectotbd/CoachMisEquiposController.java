@@ -35,13 +35,14 @@ public class CoachMisEquiposController {
         cargarDatos();
     }
 
+    // metodo para cargar datos del equipo en base al id del coach
     private void cargarDatos() {
         int usuarioId = UserSession.getInstance().getUserId();
         System.out.println("--> Buscando equipos para el Coach con ID: " + usuarioId);
         try {
             tablaEquipos.setItems(dao.obtenerMisEquipos(usuarioId));
         } catch (SQLException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         }
     }
 

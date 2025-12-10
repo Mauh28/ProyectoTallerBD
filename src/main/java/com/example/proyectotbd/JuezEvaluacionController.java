@@ -59,7 +59,7 @@ public class JuezEvaluacionController {
         // 1. Verificar si la evaluación está permitida (Control de horario)
         verificarHoraDeEvaluacion();
 
-        // 2. TODO: Si es modo EDICIÓN, aquí se debería implementar la lógica para cargar los estados.
+        // 2. Si es modo EDICION, aqui se deberia implementar la logica para cargar los estados.
     }
 
 
@@ -107,7 +107,7 @@ public class JuezEvaluacionController {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             if (lblMensajeEstado != null) {
                 lblMensajeEstado.setText("Error de Base de Datos al verificar el horario.");
             }
@@ -259,6 +259,10 @@ public class JuezEvaluacionController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Error navegando a: " + fxml);
+            alert.show();
+        }
     }
 }

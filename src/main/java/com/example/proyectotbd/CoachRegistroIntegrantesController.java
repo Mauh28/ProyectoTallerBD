@@ -267,13 +267,14 @@ public class CoachRegistroIntegrantesController {
         }
     }
 
-    // Método auxiliar para mostrar errores
+    // metodo auxiliar para mostrar errores
     private void mostrarError(String mensaje) {
         lblError.setText(mensaje);
         lblError.setStyle("-fx-text-fill: #e74c3c;");
         lblError.setVisible(true);
     }
 
+    // metodo para seleccionar un participante y obtener sus datos
     @FXML
     public void handleSeleccionarItem() {
         int index = listaParticipantes.getSelectionModel().getSelectedIndex();
@@ -293,6 +294,7 @@ public class CoachRegistroIntegrantesController {
         }
     }
 
+    // metodo para seleccionar datos de participante y limpiar los campos llenados
     @FXML
     public void handleLimpiar() {
         txtNombre.clear();
@@ -499,7 +501,14 @@ public class CoachRegistroIntegrantesController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            //e.printStackTrace();
+            // Muestra un error más claro en la consola sobre la fuente del problema
+            System.err.println("\n*** ERROR CRÍTICO DE NAVEGACIÓN ***");
+            System.err.println("Fallo al cargar la vista FXML: " + fxml);
+            System.err.println("Causa más probable: 1) Nombre de archivo incorrecto; 2) Error de sintaxis en el FXML de destino.");
+            System.err.println("***********************************\n");
+        }
     }
 
     @FXML

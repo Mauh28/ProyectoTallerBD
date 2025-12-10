@@ -8,6 +8,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.effect.DropShadow;
@@ -56,7 +57,7 @@ public class JuezEventoController {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             Label error = new Label("Error de conexión al cargar eventos: Asegúrate que la BD está activa.");
             error.setStyle("-fx-text-fill: red; -fx-font-weight: bold; -fx-padding: 20;");
             vboxListaEventos.getChildren().add(error);
@@ -137,7 +138,7 @@ public class JuezEventoController {
             btnSeleccionar.setText("ERROR FECHA");
             btnSeleccionar.setDisable(true);
             btnSeleccionar.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
 
@@ -174,7 +175,7 @@ public class JuezEventoController {
         cambiarVista(event, "login.fxml");
     }
 
-    // Método para ActionEvent (Botones del FXML)
+    // Metodo para ActionEvent (Botones del FXML)
     private void cambiarVista(ActionEvent event, String fxml) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
@@ -182,10 +183,14 @@ public class JuezEventoController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Error navegando a: " + fxml);
+            alert.show();
+        }
     }
 
-    // Método para eventos manuales (Botones generados dinámicamente)
+    // Metodo para eventos manuales (Botones generados dinámicamente)
     private void cambiarVistaBoton(Node nodo, String fxml) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
@@ -193,6 +198,10 @@ public class JuezEventoController {
             Stage stage = (Stage) nodo.getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Error navegando a: " + fxml);
+            alert.show();
+        }
     }
 }

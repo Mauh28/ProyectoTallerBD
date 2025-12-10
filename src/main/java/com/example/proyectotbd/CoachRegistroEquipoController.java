@@ -25,7 +25,7 @@ public class CoachRegistroEquipoController {
 
     private String categoriaTexto = null;
     private int categoriaId = 0;
-    private OrganizadorDAO dao = new OrganizadorDAO(); // Se mantiene por si se usa en el futuro, aunque no se usa en el código visible.
+    private OrganizadorDAO dao = new OrganizadorDAO(); // se mantiene pero no se utiliza en el codigo
 
     @FXML
     public void initialize() {
@@ -34,9 +34,7 @@ public class CoachRegistroEquipoController {
         configurarValidacionNombre();
     }
 
-    /**
-     * Muestra el nombre del evento seleccionado, obtenido desde la sesión temporal.
-     */
+    // Muestra el nombre del evento seleccionado, obtenido desde la sesión temporal.
     private void mostrarEventoSeleccionado() {
         int eventoId = UserSession.getInstance().getTempEventoId();
 
@@ -148,7 +146,7 @@ public class CoachRegistroEquipoController {
             cambiarVista(event, "coach_registroIntegrantes.fxml");
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             mostrarMensaje("Error de conexión al validar nombre: " + e.getMessage(), true);
         }
     }

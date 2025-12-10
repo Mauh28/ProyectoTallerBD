@@ -131,7 +131,7 @@ public class LoginAdminController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             System.out.println("Error cargando vista: " + fxml);
         }
     }

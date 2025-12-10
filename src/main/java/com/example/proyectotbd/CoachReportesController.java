@@ -52,7 +52,7 @@ public class CoachReportesController {
                 tablaReportes.setPlaceholder(new Label("No hay evaluaciones registradas aún."));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             tablaReportes.setPlaceholder(new Label("Error de conexión: " + e.getMessage()));
         }
     }
@@ -68,6 +68,12 @@ public class CoachReportesController {
             Parent root = loader.load();
             Scene scene = ((Node) event.getSource()).getScene();
             scene.setRoot(root);
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            // Muestra un error más claro en la consola sobre la fuente del problema
+            System.err.println("\n*** ERROR CRÍTICO DE NAVEGACIÓN ***");
+            System.err.println("Fallo al cargar la vista FXML: " + fxml);
+            System.err.println("Causa más probable: 1) Nombre de archivo incorrecto; 2) Error de sintaxis en el FXML de destino.");
+            System.err.println("***********************************\n");
+        }
     }
 }

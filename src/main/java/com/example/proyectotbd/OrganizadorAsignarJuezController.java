@@ -25,43 +25,60 @@ public class OrganizadorAsignarJuezController {
 
     @FXML private ComboBox<OpcionCombo> cbEventos;
     @FXML private ComboBox<OpcionCombo> cbJueces;
+
+    // Botones inyectados para cambiar su estilo visualmente
+    @FXML private Button btnPrimaria;
+    @FXML private Button btnSecundaria;
+    @FXML private Button btnPrepa;
+    @FXML private Button btnProfesional;
+
     @FXML private Label lblCategoriaSeleccionada;
     @FXML private Label lblMensaje;
 
-    // Instancia del DAO
     private OrganizadorDAO organizadorDAO = new OrganizadorDAO();
-
     private String categoriaTexto = null;
     private int categoriaId = 0;
 
     @FXML
     public void initialize() {
-        // Solo cargamos eventos; los jueces se cargan DESPUÉS de la selección del evento/categoría.
         cargarDatosIniciales();
+
+        // Listener: Si cambian el evento, reseteamos la categoría para evitar errores
+        cbEventos.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                resetearSeleccionCategoria();
+                cbJueces.setItems(FXCollections.observableArrayList()); // Limpiar lista de jueces
+                cbJueces.getSelectionModel().clearSelection();
+                lblMensaje.setVisible(false);
+            }
+        });
     }
 
     private void cargarDatosIniciales() {
         try {
             cbEventos.setItems(organizadorDAO.obtenerEventosFuturos());
-            // Se inicializa la lista de jueces vacía
             cbJueces.setItems(FXCollections.observableArrayList());
         } catch (SQLException e) {
             mostrarMensaje("Error al conectar con eventos: " + e.getMessage(), true);
         }
-
-        // Agregar un listener al ComboBox de Eventos para disparar la carga de jueces
-        cbEventos.setOnAction(e -> cargarJuecesFiltrados());
     }
 
     // =================================================================
-    //  MANEJO DE CATEGORÍA
+    //  MANEJO DE CATEGORÍA (Con Validación Visual)
     // =================================================================
 
     @FXML
     public void handleCategoria(ActionEvent event) {
+        // 1. Validar que primero se haya seleccionado un evento
+        if (cbEventos.getValue() == null) {
+            mostrarMensaje("Primero selecciona un evento.", true);
+            return;
+        }
+
         Button btn = (Button) event.getSource();
         categoriaTexto = btn.getText().toUpperCase();
 
+        // Mapeo de IDs
         switch (categoriaTexto) {
             case "PRIMARIA": categoriaId = 1; break;
             case "SECUNDARIA": categoriaId = 2; break;
@@ -71,110 +88,128 @@ public class OrganizadorAsignarJuezController {
             default: categoriaId = 0; break;
         }
 
-        lblCategoriaSeleccionada.setText("Seleccionada: " + btn.getText());
-        lblCategoriaSeleccionada.setStyle("-fx-text-fill: #2980b9; -fx-font-weight: bold;");
+        // 2. Feedback Visual: Iluminar el botón seleccionado
+        actualizarEstiloBotones(btn);
 
-        // Llamar a cargar jueces cada vez que se selecciona una categoría
+        lblCategoriaSeleccionada.setText("Seleccionada: " + btn.getText());
+        lblCategoriaSeleccionada.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
+
+        // Cargar jueces disponibles para esa combinación
         cargarJuecesFiltrados();
+    }
+
+    // Método auxiliar para pintar el botón activo y apagar los demás
+    private void actualizarEstiloBotones(Button btnActivo) {
+        // Estilo base (gris claro)
+        String estiloBase = "-fx-base: #f4f6f8; -fx-cursor: hand;";
+        // Estilo activo (azul)
+        String estiloActivo = "-fx-base: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;";
+
+        if(btnPrimaria != null) btnPrimaria.setStyle(estiloBase);
+        if(btnSecundaria != null) btnSecundaria.setStyle(estiloBase);
+        if(btnPrepa != null) btnPrepa.setStyle(estiloBase);
+        if(btnProfesional != null) btnProfesional.setStyle(estiloBase);
+
+        if(btnActivo != null) {
+            btnActivo.setStyle(estiloActivo);
+        }
+    }
+
+    private void resetearSeleccionCategoria() {
+        categoriaId = 0;
+        categoriaTexto = null;
+        lblCategoriaSeleccionada.setText("Ninguna seleccionada");
+        lblCategoriaSeleccionada.setStyle("-fx-text-fill: #7f8c8d; -fx-font-style: italic;");
+
+        // Resetear botones visualmente
+        actualizarEstiloBotones(null);
     }
 
     private void cargarJuecesFiltrados() {
         OpcionCombo eventoSeleccionado = cbEventos.getValue();
 
-        // 1. Validar que ambos campos estén seleccionados
         if (eventoSeleccionado == null || categoriaId == 0) {
-            cbJueces.setItems(FXCollections.observableArrayList()); // Limpiar lista
-            mostrarMensaje("Selecciona un Evento y una Categoría para ver los jueces disponibles.", false);
             return;
         }
 
-        int eventoId = eventoSeleccionado.getId();
-
         try {
-            // 2. Llamada al DAO con los filtros (categoriaId y eventoId)
-            ObservableList<OpcionCombo> jueces = organizadorDAO.obtenerJuecesSinConflicto(categoriaId, eventoId);
+            ObservableList<OpcionCombo> jueces = organizadorDAO.obtenerJuecesSinConflicto(categoriaId, eventoSeleccionado.getId());
             cbJueces.setItems(jueces);
 
             if (jueces.isEmpty()) {
-                mostrarMensaje("No hay jueces disponibles sin conflicto de interés en esta categoría/evento.", true);
+                mostrarMensaje("No hay jueces disponibles para esta categoría en este evento.", true);
+                cbJueces.setDisable(true);
             } else {
                 lblMensaje.setVisible(false);
+                cbJueces.setDisable(false);
+                cbJueces.setPromptText("Selecciona un juez (" + jueces.size() + " disponibles)");
             }
         } catch (SQLException e) {
-            //e.printStackTrace();
             mostrarMensaje("Error al cargar jueces: " + e.getMessage(), true);
         }
     }
-
 
     @FXML
     public void handleGuardar(ActionEvent event) {
         OpcionCombo evento = cbEventos.getValue();
         OpcionCombo juez = cbJueces.getValue();
 
-        // 1. Validaciones de UI
+        // 1. Validaciones
         if (evento == null || categoriaId == 0 || juez == null) {
             mostrarMensaje("Error: Completa los 3 pasos (Evento, Categoría y Juez).", true);
             return;
         }
 
+        // 2. Confirmación
+        Alert alerta = new Alert(Alert.AlertType.CONFIRMATION);
+        alerta.setTitle("Confirmar Asignación");
+        alerta.setHeaderText(null);
+        alerta.setContentText("¿Asignar a " + juez + " en " + categoriaTexto + "?");
+        if (alerta.showAndWait().get() != ButtonType.OK) return;
+
         try {
-            // 2. Llamada al DAO (Procedimiento Almacenado)
+            // 3. Guardar en BD
             organizadorDAO.asignarJuez(juez.getId(), categoriaId, evento.getId());
 
-            // --- ÉXITO ---
-            System.out.println("Juez asignado correctamente.");
-
-            // Mostrar Pop-up
             mostrarNotificacionExito("¡Juez " + juez + " asignado correctamente!");
 
-            // Regresar al menú principal
-            cambiarVista(event, "organizador_menu.fxml");
+            // --- MEJORA: FLUJO CONTINUO ---
+            // Limpiamos solo el juez para permitir agregar otro inmediatamente
+            cbJueces.getSelectionModel().clearSelection();
+            cargarJuecesFiltrados(); // Recargar la lista (el juez asignado desaparecerá)
+
+            lblMensaje.setText("Asignación guardada. Puedes agregar otro juez.");
+            lblMensaje.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
+            lblMensaje.setVisible(true);
 
         } catch (SQLException e) {
-            // Errores de negocio (cupo lleno, conflicto de interés, faltan equipos)
-            //e.printStackTrace();
-            mostrarMensaje(e.getMessage(), true);
+            // Error controlado (sin printStackTrace)
+            mostrarMensaje("Error: " + e.getMessage(), true);
         }
     }
 
-    // --- MÉTODOS AUXILIARES (Sin cambios) ---
+    // --- MÉTODOS AUXILIARES ---
+
     private void mostrarNotificacionExito(String mensaje) {
         try {
-            // ... (código del Toast Pop-up) ...
             Stage toastStage = new Stage();
             toastStage.initStyle(StageStyle.TRANSPARENT);
             toastStage.setAlwaysOnTop(true);
-
             Label label = new Label("⚖️ " + mensaje);
-            label.setStyle(
-                    "-fx-background-color: #27ae60;" +
-                            "-fx-text-fill: white;" +
-                            "-fx-font-weight: bold;" +
-                            "-fx-font-size: 16px;" +
-                            "-fx-padding: 20px;" +
-                            "-fx-background-radius: 10px;" +
-                            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);"
-            );
-
+            label.setStyle("-fx-background-color: #27ae60;-fx-text-fill: white;-fx-font-weight: bold;-fx-font-size: 16px;-fx-padding: 20px;-fx-background-radius: 10px;-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);");
             StackPane root = new StackPane(label);
             root.setStyle("-fx-background-color: transparent;");
             Scene scene = new Scene(root);
             scene.setFill(Color.TRANSPARENT);
             toastStage.setScene(scene);
-
             Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
             toastStage.setX(screenBounds.getMaxX() - 450);
             toastStage.setY(screenBounds.getMaxY() - 100);
-
             toastStage.show();
             PauseTransition delay = new PauseTransition(Duration.seconds(3));
             delay.setOnFinished(e -> toastStage.close());
             delay.play();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) {}
     }
 
     @FXML

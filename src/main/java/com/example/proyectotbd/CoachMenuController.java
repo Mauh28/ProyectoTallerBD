@@ -117,7 +117,12 @@ public class CoachMenuController {
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            // Muestra un error más claro en la consola sobre la fuente del problema
+            System.err.println("\n*** ERROR CRÍTICO DE NAVEGACIÓN ***");
+            System.err.println("Fallo al cargar la vista FXML: " + fxml);
+            System.err.println("Causa más probable: 1) Nombre de archivo incorrecto; 2) Error de sintaxis en el FXML de destino.");
+            System.err.println("***********************************\n");
         }
     }
 

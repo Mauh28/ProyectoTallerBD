@@ -26,7 +26,7 @@ public class EventoItem {
     public String getFecha() { return fecha; }
     public String getJueces() { return jueces; }
 
-    // Nuevos Getters para las horas
+    // Nuevos Getters para las horas_
     public String getHoraInicio() { return horaInicio; }
     public String getHoraFin() { return horaFin; }
 }

@@ -152,7 +152,9 @@ public class LoginController {
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Error navegando a: " + fxml);
+            alert.show();
         }
     }
 }

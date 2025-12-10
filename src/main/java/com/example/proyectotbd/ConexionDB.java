@@ -13,7 +13,7 @@ public class ConexionDB {
 
     private static Connection connection = null;
 
-    // Método para obtener la conexión
+    // metodo para hacer la conexion para base de datos
     public static Connection getConnection() {
         try {
             // Verificar si la conexión está cerrada o es nula para abrirla
@@ -27,15 +27,15 @@ public class ConexionDB {
             }
         } catch (ClassNotFoundException e) {
             System.err.println("Error: No se encontró el Driver de MySQL.");
-            e.printStackTrace();
+            // e.printStackTrace();
         } catch (SQLException e) {
             System.err.println("Error al conectar con la base de datos.");
-            e.printStackTrace();
+            // e.printStackTrace();
         }
         return connection;
     }
 
-    // Método para cerrar la conexión (llámalo al cerrar la app)
+    // metodo para cerrar la conexion
     public static void cerrarConexion() {
         if (connection != null) {
             try {

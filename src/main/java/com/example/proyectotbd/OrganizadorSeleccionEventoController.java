@@ -50,14 +50,14 @@ public class OrganizadorSeleccionEventoController {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             Label error = new Label("Error de conexión: " + e.getMessage());
             error.setStyle("-fx-text-fill: red;");
             vboxListaEventos.getChildren().add(error);
         }
     }
 
-    // Método para crear la tarjeta visual (HBox) de cada evento
+    // Metodo para crear la tarjeta visual (HBox) de cada evento
     private HBox crearTarjetaEvento(EventoItem evento) {
         HBox tarjeta = new HBox();
         tarjeta.setAlignment(Pos.CENTER_LEFT);
@@ -110,7 +110,7 @@ public class OrganizadorSeleccionEventoController {
         cambiarVista(event, "organizador_menu.fxml");
     }
 
-    // Método auxiliar para eventos manuales (Botones generados dinámicamente)
+    // Metodo auxiliar para eventos manuales (Botones generados dinámicamente)
     private void cambiarVistaBoton(Node nodo, String fxml) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
@@ -118,10 +118,16 @@ public class OrganizadorSeleccionEventoController {
             Stage stage = (Stage) nodo.getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            // Muestra un error más claro en la consola sobre la fuente del problema
+            System.err.println("\n*** ERROR CRÍTICO DE NAVEGACIÓN ***");
+            System.err.println("Fallo al cargar la vista FXML: " + fxml);
+            System.err.println("Causa más probable: 1) Nombre de archivo incorrecto; 2) Error de sintaxis en el FXML de destino.");
+            System.err.println("***********************************\n");
+        }
     }
 
-    // Método para ActionEvent (Botones del FXML)
+    // Metodo para ActionEvent (Botones del FXML)
     private void cambiarVista(ActionEvent event, String fxml) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
@@ -129,6 +135,12 @@ public class OrganizadorSeleccionEventoController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            // Muestra un error más claro en la consola sobre la fuente del problema
+            System.err.println("\n*** ERROR CRÍTICO DE NAVEGACIÓN ***");
+            System.err.println("Fallo al cargar la vista FXML: " + fxml);
+            System.err.println("Causa más probable: 1) Nombre de archivo incorrecto; 2) Error de sintaxis en el FXML de destino.");
+            System.err.println("***********************************\n");
+        }
     }
 }

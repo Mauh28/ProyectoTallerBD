@@ -48,7 +48,7 @@ public class JuezDAO {
     // MÉTODOS EXISTENTES
     // =================================================================
 
-    // Nuevo método que acepta Connection para ser parte de la transacción de guardado
+    // Nuevo metodo que acepta Connection para ser parte de la transaccion de guardado
     public EvaluacionIds iniciarEvaluacion(Connection conn, int equipoId, int eventoId, int juezId) throws SQLException {
         String sql = "{call SP_IniciarEvaluacionSegura(?, ?, ?, ?)}";
 
@@ -220,7 +220,7 @@ public class JuezDAO {
         return lista;
     }
 
-    // Método para listar SOLO los eventos asignados al juez logueado
+    // Metodo para listar SOLO los eventos asignados al juez logueado
     public ObservableList<EventoItem> obtenerEventosDelJuez(int juezId) throws SQLException {
         ObservableList<EventoItem> lista = FXCollections.observableArrayList();
         String sql = "{call SP_ListarEventosDelJuez(?)}"; // Nuevo SP

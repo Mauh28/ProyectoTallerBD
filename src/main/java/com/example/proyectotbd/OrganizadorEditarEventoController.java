@@ -23,9 +23,11 @@ import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import java.util.regex.Pattern; // Importación necesaria para Regex
 
 public class OrganizadorEditarEventoController {
 
+    // Campos FXML de la vista
     @FXML private TextField txtNombreEvento;
     @FXML private TextField txtLugar;
     @FXML private DatePicker dpFecha;
@@ -41,6 +43,12 @@ public class OrganizadorEditarEventoController {
     private OrganizadorDAO dao = new OrganizadorDAO();
     private EventoItem eventoActual;
 
+    // --- PATRONES DE VALIDACIÓN ---
+    // Regex mejorado: Permite letras, números, espacios y signos comunes (., #, -)
+    private static final Pattern PATRON_CARACTERES_VALIDOS = Pattern.compile("^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ.,#\\-\\s]*$");
+    // Regex para detectar repeticiones excesivas (ej: "aaa")
+    private static final Pattern PATRON_REPETICION = Pattern.compile("(.)\\1{2,}");
+
     @FXML
     public void initialize() {
         // Inicializar Spinners
@@ -49,16 +57,14 @@ public class OrganizadorEditarEventoController {
         spnHoraFin.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 17));
         spnMinutoFin.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
 
-        // --- CAMBIO: Deshabilitar escritura manual en Spinners ---
+        // Bloquear escritura manual en Spinners
         spnHoraInicio.setEditable(false);
         spnMinutoInicio.setEditable(false);
         spnHoraFin.setEditable(false);
         spnMinutoFin.setEditable(false);
-        // ---------------------------------------------------------
 
-        // --- CAMBIO: Deshabilitar escritura manual en DatePicker ---
+        // Bloquear escritura manual en DatePicker
         dpFecha.setEditable(false);
-        // -----------------------------------------------------------
 
         dpFecha.setDayCellFactory(picker -> new DateCell() {
             @Override
@@ -73,7 +79,7 @@ public class OrganizadorEditarEventoController {
             validarFechaSeleccionada(newValue);
         });
 
-        // --- CAMBIO: Validaciones de Texto en Tiempo Real ---
+        // --- Validaciones de Texto en Tiempo Real ---
         configurarValidacionTexto(txtNombreEvento);
         configurarValidacionTexto(txtLugar);
     }
@@ -113,19 +119,46 @@ public class OrganizadorEditarEventoController {
     // MÉTODOS DE VALIDACIÓN
     // =================================================================
 
+    // --- NUEVO: Validación de Texto con lógica y sentido común ---
     private void configurarValidacionTexto(TextField field) {
         field.textProperty().addListener((observable, oldValue, newValue) -> {
+
+            // 1. Limitar longitud
             if (newValue.length() > 50) {
                 field.setText(oldValue);
                 return;
             }
-            boolean tieneLetra = newValue.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ].*");
-            if (!newValue.isEmpty() && !tieneLetra) {
-                field.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;");
+
+            // 2. Validar caracteres permitidos
+            if (!PATRON_CARACTERES_VALIDOS.matcher(newValue).matches()) {
+                field.setText(oldValue);
+                return;
+            }
+
+            // 3. Feedback Visual: ¿Tiene sentido lo que escribió?
+            if (!newValue.isEmpty() && !esTextoLogico(newValue)) {
+                field.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;"); // Rojo
             } else {
-                field.setStyle("");
+                field.setStyle(""); // Limpio
             }
         });
+    }
+
+    // --- NUEVO: Función auxiliar de lógica ---
+    private boolean esTextoLogico(String texto) {
+        String limpio = texto.trim();
+
+        // Regla A: Longitud mínima de 3 caracteres reales
+        if (limpio.length() < 3) return false;
+
+        // Regla B: Debe contener al menos una letra (no solo números o símbolos)
+        boolean tieneLetra = limpio.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ].*");
+        if (!tieneLetra) return false;
+
+        // Regla C: No tener 3 caracteres idénticos seguidos (Anti-spam)
+        if (PATRON_REPETICION.matcher(limpio).find()) return false;
+
+        return true;
     }
 
     private boolean validarFechaSeleccionada(LocalDate fecha) {
@@ -141,7 +174,6 @@ public class OrganizadorEditarEventoController {
         }
     }
 
-    // --- CAMBIO: Validación Lógica de Horario ---
     private boolean validarHorario(Integer hInicio, Integer mInicio, Integer hFin, Integer mFin) {
         if (hInicio == null || mInicio == null || hFin == null || mFin == null) return false;
 
@@ -201,19 +233,19 @@ public class OrganizadorEditarEventoController {
             return;
         }
 
-        // 2. Validaciones de Contenido
-        if (!rawNombre.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ].*")) {
-            mostrarMensaje("El nombre debe contener texto descriptivo.", true);
-            txtNombreEvento.setStyle("-fx-border-color: red;");
+        // 2. Validaciones Lógicas (Usando el nuevo método)
+        if (!esTextoLogico(rawNombre)) {
+            mostrarMensaje("El nombre del evento no parece válido (muy corto, repetitivo o solo números).", true);
+            txtNombreEvento.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;");
             return;
         }
-        if (!rawLugar.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ].*")) {
-            mostrarMensaje("El lugar debe ser válido.", true);
-            txtLugar.setStyle("-fx-border-color: red;");
+        if (!esTextoLogico(rawLugar)) {
+            mostrarMensaje("El lugar no parece válido (muy corto, repetitivo o solo números).", true);
+            txtLugar.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;");
             return;
         }
 
-        // 3. Validaciones Lógicas
+        // 3. Validaciones Fecha/Horario
         if (!validarFechaSeleccionada(fechaLocal)) return;
         if (!validarHorario(hInicio, mInicio, hFin, mFin)) return;
 
@@ -232,7 +264,6 @@ public class OrganizadorEditarEventoController {
             mostrarNotificacionExito("¡Evento '" + nombre + "' actualizado!");
             cambiarVista(event, "organizador_verEventos.fxml");
         } catch (SQLException e) {
-            // Sin printStackTrace
             mostrarMensaje(e.getMessage(), true);
         }
     }
@@ -279,6 +310,7 @@ public class OrganizadorEditarEventoController {
         lblMensaje.setText(mensaje);
         lblMensaje.setStyle(esError ? "-fx-text-fill: #e74c3c;" : "-fx-text-fill: #27ae60;");
         lblMensaje.setVisible(true);
+
         if (!esError) {
             txtNombreEvento.setStyle("");
             txtLugar.setStyle("");

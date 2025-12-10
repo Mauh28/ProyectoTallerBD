@@ -74,7 +74,7 @@ public class OrganizadorMenuController {
         cambiarVista(event, "login.fxml");
     }
 
-    // Método estándar para cambiar de pantalla (Ligeramente modificado para robustez)
+    // Metodo estándar para cambiar de pantalla (Ligeramente modificado para robustez)
     private void cambiarVista(ActionEvent event, String fxml) {
         try {
             // Intenta obtener la URL del recurso de forma segura
@@ -92,7 +92,7 @@ public class OrganizadorMenuController {
             stage.show();
 
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             // Muestra un error más claro en la consola sobre la fuente del problema
             System.err.println("\n*** ERROR CRÍTICO DE NAVEGACIÓN ***");
             System.err.println("Fallo al cargar la vista FXML: " + fxml);

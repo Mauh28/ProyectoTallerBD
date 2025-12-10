@@ -16,9 +16,7 @@ public class OrganizadorDAO {
     // MÉTODOS DE CONSULTA PARA COMBO BOXES Y FILTROS
     // -----------------------------------------------------------------
 
-    /**
-     * Obtiene una lista de eventos cuya fecha es hoy o futura.
-     */
+    // Obtiene una lista de eventos cuya fecha es hoy o futura.
     public ObservableList<OpcionCombo> obtenerEventosFuturos() throws SQLException {
         ObservableList<OpcionCombo> lista = FXCollections.observableArrayList();
         String sql = "{call SP_ListarEventosFuturos()}";
@@ -53,7 +51,7 @@ public class OrganizadorDAO {
     }
 
     // -----------------------------------------------------------------
-    // MÉTODO DE ASIGNACIÓN DE JUECES (CON FILTRO DE CONFLICTO)
+    // METODO DE ASIGNACIÓN DE JUECES (CON FILTRO DE CONFLICTO)
     // -----------------------------------------------------------------
 
     /**

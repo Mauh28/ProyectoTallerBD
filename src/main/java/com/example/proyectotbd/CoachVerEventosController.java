@@ -73,7 +73,7 @@ public class CoachVerEventosController {
             tablaEventos.setItems(dao.obtenerTodosLosEventos()); // Reutilizamos el método del admin
         } catch (SQLException e) {
             lblMensaje.setText("Error al cargar eventos de BD: " + e.getMessage());
-            e.printStackTrace();
+            // e.printStackTrace();
         }
     }
 
@@ -115,7 +115,7 @@ public class CoachVerEventosController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             lblMensaje.setText("Error al cargar la vista: " + fxml);
         }
     }

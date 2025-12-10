@@ -22,9 +22,7 @@ public class AsignacionItem {
         this.jueces = jueces;
     }
 
-    // =================================================================
-    // GETTERS (OBLIGATORIOS PARA TableView y PropertyValueFactory)
-    // =================================================================
+    // getters
 
     public String getEvento() {
         return evento;

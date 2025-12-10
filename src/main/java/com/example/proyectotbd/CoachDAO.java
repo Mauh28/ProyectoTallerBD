@@ -52,7 +52,7 @@ public class CoachDAO {
         return lista;
     }
 
-    // 2. MÉTODO para limpiar participantes (necesario para el modo edición)
+    // metodo para llamar participantes (necesario para editar) - esta obsoleto me parece
     public void limpiarParticipantes(int equipoId) throws SQLException {
         String sql = "{call SP_EliminarParticipantesPorEquipo(?)}";
         try (Connection conn = ConexionDB.getConnection();
@@ -62,6 +62,7 @@ public class CoachDAO {
         }
     }
 
+    // metodo para eliminar equipo - eliminar
     public void eliminarEquipo(int equipoId) throws SQLException {
         String sql = "{call SP_EliminarEquipoCoach(?)}";
         try (Connection conn = ConexionDB.getConnection();
@@ -71,7 +72,7 @@ public class CoachDAO {
         }
     }
 
-    // Método para traer los alumnos cuando vamos a editar
+    // metodo que trae participantes para cuando vamos a editarlos
     public ObservableList<String> obtenerParticipantes(int equipoId) throws SQLException {
         ObservableList<String> lista = FXCollections.observableArrayList();
         String sql = "{call SP_ListarParticipantesPorEquipo(?)}";
@@ -92,6 +93,7 @@ public class CoachDAO {
         return lista;
     }
 
+    // metodo que obtiene el reporte de evaluacion
     public ObservableList<ReporteCoachItem> obtenerReporteEvaluaciones(int coachId) throws SQLException {
         ObservableList<ReporteCoachItem> lista = FXCollections.observableArrayList();
         String sql = "{call SP_Coach_ObtenerReporteEvaluaciones(?)}";

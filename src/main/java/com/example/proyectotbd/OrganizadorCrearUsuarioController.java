@@ -40,19 +40,21 @@ public class OrganizadorCrearUsuarioController {
     @FXML private CheckBox checkCoach;
     @FXML private CheckBox checkJuez;
     @FXML private Label lblMensaje;
-    // --- CAMBIO: Ahora es un ComboBox ---
+
+    // --- ComboBox para Institución ---
     @FXML private ComboBox<String> cmbInstitucion;
 
     private boolean contrasenaVisible = false;
-    private OrganizadorDAO dao = new OrganizadorDAO(); // Necesitamos el DAO para cargar la lista
+    private OrganizadorDAO dao = new OrganizadorDAO();
 
     // --- PATRONES DE VALIDACIÓN ---
     private static final Pattern PATRON_NOMBRE = Pattern.compile("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]*$");
     private static final Pattern PATRON_USERNAME = Pattern.compile("^[a-zA-Z0-9._-]*$");
     private static final Pattern PATRON_PASSWORD_COMPLEJO = Pattern.compile("^(?=.*[0-9])(?=.*[A-Z])(?=.*[^a-zA-Z0-9\\s]).{8,}$");
-
-    // PATRÓN INSTITUCIÓN
     private static final Pattern PATRON_INSTITUCION = Pattern.compile("^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\\s]*$");
+
+    // --- NUEVO: Patrón para detectar caracteres repetidos excesivos (ej: "aaa") ---
+    private static final Pattern PATRON_REPETICION = Pattern.compile("(.)\\1{2,}");
 
 
     @FXML
@@ -66,7 +68,6 @@ public class OrganizadorCrearUsuarioController {
         configurarRestriccionTeclasContrasena();
     }
 
-    // --- NUEVO: Cargar lista desde BD ---
     private void cargarInstituciones() {
         try {
             ObservableList<String> lista = dao.obtenerInstituciones();
@@ -95,7 +96,7 @@ public class OrganizadorCrearUsuarioController {
             }
         });
 
-        // Bloqueo para evitar que se PEGEN espacios iniciales/finales
+        // Bloqueo para evitar que se PEGUEN espacios iniciales/finales
         txtPassword.textProperty().addListener((obs, oldV, newV) -> {
             if (newV != null && (newV.startsWith(" ") || newV.endsWith(" "))) {
                 txtPassword.setText(newV.trim());
@@ -139,7 +140,6 @@ public class OrganizadorCrearUsuarioController {
         });
 
         // --- VALIDACIÓN INSTITUCIÓN (Adaptada para ComboBox) ---
-        // Usamos getEditor().textProperty() para escuchar lo que el usuario escribe
         cmbInstitucion.getEditor().textProperty().addListener((obs, oldV, newV) -> {
             if (newV.length() > 50) {
                 cmbInstitucion.getEditor().setText(oldV);
@@ -149,7 +149,7 @@ public class OrganizadorCrearUsuarioController {
                 cmbInstitucion.getEditor().setText(oldV);
                 cmbInstitucion.setStyle("-fx-border-color: red;");
             } else {
-                cmbInstitucion.setStyle(""); // Restaurar estilo (ojo: puede requerir re-aplicar estilos base si usas CSS complejos)
+                cmbInstitucion.setStyle("");
             }
         });
 
@@ -175,6 +175,23 @@ public class OrganizadorCrearUsuarioController {
         });
     }
 
+    // --- NUEVO: MÉTODO DE VALIDACIÓN LÓGICA (COHERENCIA) ---
+    private boolean esTextoLogico(String texto) {
+        String limpio = texto.trim();
+
+        // 1. Longitud mínima de 3 caracteres
+        if (limpio.length() < 3) return false;
+
+        // 2. Debe contener al menos una letra (no solo números "123")
+        boolean tieneLetra = limpio.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ].*");
+        if (!tieneLetra) return false;
+
+        // 3. No tener 3 caracteres idénticos seguidos ("Juaaan")
+        if (PATRON_REPETICION.matcher(limpio).find()) return false;
+
+        return true;
+    }
+
     private void analizarSeguridadPassword(String password) {
         if (password.isEmpty()) {
             lblMensaje.setVisible(false);
@@ -185,7 +202,6 @@ public class OrganizadorCrearUsuarioController {
         boolean cumpleLongitud = password.length() >= 8;
         boolean cumpleMayuscula = password.matches(".*[A-Z].*");
         boolean cumpleNumero = password.matches(".*[0-9].*");
-        // Nota: El patrón PATRON_PASSWORD_COMPLEJO ya verifica el símbolo. Usaremos una verificación simple aquí.
         boolean cumpleEspecial = password.matches(".*[^a-zA-Z0-9\\s].*");
 
         if (cumpleLongitud && cumpleMayuscula && cumpleNumero && cumpleEspecial) {
@@ -229,16 +245,15 @@ public class OrganizadorCrearUsuarioController {
     public void handleGuardarUsuario(ActionEvent event) {
         String rawNombre = txtNombre.getText();
 
-        // --- CAMBIO: Obtener texto del ComboBox (ya sea seleccionado o escrito) ---
+        // Obtener texto del ComboBox
         String institucion = cmbInstitucion.getEditor().getText().trim();
-        // ------------------------------------------------------------------------
 
         String username = txtUsername.getText().trim();
         String password = txtPassword.getText();
         boolean esCoach = checkCoach.isSelected();
         boolean esJuez = checkJuez.isSelected();
 
-        // Validaciones
+        // 1. Validaciones Básicas (Vacío)
         if (rawNombre.isEmpty() || institucion.isEmpty() || username.isEmpty() || password.isEmpty()) {
             mostrarMensaje("Error: Por favor llena todos los campos.", true);
             return;
@@ -250,13 +265,22 @@ public class OrganizadorCrearUsuarioController {
         }
 
         String nombre = capitalizarTexto(rawNombre);
-        // Validar nombre completo
+
+        // 2. Validación de Nombre Completo
         if (!nombre.contains(" ")) {
             mostrarMensaje("Error: Ingresa nombre y apellido completo.", true);
             txtNombre.setStyle("-fx-border-color: red;");
             return;
         }
 
+        // --- NUEVO: Validación de Coherencia en Nombre ---
+        if (!esTextoLogico(rawNombre)) {
+            mostrarMensaje("Error: El nombre parece inválido (letras repetidas o sin sentido).", true);
+            txtNombre.setStyle("-fx-border-color: red;");
+            return;
+        }
+
+        // 3. Validación de Contraseña
         if (password.length() < 8 || !PATRON_PASSWORD_COMPLEJO.matcher(password).matches()) {
             mostrarMensaje("La contraseña es insegura.", true);
             aplicarEstiloPassword("-fx-border-color: red;");
@@ -264,14 +288,21 @@ public class OrganizadorCrearUsuarioController {
             return;
         }
 
+        // 4. Validación de Caracteres en Institución
         if (!PATRON_INSTITUCION.matcher(institucion).matches()) {
             mostrarMensaje("Error: La institución contiene caracteres inválidos.", true);
             cmbInstitucion.setStyle("-fx-border-color: red;");
             return;
         }
 
-        // --- NORMALIZAR INSTITUCIÓN ---
-        // Si el usuario escribe "itcm", lo guardamos bonito como "Itcm" (o como quieras manejarlo)
+        // --- NUEVO: Validación de Coherencia en Institución ---
+        if (!esTextoLogico(institucion)) {
+            mostrarMensaje("Error: La institución no es válida (muy corta, solo números o repetitiva).", true);
+            cmbInstitucion.setStyle("-fx-border-color: red;");
+            return;
+        }
+
+        // 5. Normalización
         String institucionFinal = capitalizarTexto(institucion);
 
         String sql = "{call SP_registrarUsuario(?, ?, ?, ?, ?, ?)}";
@@ -282,7 +313,7 @@ public class OrganizadorCrearUsuarioController {
             stmt.setString(1, username);
             stmt.setString(2, password);
             stmt.setString(3, nombre);
-            stmt.setString(4, institucionFinal); // Usamos la variable normalizada
+            stmt.setString(4, institucionFinal);
             stmt.setBoolean(5, esCoach);
             stmt.setBoolean(6, esJuez);
 
@@ -340,7 +371,7 @@ public class OrganizadorCrearUsuarioController {
         lblMensaje.setVisible(true);
         if (!esError) {
             txtNombre.setStyle("");
-            txtInstitucion.setStyle("");
+            if (cmbInstitucion != null) cmbInstitucion.setStyle("");
             txtUsername.setStyle("");
             resetearEstilosPassword();
         }
@@ -353,6 +384,10 @@ public class OrganizadorCrearUsuarioController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Error navegando a: " + fxml);
+            alert.show();
+        }
     }
 }
