@@ -24,6 +24,7 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 public class OrganizadorCrearEventoController {
 
@@ -145,6 +146,11 @@ public class OrganizadorCrearEventoController {
             return;
         }
 
+        // --- NUEVA VALIDACIÓN DE HORARIO ---
+        if (!validarHorario(horaInicioInt, minutoInicioInt, horaFinInt, minutoFinInt)) {
+            return; // Se detiene si el horario no es lógico
+        }
+
         // 4. Validar Fecha
         if (!validarFechaSeleccionada(fechaLocal)) {
             return;
@@ -170,7 +176,7 @@ public class OrganizadorCrearEventoController {
             cambiarVista(event, "organizador_verEventos.fxml");
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             mostrarMensaje(e.getMessage(), true);
         }
     }
@@ -233,6 +239,52 @@ public class OrganizadorCrearEventoController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) { // --- CAMBIO ---
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Error navegando a: " + fxml);
+            alert.show(); }
+    }
+
+    // Validar que la hora fin sea al menos 1 hora después del inicio
+    private boolean validarHorario(Integer hInicio, Integer mInicio, Integer hFin, Integer mFin) {
+        if (hInicio == null || mInicio == null || hFin == null || mFin == null) {
+            return false;
+        }
+
+        LocalTime inicio = LocalTime.of(hInicio, mInicio);
+        LocalTime fin = LocalTime.of(hFin, mFin);
+
+        // 1. Validar que el fin sea después del inicio
+        if (!fin.isAfter(inicio)) {
+            mostrarMensaje("Error de Horario: La hora de fin debe ser posterior a la de inicio.", true);
+            estilarErrorHorario(true);
+            return false;
+        }
+
+        // 2. Validar duración mínima de 1 hora (60 minutos)
+        long duracionMinutos = java.time.Duration.between(inicio, fin).toMinutes();
+        if (duracionMinutos < 60) {
+            mostrarMensaje("Error de Duración: El evento debe durar al menos 1 hora.", true);
+            estilarErrorHorario(true);
+            return false;
+        }
+
+        // Si pasa, limpiamos estilos
+        estilarErrorHorario(false);
+        return true;
+    }
+
+    // Método auxiliar para pintar los spinners de rojo/verde
+    private void estilarErrorHorario(boolean error) {
+        String estiloError = "-fx-border-color: #e74c3c; -fx-border-width: 2px;";
+        String estiloNormal = "";
+
+        if (error) {
+            spnHoraInicio.setStyle(estiloError);
+            spnHoraFin.setStyle(estiloError);
+        } else {
+            spnHoraInicio.setStyle(estiloNormal);
+            spnHoraFin.setStyle(estiloNormal);
+        }
     }
 }

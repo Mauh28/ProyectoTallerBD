@@ -105,7 +105,7 @@ public class OrganizadorAsignarJuezController {
                 lblMensaje.setVisible(false);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             mostrarMensaje("Error al cargar jueces: " + e.getMessage(), true);
         }
     }
@@ -137,7 +137,7 @@ public class OrganizadorAsignarJuezController {
 
         } catch (SQLException e) {
             // Errores de negocio (cupo lleno, conflicto de interés, faltan equipos)
-            e.printStackTrace();
+            //e.printStackTrace();
             mostrarMensaje(e.getMessage(), true);
         }
     }
@@ -199,6 +199,11 @@ public class OrganizadorAsignarJuezController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            // --- CAMBIO ---
+            Alert error = new Alert(Alert.AlertType.ERROR);
+            error.setContentText("No se pudo cargar la vista: " + fxml);
+            error.show();
+        }
     }
 }

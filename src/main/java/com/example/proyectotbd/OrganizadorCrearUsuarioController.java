@@ -284,8 +284,8 @@ public class OrganizadorCrearUsuarioController {
             cambiarVista(event, "organizador_menu.fxml");
 
         } catch (SQLException e) {
-            e.printStackTrace();
-            mostrarMensaje(e.getMessage(), true);
+            //e.printStackTrace();
+            mostrarMensaje("Error en BD: "+ e.getMessage(), true);
         }
     }
 
@@ -324,7 +324,7 @@ public class OrganizadorCrearUsuarioController {
             PauseTransition delay = new PauseTransition(Duration.seconds(3));
             delay.setOnFinished(e -> toastStage.close());
             delay.play();
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {  e.printStackTrace(); }
     }
 
     private void mostrarMensaje(String mensaje, boolean esError) {

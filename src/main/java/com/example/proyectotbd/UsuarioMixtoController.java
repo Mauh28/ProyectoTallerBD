@@ -44,7 +44,12 @@ public class UsuarioMixtoController {
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            // --- CAMBIO: SIN e.printStackTrace() ---
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error de Navegación");
+            alert.setHeaderText(null);
+            alert.setContentText("No se pudo cargar la vista: " + fxml);
+            alert.show();
         }
     }
 }
