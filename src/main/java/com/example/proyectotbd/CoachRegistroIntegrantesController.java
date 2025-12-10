@@ -47,18 +47,16 @@ public class CoachRegistroIntegrantesController {
 
     @FXML
     public void initialize() {
+        if (cbSexo.getItems().isEmpty()) {
+            cbSexo.setItems(FXCollections.observableArrayList("Femenino", "Masculino"));
+        }
+
         listaParticipantes.setItems(participantes);
 
-        // Obtenemos la categoría seleccionada al inicio
         int categoriaId = UserSession.getInstance().getTempCategoriaId();
 
         // 1. CONFIGURAR VALIDACIÓN CON RESTRICCIÓN DE EDAD DINÁMICA
-        if (categoriaId != 0) {
-            configurarValidacionFecha(categoriaId);
-        } else {
-            // Si el ID es 0, no se seleccionó categoría. Aplicar solo restricción futura.
-            configurarValidacionFecha(0);
-        }
+        configurarValidacionFecha(categoriaId);
 
         // 2. CONFIGURAR VALIDACIÓN EN TIEMPO REAL PARA EL NOMBRE
         configurarValidacionNombre();
@@ -88,50 +86,50 @@ public class CoachRegistroIntegrantesController {
         actualizarContador();
     }
 
-    // --- NUEVO: VALIDACIÓN DE FECHA (CON RESTRICCIÓN DE RANGO POR CATEGORÍA) ---
-    private void configurarValidacionFecha(int categoriaId) {
+    // --- LÓGICA CENTRAL DE FECHAS ---
+    private static class RangoEdad {
+        final LocalDate limiteAntiguo; // Fecha de nacimiento MÁS ANTIGUA (Participante más viejo)
+        final LocalDate limiteReciente; // Fecha de nacimiento MÁS RECIENTE (Participante más joven)
+
+        RangoEdad(LocalDate antiguo, LocalDate reciente) {
+            this.limiteAntiguo = antiguo;
+            this.limiteReciente = reciente;
+        }
+    }
+
+    private RangoEdad obtenerLimitesEdad(int categoriaId) {
         final LocalDate HOY = LocalDate.now();
-        LocalDate limiteMinimoFecha; // Fecha más antigua permitida
-        LocalDate limiteMaximoFecha; // Fecha más reciente permitida
+        LocalDate limiteAntiguo;
+        LocalDate limiteReciente;
 
-
-// --- Definición de Rangos por Categoría (CORREGIDO) ---
         switch (categoriaId) {
             case 1: // Primaria: 6 a 12 años
-                // Máximo 12 años: Debe haber nacido DESPUÉS de (HOY - 12 años)
-                limiteMinimoFecha = HOY.minusYears(12).minusDays(1);
-                // Mínimo 6 años: Debe haber nacido ANTES de (HOY - 6 años)
-                limiteMaximoFecha = HOY.minusYears(6).plusDays(1);
+                limiteAntiguo = HOY.minusYears(12);
+                limiteReciente = HOY.minusYears(6);
                 break;
-
             case 2: // Secundaria: 12 a 15 años
-                // Máximo 15 años: Debe haber nacido DESPUÉS de (HOY - 15 años)
-                limiteMinimoFecha = HOY.minusYears(15).minusDays(1);
-                // Mínimo 12 años: Debe haber nacido ANTES de (HOY - 12 años)
-                limiteMaximoFecha = HOY.minusYears(12).plusDays(1);
+                limiteAntiguo = HOY.minusYears(15);
+                limiteReciente = HOY.minusYears(12);
                 break;
-
             case 3: // Preparatoria: 15 a 18 años
-                // Máximo 18 años: Debe haber nacido DESPUÉS de (HOY - 18 años)
-                limiteMinimoFecha = HOY.minusYears(18).minusDays(1);
-                // Mínimo 15 años: Debe haber nacido ANTES de (HOY - 15 años)
-                limiteMaximoFecha = HOY.minusYears(15).plusDays(1);
+                limiteAntiguo = HOY.minusYears(18);
+                limiteReciente = HOY.minusYears(15);
                 break;
-
             case 4: // Profesional: 18 años en adelante
-                // Mínimo 18 años: Debe haber nacido ANTES de (HOY - 18 años)
-                limiteMaximoFecha = HOY.minusYears(18).plusDays(1);
-                // Sin límite de edad superior (Edad máxima arbitraria de 100 años)
-                limiteMinimoFecha = HOY.minusYears(100);
+                limiteAntiguo = HOY.minusYears(100);
+                limiteReciente = HOY.minusYears(18);
                 break;
-
-            default: // Caso sin categoría (o error)
-                limiteMinimoFecha = HOY.minusYears(100);
-                limiteMaximoFecha = HOY; // Máximo hoy (no futuro)
+            default:
+                limiteAntiguo = HOY.minusYears(100);
+                limiteReciente = HOY;
         }
+        return new RangoEdad(limiteAntiguo, limiteReciente);
+    }
 
-        final LocalDate minDate = limiteMinimoFecha;
-        final LocalDate maxDate = limiteMaximoFecha;
+    // --- VALIDACIÓN DE FECHA (CON RESTRICCIÓN DE RANGO POR CATEGORÍA) ---
+    private void configurarValidacionFecha(int categoriaId) {
+        final LocalDate HOY = LocalDate.now();
+        final RangoEdad rango = obtenerLimitesEdad(categoriaId);
 
         // A. Restringir el calendario visualmente
         dpNacimiento.setDayCellFactory(picker -> new DateCell() {
@@ -139,15 +137,10 @@ public class CoachRegistroIntegrantesController {
             public void updateItem(LocalDate date, boolean empty) {
                 super.updateItem(date, empty);
 
-                // Deshabilitar fechas futuras
-                if (date.isAfter(HOY)) {
-                    setDisable(true);
-                    setStyle("-fx-background-color: #ffcdd2;");
-                    return;
-                }
+                // La fecha es válida si está ENTRE (inclusive) el límite antiguo y el límite reciente
+                boolean fueraDeRango = date.isBefore(rango.limiteAntiguo) || date.isAfter(rango.limiteReciente);
 
-                // Aplicar la restricción del rango de edad para la categoría
-                if (date.isBefore(minDate) || date.isAfter(maxDate)) {
+                if (empty || date.isAfter(HOY) || fueraDeRango) {
                     setDisable(true);
                     setStyle("-fx-background-color: #fce4ec;");
                 } else {
@@ -157,11 +150,12 @@ public class CoachRegistroIntegrantesController {
             }
         });
 
-        // B. Listener para avisar si la fecha es inválida (aunque el calendario esté filtrado, si la pegan)
+        // B. Listener para avisar si la fecha es inválida (si la pegan)
         dpNacimiento.valueProperty().addListener((observable, oldDate, newDate) -> {
             if (newDate != null) {
-                // Validación estricta en el momento del cambio
-                if (newDate.isBefore(minDate) || newDate.isAfter(maxDate)) {
+                boolean fueraDeRango = newDate.isBefore(rango.limiteAntiguo) || newDate.isAfter(rango.limiteReciente);
+
+                if (fueraDeRango) {
                     mostrarError("Fecha fuera del rango de edad permitido para la categoría seleccionada.");
                 } else {
                     lblError.setVisible(false);
@@ -170,7 +164,7 @@ public class CoachRegistroIntegrantesController {
         });
     }
 
-    // --- NUEVO: VALIDACIÓN DE NOMBRE (SOLO TEXTO + LÍMITE 50 CHARS) ---
+    // --- VALIDACIÓN DE NOMBRE (SOLO TEXTO + LÍMITE 50 CHARS) ---
     private void configurarValidacionNombre() {
         txtNombre.textProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.length() > 50) {
@@ -204,15 +198,11 @@ public class CoachRegistroIntegrantesController {
             return;
         }
 
-        // 3. Validación de Rango de Edad (Doble chequeo si la restricción visual falló)
-        LocalDate limiteMinimo, limiteMaximo;
-        switch (categoriaId) {
-            case 1: limiteMinimo = HOY.minusYears(12).minusDays(1); limiteMaximo = HOY.minusYears(8).plusDays(1); break;
-            case 2: limiteMinimo = HOY.minusYears(15).minusDays(1); limiteMaximo = HOY.minusYears(13).plusDays(1); break;
-            default: limiteMinimo = HOY.minusYears(100); limiteMaximo = HOY; // Sin restricción fuerte
-        }
+        // 3. Validación de Rango de Edad (Utiliza la misma lógica central)
+        final RangoEdad rango = obtenerLimitesEdad(categoriaId);
 
-        if (nacimiento.isBefore(limiteMinimo) || nacimiento.isAfter(limiteMaximo)) {
+        // Si la fecha está ANTES del límite más antiguo (es muy viejo) O DESPUÉS del límite más reciente (es muy joven)
+        if (nacimiento.isBefore(rango.limiteAntiguo) || nacimiento.isAfter(rango.limiteReciente)) {
             mostrarError("La fecha de nacimiento no cumple con la edad requerida para la categoría '" + UserSession.getInstance().getTempCategoriaNombre() + "'.");
             return;
         }
@@ -357,21 +347,28 @@ public class CoachRegistroIntegrantesController {
                 // --- BLOQUE A: CREACIÓN (Solo si NO es edición) ---
                 if (!esEdicion) {
                     // 1. Crear Equipo
-                    String sqlEquipo = "{call SP_NombreEquipoExiste(?, ?, ?)}";
+                    // Se asume que SP_NombreEquipoExiste tiene 4 parámetros: (CoachId, CatNombre, EqNombre, OUT NuevoEqId)
+                    String sqlEquipo = "{call SP_NombreEquipoExiste(?, ?, ?, ?)}";
                     int nuevoEquipoId = 0;
                     try (CallableStatement stmtEq = conn.prepareCall(sqlEquipo)) {
                         stmtEq.setInt(1, session.getUserId());
                         stmtEq.setString(2, session.getTempCategoriaNombre());
                         stmtEq.setString(3, session.getTempNombreEquipo());
 
-                        if (stmtEq.execute()) {
-                            try (ResultSet rs = stmtEq.getResultSet()) {
-                                if (rs.next()) nuevoEquipoId = rs.getInt("nuevo_equipo_id");
-                            }
-                        }
+                        // Registrar parámetro de salida para obtener el nuevo ID
+                        stmtEq.registerOutParameter(4, Types.INTEGER);
+
+                        // Ejecutar y obtener el ID
+                        stmtEq.execute();
+                        nuevoEquipoId = stmtEq.getInt(4); // Obtener el valor del parámetro de salida (Índice 4)
                     }
-                    if (nuevoEquipoId == 0) throw new SQLException("No se generó ID.");
+                    if (nuevoEquipoId <= 0) { // Si el ID es 0 o negativo, falló o ya existe (el SP maneja la lógica)
+                        throw new SQLException("No se generó ID del equipo o el nombre ya existe. Contacte a soporte.");
+                    }
                     equipoId = nuevoEquipoId;
+
+                    // Asegurar que el ID del equipo se guarde en sesión
+                    session.setEquipoIdTemp(equipoId);
 
                     // 2. Inscribir
                     String sqlEvento = "{call SP_RegistrarEquipoEnEvento(?, ?)}";
@@ -407,7 +404,7 @@ public class CoachRegistroIntegrantesController {
 
                 conn.commit();
 
-                // Limpieza final
+                // Limpieza final de sesión
                 session.setModoEdicion(false);
                 session.setTempNombreEquipo(null);
 
@@ -425,7 +422,7 @@ public class CoachRegistroIntegrantesController {
 
         } catch (SQLException e) {
             e.printStackTrace();
-            lblError.setText("Error conexión: " + e.getMessage());
+            lblError.setText(e.getMessage());
             lblError.setVisible(true);
         }
     }
@@ -486,6 +483,7 @@ public class CoachRegistroIntegrantesController {
 
     @FXML
     public void handleIrAlMenu(ActionEvent event) {
+        // Limpiamos los datos temporales al regresar al menú principal
         UserSession.getInstance().setTempNombreEquipo(null);
         UserSession.getInstance().setTempInstitucion(null);
         UserSession.getInstance().setModoEdicion(false);
