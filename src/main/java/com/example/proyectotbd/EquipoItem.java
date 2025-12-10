@@ -5,9 +5,8 @@ public class EquipoItem {
     private String nombre;
     private String institucion;
     private String estado;      // "PENDIENTE" o "EVALUADO"
-    private int conteoJueces;   // <--- NUEVO CAMPO
+    private int conteoJueces;
 
-    // Constructor Actualizado
     public EquipoItem(int id, String nombre, String institucion, String estado, int conteoJueces) {
         this.id = id;
         this.nombre = nombre;

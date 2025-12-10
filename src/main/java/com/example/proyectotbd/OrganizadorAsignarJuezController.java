@@ -78,10 +78,6 @@ public class OrganizadorAsignarJuezController {
         cargarJuecesFiltrados();
     }
 
-    // =================================================================
-    //  CARGA DINÁMICA DE JUECES (NUEVO MÉTODO)
-    // =================================================================
-
     private void cargarJuecesFiltrados() {
         OpcionCombo eventoSeleccionado = cbEventos.getValue();
 
@@ -200,7 +196,6 @@ public class OrganizadorAsignarJuezController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) {
-            // --- CAMBIO ---
             Alert error = new Alert(Alert.AlertType.ERROR);
             error.setContentText("No se pudo cargar la vista: " + fxml);
             error.show();

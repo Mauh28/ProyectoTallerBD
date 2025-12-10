@@ -32,9 +32,6 @@ public class CoachVerEventosController {
 
     @FXML
     public void initialize() {
-        // Mostrar nombre del Coach (asumiendo que UserSession guarda el nombre)
-        // lblCoachNombre.setText("Coach: " + UserSession.getInstance().getUserName());
-
         configurarColumnas();
         cargarEventos();
     }
@@ -107,7 +104,6 @@ public class CoachVerEventosController {
 
     @FXML
     public void handleRegresar(ActionEvent event) {
-        // Asumo que regresa al menú principal del Coach
         cambiarVista(event, "coach_menu.fxml");
     }
 

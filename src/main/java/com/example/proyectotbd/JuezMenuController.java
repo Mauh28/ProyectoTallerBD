@@ -31,9 +31,6 @@ public class JuezMenuController {
         verificarDobleRol();
     }
 
-    /**
-     * Carga el nombre del usuario desde la sesión y lo muestra en la barra superior.
-     */
     private void cargarNombreUsuario() {
         String nombre = UserSession.getInstance().getNombreCompleto();
         String rol;
@@ -48,10 +45,8 @@ public class JuezMenuController {
         }
 
         if (lblBienvenida != null && nombre != null) {
-            // Establece el texto: "Hola, [Nombre Completo] ([Rol])"
             lblBienvenida.setText("Hola, " + nombre);
         } else if (lblBienvenida != null) {
-            // Fallback si la sesión no tiene nombre
             lblBienvenida.setText("Hola, Juez");
         }
     }
@@ -66,7 +61,6 @@ public class JuezMenuController {
     @FXML
     public void handleIrAEvaluar(ActionEvent event) {
         System.out.println("Ir a Seleccionar Evento...");
-        // Asegúrate de que esta vista (juez_evento.fxml) usa el controlador JuezEventoController que corregimos
         cambiarVista(event, "juez_evento.fxml");
     }
 

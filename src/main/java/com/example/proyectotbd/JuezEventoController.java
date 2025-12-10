@@ -57,7 +57,6 @@ public class JuezEventoController {
 
         } catch (SQLException e) {
             e.printStackTrace();
-            // Mostrar un error más amigable para el usuario
             Label error = new Label("Error de conexión al cargar eventos: Asegúrate que la BD está activa.");
             error.setStyle("-fx-text-fill: red; -fx-font-weight: bold; -fx-padding: 20;");
             vboxListaEventos.getChildren().add(error);

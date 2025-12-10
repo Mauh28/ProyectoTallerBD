@@ -14,13 +14,10 @@ import java.sql.SQLException;
 
 public class CoachMenuController {
 
-    // --- NUEVOS CAMPOS FXML ---
-    @FXML private Label lblBienvenida; // Label que mostrará "Hola, [Nombre Completo] (Coach)"
-    // --------------------------
-
+    @FXML private Label lblBienvenida;
     @FXML private Button btnVerReportes;
     @FXML private Label lblMensajeEstado;
-    @FXML private Button btnCambiarRol; // Botón para usuarios híbridos
+    @FXML private Button btnCambiarRol;
 
     private CoachDAO coachDAO = new CoachDAO();
 
@@ -51,10 +48,8 @@ public class CoachMenuController {
         }
 
         if (lblBienvenida != null && nombre != null) {
-            // Establece el texto: "Hola, [Nombre Completo]"
             lblBienvenida.setText("Hola, " + nombre);
         } else if (lblBienvenida != null) {
-            // Fallback si la sesión no tiene nombre
             lblBienvenida.setText("Hola, Invitado");
         }
     }
@@ -86,9 +81,6 @@ public class CoachMenuController {
         }
     }
 
-    /**
-     * CORRECCIÓN: Navega a la vista de listado de eventos para seleccionar (coach_verEventos.fxml).
-     */
     @FXML
     public void handleRegistrarEquipo(ActionEvent event) {
         cambiarVista(event, "coach_verEventos.fxml");

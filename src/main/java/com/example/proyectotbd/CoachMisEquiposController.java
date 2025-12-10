@@ -30,8 +30,6 @@ public class CoachMisEquiposController {
         colInstitucion.setCellValueFactory(new PropertyValueFactory<>("institucion"));
         colCategoria.setCellValueFactory(new PropertyValueFactory<>("categoria"));
         colEvento.setCellValueFactory(new PropertyValueFactory<>("evento"));
-
-        // VINCULACIÓN NUEVA
         colIntegrantes.setCellValueFactory(new PropertyValueFactory<>("integrantes"));
 
         cargarDatos();

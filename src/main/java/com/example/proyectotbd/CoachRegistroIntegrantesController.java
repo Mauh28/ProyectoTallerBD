@@ -43,6 +43,8 @@ public class CoachRegistroIntegrantesController {
     private ObservableList<String> participantes = FXCollections.observableArrayList();
     private final int MAX_PARTICIPANTES = 3;
     private int indiceEdicion = -1;
+
+    // PATRÓN: Solo permite letras (a-z, acentos), Ñ/ñ y espacios (\s). SIN NÚMEROS.
     private static final Pattern PATRON_NOMBRE = Pattern.compile("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]*$");
 
     @FXML
@@ -172,6 +174,7 @@ public class CoachRegistroIntegrantesController {
                 txtNombre.setText(oldValue);
                 return;
             }
+            // Usa el patrón que SOLO permite letras y espacios.
             if (!PATRON_NOMBRE.matcher(newValue).matches()) {
                 txtNombre.setText(oldValue);
                 txtNombre.setStyle("-fx-border-color: red;");
@@ -215,16 +218,25 @@ public class CoachRegistroIntegrantesController {
             return;
         }
 
-        // 5. Validación de Duplicados (Local)
+        // =================================================================
+        // 5. VALIDACIÓN DE DUPLICADOS (COMPROBAR NOMBRE COMPLETO REPETIDO)
+        // =================================================================
         for (int i = 0; i < participantes.size(); i++) {
             if (i != indiceEdicion) {
-                String[] datos = participantes.get(i).split(" \\| ");
-                if (datos[0].equalsIgnoreCase(nombre)) {
-                    mostrarError("El alumno '" + nombre + "' ya está en la lista.");
+                // El registro es "Nombre Completo | Fecha | Sexo"
+                String registroExistente = participantes.get(i);
+
+                // Extrae solo el nombre completo (el primer elemento antes del primer separador)
+                String nombreExistente = registroExistente.split(" \\| ")[0];
+
+                // Compara el nombre nuevo (capitalizado) con el existente (ignorando mayúsculas/minúsculas)
+                if (nombreExistente.equalsIgnoreCase(nombre)) {
+                    mostrarError("El alumno '" + nombre + "' ya está registrado en este equipo.");
                     return;
                 }
             }
         }
+        // =================================================================
 
         // 6. Crear el registro formateado
         String registro = nombre + " | " + nacimiento.toString() + " | " + sexo;
@@ -348,7 +360,6 @@ public class CoachRegistroIntegrantesController {
                 // --- BLOQUE A: CREACIÓN (Solo si NO es edición) ---
                 if (!esEdicion) {
                     // 1. Crear Equipo
-                    // Se asume que SP_NombreEquipoExiste tiene 4 parámetros: (CoachId, CatNombre, EqNombre, OUT NuevoEqId)
                     String sqlEquipo = "{call SP_NombreEquipoExiste(?, ?, ?, ?)}";
                     int nuevoEquipoId = 0;
                     try (CallableStatement stmtEq = conn.prepareCall(sqlEquipo)) {
@@ -391,14 +402,18 @@ public class CoachRegistroIntegrantesController {
                 }
 
                 // --- BLOQUE C: INSERCIÓN (Común para ambos) ---
-                String sqlPart = "{call SP_RegistrarParticipante(?, ?, ?, ?)}";
+                // Se usa 5 parámetros: (equipoId, nombre, fecha, sexo, eventoId) para la validación cruzada.
+                String sqlPart = "{call SP_RegistrarParticipante(?, ?, ?, ?, ?)}";
                 try (CallableStatement stmtPart = conn.prepareCall(sqlPart)) {
                     for (String p : participantes) {
                         String[] datos = p.split(" \\| ");
-                        stmtPart.setInt(1, equipoId);
-                        stmtPart.setString(2, datos[0]);
-                        stmtPart.setDate(3, java.sql.Date.valueOf(LocalDate.parse(datos[1])));
-                        stmtPart.setString(4, datos[2]);
+
+                        stmtPart.setInt(1, equipoId); // 1. ID del equipo
+                        stmtPart.setString(2, datos[0]); // 2. Nombre del participante
+                        stmtPart.setDate(3, java.sql.Date.valueOf(LocalDate.parse(datos[1]))); // 3. Fecha
+                        stmtPart.setString(4, datos[2]); // 4. Sexo
+                        stmtPart.setInt(5, session.getTempEventoId()); // 5. ID del evento (¡NUEVO!)
+
                         stmtPart.execute();
                     }
                 }
@@ -417,8 +432,18 @@ public class CoachRegistroIntegrantesController {
             } catch (SQLException ex) {
                 conn.rollback();
                 ex.printStackTrace();
-                lblError.setText("Error BD: " + ex.getMessage());
+
+                String errorMsg = ex.getMessage().toLowerCase();
+
+                // Manejo específico del error de duplicado de participante en otro equipo del mismo evento
+                if (errorMsg.contains("participante ya está registrado en otro equipo")) {
+                    lblError.setText("Error: Uno de los alumnos ya está inscrito en otro equipo de este evento.");
+                } else {
+                    lblError.setText(ex.getMessage());
+                }
+
                 lblError.setVisible(true);
+
             }
 
         } catch (SQLException e) {

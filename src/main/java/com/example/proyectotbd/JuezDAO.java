@@ -17,10 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JuezDAO {
-    /**
-     * Obtiene la fecha y hora exacta de inicio de un evento por su ID.
-     * Requiere que el SP_ObtenerFechaHoraInicio devuelva las columnas 'fecha' y 'hora_inicio'.
-     */
+
     public LocalDateTime obtenerFechaHoraInicioEvento(int eventoId) throws SQLException {
         // SP_ObtenerFechaHoraInicio debe existir en la BD y devolver fecha/hora_inicio
         String sql = "{call SP_ObtenerFechaHoraInicio(?)}";

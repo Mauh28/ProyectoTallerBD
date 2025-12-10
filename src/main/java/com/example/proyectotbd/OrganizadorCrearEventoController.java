@@ -25,6 +25,7 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.regex.Pattern; // Importación necesaria
 
 public class OrganizadorCrearEventoController {
 
@@ -42,6 +43,9 @@ public class OrganizadorCrearEventoController {
 
     private OrganizadorDAO dao = new OrganizadorDAO();
 
+    private static final Pattern PATRON_LETRAS_NUMEROS_ESPACIOS = Pattern.compile("^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\\s]*$");
+
+
     @FXML
     public void initialize() {
         // Configuración de Spinners (Horas)
@@ -49,10 +53,9 @@ public class OrganizadorCrearEventoController {
         spnMinutoInicio.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
         spnHoraFin.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 17));
         spnMinutoFin.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
-        // aver si ahora si
-        // --- CAMBIO: Bloquear escritura manual en el DatePicker ---
-        dpFecha.setEditable(false); // El usuario solo podrá usar el calendario emergente
-        // ----------------------------------------------------------
+
+        // Bloquear escritura manual en el DatePicker
+        dpFecha.setEditable(false);
 
         // Validación de Fecha (No pasado, mínimo mañana)
         dpFecha.setDayCellFactory(picker -> new DateCell() {
@@ -76,17 +79,25 @@ public class OrganizadorCrearEventoController {
     // --- MÉTODO DE VALIDACIÓN EN TIEMPO REAL (GENÉRICO) ---
     private void configurarValidacionTexto(TextField field) {
         field.textProperty().addListener((observable, oldValue, newValue) -> {
+
             // 1. Limitar longitud a 50 caracteres (Restricción de BD)
             if (newValue.length() > 50) {
                 field.setText(oldValue);
                 return;
             }
 
-            // 2. Validar contenido: Debe tener al menos una letra (no solo números/símbolos)
+            // 2. Validación estricta: Permite letras, acentos, espacios Y NÚMEROS
+            if (!PATRON_LETRAS_NUMEROS_ESPACIOS.matcher(newValue).matches()) {
+                field.setText(oldValue); // Revierte al valor anterior
+                field.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;");
+                return;
+            }
+
+            // 3. Validación de contenido mínimo (al menos una letra)
             boolean tieneLetra = newValue.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ].*");
 
             if (!newValue.isEmpty() && !tieneLetra) {
-                // Borde ROJO si es inválido
+                // Borde ROJO si es inválido (solo espacios o solo números)
                 field.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;");
             } else {
                 // Estilo limpio
@@ -136,19 +147,19 @@ public class OrganizadorCrearEventoController {
 
         // 3. Validaciones de Contenido (Nombre y Lugar)
         if (!rawNombre.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ].*")) {
-            mostrarMensaje("El nombre del evento debe contener texto descriptivo (no solo números).", true);
+            mostrarMensaje("El nombre del evento debe contener texto descriptivo (no solo espacios o números).", true);
             txtNombreEvento.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;");
             return;
         }
         if (!rawLugar.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ].*")) {
-            mostrarMensaje("El lugar debe ser un nombre válido (no solo números).", true);
+            mostrarMensaje("El lugar debe ser un nombre válido (no solo espacios o números).", true);
             txtLugar.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;");
             return;
         }
 
-        // --- NUEVA VALIDACIÓN DE HORARIO ---
+        // --- VALIDACIÓN DE HORARIO ---
         if (!validarHorario(horaInicioInt, minutoInicioInt, horaFinInt, minutoFinInt)) {
-            return; // Se detiene si el horario no es lógico
+            return;
         }
 
         // 4. Validar Fecha
@@ -239,7 +250,7 @@ public class OrganizadorCrearEventoController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (IOException e) { // --- CAMBIO ---
+        } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Error navegando a: " + fxml);
             alert.show(); }

@@ -17,7 +17,6 @@ import java.sql.SQLException;
 
 public class CoachReportesController {
 
-    // Cambiamos la referencia a la nueva clase ReporteCoachItem
     @FXML private TableView<ReporteCoachItem> tablaReportes;
     @FXML private TableColumn<ReporteCoachItem, String> colEquipo;
     @FXML private TableColumn<ReporteCoachItem, String> colCategoria;
@@ -31,7 +30,6 @@ public class CoachReportesController {
 
     @FXML
     public void initialize() {
-        // Configuramos las columnas usando los getters de ReporteCoachItem
         colEquipo.setCellValueFactory(new PropertyValueFactory<>("equipo"));
         colCategoria.setCellValueFactory(new PropertyValueFactory<>("categoria"));
         colEvento.setCellValueFactory(new PropertyValueFactory<>("evento"));
@@ -72,6 +70,4 @@ public class CoachReportesController {
             scene.setRoot(root);
         } catch (IOException e) { e.printStackTrace(); }
     }
-
-    // NOTA: He eliminado la clase interna "ReporteItem" porque ahora usas "ReporteCoachItem.java"
 }

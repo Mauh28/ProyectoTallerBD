@@ -32,10 +32,6 @@ public class LoginAdminController {
 
     @FXML
     public void initialize() {
-        // En tu FXML, el ID para PasswordField era 'txtPassword', lo he renombrado a 'pfContrasena'.
-        // Si el FXML sigue usando 'txtPassword', ajusta aquí. (Asumo que usas 'pfContrasena' ahora).
-
-        // --- SINCRONIZACIÓN DE CONTENIDO ---
         // 1. Si el usuario escribe en el PasswordField (oculto), actualiza el campo visible.
         pfContrasena.textProperty().addListener((obs, oldV, newV) -> {
             if (!contrasenaVisible) {
@@ -89,10 +85,7 @@ public class LoginAdminController {
 
     @FXML
     public void handleAdminLogin(ActionEvent event) {
-        // --- RECOMENDACIÓN: Usar trim() ---
         String usuario = txtUsuario.getText().trim(); // Quita espacios al inicio y final
-
-        // Obtener la contraseña del campo principal (siempre está sincronizado)
         String password = pfContrasena.getText();
 
         if (usuario.isEmpty() || password.isEmpty()) {
@@ -112,10 +105,6 @@ public class LoginAdminController {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     int adminId = rs.getInt("admin_id");
-
-                    // NOTA: Guardar datos mínimos en una sesión (si es necesario)
-                    // UserSession.getInstance().setUserId(adminId);
-
                     System.out.println("Login Admin Correcto. ID: " + adminId);
                     cambiarVista(event, "organizador_menu.fxml");
                 } else {
@@ -124,8 +113,6 @@ public class LoginAdminController {
                 }
             }
         } catch (SQLException e) {
-            // Capturamos el mensaje de error de 'SIGNAL SQLSTATE'
-            // e.printStackTrace();
             lblError.setText(e.getMessage());
             lblError.setVisible(true);
         }
@@ -133,7 +120,6 @@ public class LoginAdminController {
 
     @FXML
     public void handleVolver(ActionEvent event) {
-        // Regresa al login general (login.fxml)
         cambiarVista(event, "login.fxml");
     }
 

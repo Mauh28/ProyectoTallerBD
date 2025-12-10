@@ -47,9 +47,6 @@ public class LoginController {
         btnVerContrasena.setText("👁️");
     }
 
-    // =================================================================
-    // GESTIÓN DE LA VISIBILIDAD DE CONTRASEÑA (CORREGIDO)
-    // =================================================================
 
     @FXML
     public void handleAlternarVisibilidad(ActionEvent event) {
@@ -76,14 +73,10 @@ public class LoginController {
         }
     }
 
-    // =================================================================
-    // LÓGICA DE INICIO DE SESIÓN (SIN CAMBIOS)
-    // =================================================================
 
     @FXML
     public void handleLogin(ActionEvent event) {
-        // --- RECOMENDACIÓN: Usar trim() ---
-        String usuario = txtUsuario.getText().trim(); // Quita espacios al inicio y final
+        String usuario = txtUsuario.getText().trim();
         String pass = pfContrasena.getText();
 
         if (usuario.isEmpty() || pass.isEmpty()) {

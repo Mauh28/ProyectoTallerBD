@@ -38,5 +38,4 @@ public class AsignacionItem {
         return jueces;
     }
 
-    // NOTA: Los setters no son necesarios para la visualización de reportes.
 }

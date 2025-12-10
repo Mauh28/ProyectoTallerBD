@@ -35,10 +35,10 @@ public class OrganizadorEditarEventoController {
     @FXML private Spinner<Integer> spnHoraFin;
     @FXML private Spinner<Integer> spnMinutoFin;
     @FXML private Label lblMensaje;
-    @FXML private Label lblEventoId; // Para mostrar el ID y confirmación
+    @FXML private Label lblEventoId;
 
     private OrganizadorDAO dao = new OrganizadorDAO();
-    private EventoItem eventoActual; // Objeto que guarda los datos originales del evento
+    private EventoItem eventoActual;
 
     @FXML
     public void initialize() {
@@ -48,10 +48,8 @@ public class OrganizadorEditarEventoController {
         spnHoraFin.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 17));
         spnMinutoFin.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
 
-        // aver si ahora si
-        // --- CAMBIO: Bloquear escritura manual en el DatePicker ---
-        dpFecha.setEditable(false); // El usuario solo podrá usar el calendario emergente
-        // ----------------------------------------------------------
+
+        dpFecha.setEditable(false);
 
         // Establecer el día mínimo como mañana (prevención frontend)
         dpFecha.setDayCellFactory(picker -> new DateCell() {
@@ -69,10 +67,6 @@ public class OrganizadorEditarEventoController {
         });
     }
 
-    /**
-     * Método llamado por el controlador anterior (p. ej., OrganizadorVerEventosController)
-     * para pasar los datos del evento a editar.
-     */
     public void setEventoItem(EventoItem evento) {
         this.eventoActual = evento;
 
@@ -82,9 +76,7 @@ public class OrganizadorEditarEventoController {
         }
     }
 
-    /**
-     * Llena los campos de la vista con los datos del evento actual.
-     */
+
     private void cargarDatosEnFormulario(EventoItem evento) {
         txtNombreEvento.setText(evento.getNombre());
         txtLugar.setText(evento.getLugar());
@@ -111,9 +103,6 @@ public class OrganizadorEditarEventoController {
         }
     }
 
-    // =================================================================
-    // MÉTODOS DE VALIDACIÓN FRONTEND (Reutilizados de CrearEvento)
-    // =================================================================
 
     private boolean validarFechaSeleccionada(LocalDate fecha) {
         if (fecha == null) {
@@ -121,7 +110,6 @@ public class OrganizadorEditarEventoController {
             return false;
         }
 
-        // Regla: La fecha debe ser estrictamente posterior al día actual
         if (fecha.isAfter(LocalDate.now())) {
             mostrarMensaje("", false);
             dpFecha.setStyle("-fx-font-size: 14px; -fx-background-color: #f4f6f8; -fx-border-color: #27ae60; -fx-border-radius: 5;");
@@ -134,13 +122,8 @@ public class OrganizadorEditarEventoController {
     }
 
 
-    // =================================================================
-    // MÉTODOS DE ACCIÓN
-    // =================================================================
-
     @FXML
     public void handleRegresar(ActionEvent event) {
-        // Asumo que se regresa a la vista de lista de eventos
         cambiarVista(event, "organizador_verEventos.fxml");
     }
 
@@ -202,7 +185,6 @@ public class OrganizadorEditarEventoController {
             cambiarVista(event, "organizador_verEventos.fxml");
 
         } catch (SQLException e) {
-            // Atrapamos errores del SP (ej: nombre duplicado, duración, horario inválido)
             e.printStackTrace();
             mostrarMensaje(e.getMessage(), true);
         }

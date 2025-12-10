@@ -25,7 +25,6 @@ public class JuezReportesController {
     @FXML private TableColumn<ReporteJuezItem, String> colConst;
     @FXML private TableColumn<ReporteJuezItem, String> colTotal;
 
-    // Etiqueta para mensajes (opcional, si la agregas al FXML)
     @FXML private Label lblMensaje;
 
     private JuezDAO juezDao = new JuezDAO();
