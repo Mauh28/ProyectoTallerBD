@@ -6,36 +6,35 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label; // Importación necesaria para Label
+import javafx.scene.control.Label;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.net.URL; // Importación necesaria
 
 public class OrganizadorMenuController {
 
-    // --- NUEVO CAMPO FXML ---
-    @FXML private Label lblBienvenida; // Label que mostrará "Hola, [Nombre Completo] (Admin)"
-    // --------------------------
+    @FXML private Label lblBienvenida;
 
     @FXML
     public void initialize() {
-        // Cargar el nombre y el rol del usuario logueado al inicio
         cargarNombreUsuario();
     }
 
     /**
-     * Carga el nombre del usuario desde la sesión y lo muestra en la barra superior.
+     * Carga el nombre completo del usuario desde UserSession y lo muestra en la barra superior.
      */
     private void cargarNombreUsuario() {
         String nombre = UserSession.getInstance().getNombreCompleto();
-        String rol = "Admin"; // Para esta vista siempre se asume el rol de Admin
 
-        if (lblBienvenida != null && nombre != null) {
-            // Establece el texto: "Hola, [Nombre Completo]"
-            lblBienvenida.setText("Hola, " + nombre);
-        } else if (lblBienvenida != null) {
-            // Fallback
-            lblBienvenida.setText("Hola, Administrador");
+        if (lblBienvenida != null) {
+            if (nombre != null) {
+                // Establece el texto: "Hola, [Nombre Completo]"
+                lblBienvenida.setText("Hola, " + nombre);
+            } else {
+                // Fallback si la sesión no tiene nombre
+                lblBienvenida.setText("Hola, Administrador");
+            }
         }
     }
 
@@ -48,7 +47,7 @@ public class OrganizadorMenuController {
 
     @FXML
     public void handleCrearEvento(ActionEvent event) {
-        System.out.println("Ir a Alta de Evento");
+        System.out.println("Ir a Crear Evento");
         cambiarVista(event, "organizador_crearEvento.fxml");
     }
 
@@ -64,10 +63,6 @@ public class OrganizadorMenuController {
         cambiarVista(event, "organizador_verUsuarios.fxml");
     }
 
-    /**
-     * Maneja la navegación al Directorio de Eventos. Esta vista consolidada
-     * ahora sirve como centro para el CRUD de eventos y la selección de reportes.
-     */
     @FXML
     public void handleVerEventos(ActionEvent event) {
         System.out.println("Ir a Ver Eventos y Reportes (Consolidado)");
@@ -77,22 +72,34 @@ public class OrganizadorMenuController {
     @FXML
     public void handleLogout(ActionEvent event) {
         System.out.println("Cerrando sesión de admin...");
-        // Limpiar la sesión antes de redirigir al login
         UserSession.getInstance().cleanUserSession();
         cambiarVista(event, "login.fxml");
     }
 
-    // Método estándar para cambiar de pantalla
+    // Método estándar para cambiar de pantalla (Ligeramente modificado para robustez)
     private void cambiarVista(ActionEvent event, String fxml) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
+            // Intenta obtener la URL del recurso de forma segura
+            URL url = getClass().getResource(fxml);
+            if (url == null) {
+                // Si la URL es nula, el archivo FXML NO existe o la ruta es incorrecta.
+                throw new IOException("El archivo FXML no fue encontrado: " + fxml);
+            }
+
+            FXMLLoader loader = new FXMLLoader(url);
             Parent root = loader.load();
+
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
+
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Error cargando vista: " + fxml);
+            // Muestra un error más claro en la consola sobre la fuente del problema
+            System.err.println("\n*** ERROR CRÍTICO DE NAVEGACIÓN ***");
+            System.err.println("Fallo al cargar la vista FXML: " + fxml);
+            System.err.println("Causa más probable: 1) Nombre de archivo incorrecto; 2) Error de sintaxis en el FXML de destino.");
+            System.err.println("***********************************\n");
         }
     }
 }

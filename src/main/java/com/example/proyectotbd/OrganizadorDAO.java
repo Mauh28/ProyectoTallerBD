@@ -235,6 +235,7 @@ public class OrganizadorDAO {
 
     /**
      * Lista todos los usuarios (Coach y/o Juez) para la vista del Administrador.
+     * AHORA INCLUYE LA CONTRASEÑA.
      */
     public ObservableList<UsuarioItem> obtenerTodosLosUsuarios() throws SQLException {
         ObservableList<UsuarioItem> lista = FXCollections.observableArrayList();
@@ -274,14 +275,14 @@ public class OrganizadorDAO {
      */
     public ObservableList<EventoItem> obtenerTodosLosEventos() throws SQLException {
         ObservableList<EventoItem> lista = FXCollections.observableArrayList();
-        String sql = "{call SP_Admin_ListarEventos()}"; // ASUMIR que este SP devuelve hora_inicio y hora_fin
+        String sql = "{call SP_Admin_ListarEventos()}";
 
         try (Connection conn = ConexionDB.getConnection();
              CallableStatement stmt = conn.prepareCall(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                // El constructor de EventoItem ahora espera 7 argumentos.
+                // El constructor de EventoItem espera 7 argumentos.
                 lista.add(new EventoItem(
                         rs.getInt("evento_id"),
                         rs.getString("nombre_evento"),
@@ -289,8 +290,8 @@ public class OrganizadorDAO {
                         rs.getDate("fecha").toString(),
                         rs.getString("lista_jueces"),
                         // CAMPOS DE HORA AÑADIDOS
-                        rs.getTime("hora_inicio").toString(), // Asumimos que el SP lo devuelve
-                        rs.getTime("hora_fin").toString()     // Asumimos que el SP lo devuelve
+                        rs.getTime("hora_inicio").toString(),
+                        rs.getTime("hora_fin").toString()
                 ));
             }
         }

@@ -1,6 +1,5 @@
 package com.example.proyectotbd;
 
-import com.example.proyectotbd.ConexionDB;
 import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -10,6 +9,8 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
@@ -31,8 +32,8 @@ public class OrganizadorCrearUsuarioController {
 
     // --- CAMPOS DE CONTRASEÑA ---
     @FXML private PasswordField txtPassword;
-    @FXML private TextField txtPasswordVisible; // Nuevo campo visible
-    @FXML private Button btnVerPassword;        // Nuevo botón
+    @FXML private TextField txtPasswordVisible;
+    @FXML private Button btnVerPassword;
 
     @FXML private CheckBox checkCoach;
     @FXML private CheckBox checkJuez;
@@ -43,42 +44,76 @@ public class OrganizadorCrearUsuarioController {
     // --- PATRONES DE VALIDACIÓN ---
     private static final Pattern PATRON_NOMBRE = Pattern.compile("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]*$");
     private static final Pattern PATRON_USERNAME = Pattern.compile("^[a-zA-Z0-9._-]*$");
-    private static final Pattern PATRON_PASSWORD_COMPLEJO = Pattern.compile("^(?=.*[0-9])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).+$");
+    private static final Pattern PATRON_PASSWORD_COMPLEJO = Pattern.compile("^(?=.*[0-9])(?=.*[A-Z])(?=.*[^a-zA-Z0-9\\s]).{8,}$");
+
+    // PATRÓN INSTITUCIÓN (Sin cambios)
+    private static final Pattern PATRON_INSTITUCION = Pattern.compile("^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\\s]*$");
+
 
     @FXML
     public void initialize() {
-        // Sincronizar el texto de ambos campos automáticamente
         txtPasswordVisible.textProperty().bindBidirectional(txtPassword.textProperty());
 
         configurarValidaciones();
+        configurarRestriccionTeclasContrasena();
     }
 
-    // --- LÓGICA PARA MOSTRAR/OCULTAR CONTRASEÑA ---
+    // =====================================================================
+    // FUNCIÓN CORREGIDA: Bloquear Barra Espaciadora y permitir Backspace
+    // =====================================================================
+
+    private void configurarRestriccionTeclasContrasena() {
+        // Manejador de eventos para bloquear la tecla SPACE.
+
+        // El evento KEY_TYPED se usa para caracteres ingresados (como el espacio).
+        // Bloquear en campo oculto (ya permite backspace)
+        txtPassword.addEventFilter(KeyEvent.KEY_TYPED, event -> {
+            if (event.getCharacter().equals(" ")) {
+                event.consume();
+            }
+        });
+
+        // Bloquear en campo visible (ya permite backspace)
+        txtPasswordVisible.addEventFilter(KeyEvent.KEY_TYPED, event -> {
+            if (event.getCharacter().equals(" ")) {
+                event.consume();
+            }
+        });
+
+        // Bloqueo para evitar que el usuario PEGE espacios iniciales/finales, aunque el Listener ya lo hace
+        txtPassword.textProperty().addListener((obs, oldV, newV) -> {
+            if (newV != null && (newV.startsWith(" ") || newV.endsWith(" "))) {
+                txtPassword.setText(newV.trim());
+            }
+        });
+        // NOTA: El bloqueo de BACK_SPACE que tenías en el código anterior fue eliminado para cumplir con tu requisito.
+    }
+
+    // =====================================================================
+    // LÓGICA DE VALIDACIÓN
+    // =====================================================================
+
     @FXML
     public void handleTogglePassword(ActionEvent event) {
         contrasenaVisible = !contrasenaVisible;
 
         if (contrasenaVisible) {
-            // Mostrar texto, ocultar asteriscos
             txtPasswordVisible.setVisible(true);
             txtPasswordVisible.setManaged(true);
             txtPassword.setVisible(false);
             txtPassword.setManaged(false);
-
-            btnVerPassword.setText("🙈"); // Icono de ocultar
+            btnVerPassword.setText("🙈");
         } else {
-            // Mostrar asteriscos, ocultar texto
             txtPasswordVisible.setVisible(false);
             txtPasswordVisible.setManaged(false);
             txtPassword.setVisible(true);
             txtPassword.setManaged(true);
-
-            btnVerPassword.setText("👁️"); // Icono de ver
+            btnVerPassword.setText("👁️");
         }
     }
 
     private void configurarValidaciones() {
-        // 1. VALIDACIÓN NOMBRE
+        // 1. VALIDACIÓN NOMBRE (Sin cambios)
         txtNombre.textProperty().addListener((obs, oldV, newV) -> {
             if (newV.length() > 50) {
                 txtNombre.setText(oldV);
@@ -92,20 +127,22 @@ public class OrganizadorCrearUsuarioController {
             }
         });
 
-        // 2. VALIDACIÓN INSTITUCIÓN
+        // 2. VALIDACIÓN INSTITUCIÓN (Sin cambios)
         txtInstitucion.textProperty().addListener((obs, oldV, newV) -> {
             if (newV.length() > 50) {
                 txtInstitucion.setText(oldV);
                 return;
             }
-            if (!newV.isEmpty() && newV.matches("^[0-9]+$")) {
-                txtInstitucion.setStyle("-fx-border-color: orange;");
+
+            if (!PATRON_INSTITUCION.matcher(newV).matches()) {
+                txtInstitucion.setText(oldV);
+                txtInstitucion.setStyle("-fx-border-color: red;");
             } else {
                 txtInstitucion.setStyle("");
             }
         });
 
-        // 3. VALIDACIÓN USERNAME
+        // 3. VALIDACIÓN USERNAME (Sin cambios)
         txtUsername.textProperty().addListener((obs, oldV, newV) -> {
             if (newV.length() > 50) {
                 txtUsername.setText(oldV);
@@ -119,12 +156,19 @@ public class OrganizadorCrearUsuarioController {
             }
         });
 
-        // 4. VALIDACIÓN PASSWORD (Se aplica al campo oculto, pero como están vinculados, afecta a ambos)
+        // 4. VALIDACIÓN PASSWORD (Lógica de limpieza para pegar texto con espacios)
         txtPassword.textProperty().addListener((obs, oldV, newV) -> {
             if (newV.length() > 50) {
-                txtPassword.setText(oldV); // Esto actualiza también txtPasswordVisible automáticamente
+                txtPassword.setText(oldV);
                 return;
             }
+
+            // Esta línea se mantiene para la operación de PEGAR que no activa KEY_TYPED
+            if (newV.contains(" ")) {
+                txtPassword.setText(newV.replaceAll(" ", ""));
+                return;
+            }
+
             analizarSeguridadPassword(newV);
         });
     }
@@ -161,9 +205,7 @@ public class OrganizadorCrearUsuarioController {
         }
     }
 
-    // Método auxiliar para aplicar estilo (borde rojo/verde) al campo que esté visible en ese momento
     private void aplicarEstiloPassword(String estilo) {
-        // Aplicamos el estilo base + el borde
         String estiloBase = "-fx-background-color: #f4f6f8; -fx-border-radius: 5; ";
         txtPassword.setStyle(estiloBase + estilo);
         txtPasswordVisible.setStyle(estiloBase + estilo);
@@ -182,7 +224,6 @@ public class OrganizadorCrearUsuarioController {
 
     @FXML
     public void handleGuardarUsuario(ActionEvent event) {
-        // Obtenemos password de cualquiera de los dos (están sincronizados)
         String rawNombre = txtNombre.getText();
         String institucion = txtInstitucion.getText().trim();
         String username = txtUsername.getText().trim();
@@ -190,6 +231,7 @@ public class OrganizadorCrearUsuarioController {
         boolean esCoach = checkCoach.isSelected();
         boolean esJuez = checkJuez.isSelected();
 
+        // 1. Validaciones de Vacío
         if (rawNombre.isEmpty() || institucion.isEmpty() || username.isEmpty() || password.isEmpty()) {
             mostrarMensaje("Error: Por favor llena todos los campos.", true);
             return;
@@ -200,6 +242,7 @@ public class OrganizadorCrearUsuarioController {
             return;
         }
 
+        // 2. Validación de Nombre y Apellido
         String nombre = capitalizarTexto(rawNombre);
         if (!nombre.contains(" ")) {
             mostrarMensaje("Error: Ingresa nombre y apellido completo.", true);
@@ -207,19 +250,21 @@ public class OrganizadorCrearUsuarioController {
             return;
         }
 
-        if (institucion.matches("^[0-9]+$")) {
-            mostrarMensaje("Error: La institución debe ser un nombre válido.", true);
-            txtInstitucion.setStyle("-fx-border-color: red;");
-            return;
-        }
-
-        // Validación final de contraseña
+        // 3. Validación de Contraseña (Longitud y Complejidad)
         if (password.length() < 8 || !PATRON_PASSWORD_COMPLEJO.matcher(password).matches()) {
-            mostrarMensaje("La contraseña es insegura. Revisa los requisitos.", true);
+            mostrarMensaje("La contraseña es insegura o es demasiado corta. Revisa los requisitos (8 chars, Mayúscula, Número, Símbolo).", true);
             aplicarEstiloPassword("-fx-border-color: red;");
             analizarSeguridadPassword(password);
             return;
         }
+
+        // 4. Validación de Institución (Doble chequeo por si el usuario pegó)
+        if (!PATRON_INSTITUCION.matcher(institucion).matches()) {
+            mostrarMensaje("Error: La institución contiene caracteres especiales no permitidos.", true);
+            txtInstitucion.setStyle("-fx-border-color: red;");
+            return;
+        }
+
 
         String sql = "{call SP_registrarUsuario(?, ?, ?, ?, ?, ?)}";
 
@@ -240,7 +285,7 @@ public class OrganizadorCrearUsuarioController {
 
         } catch (SQLException e) {
             e.printStackTrace();
-            mostrarMensaje("Error BD: " + e.getMessage(), true);
+            mostrarMensaje(e.getMessage(), true);
         }
     }
 

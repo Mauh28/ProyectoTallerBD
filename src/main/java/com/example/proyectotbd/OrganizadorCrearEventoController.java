@@ -62,10 +62,11 @@ public class OrganizadorCrearEventoController {
             validarFechaSeleccionada(newValue);
         });
 
-        // --- NUEVAS VALIDACIONES DE TEXTO ---
+        // --- VALIDACIONES DE TEXTO ---
         configurarValidacionTexto(txtNombreEvento);
         configurarValidacionTexto(txtLugar);
     }
+
 
     // --- MÉTODO DE VALIDACIÓN EN TIEMPO REAL (GENÉRICO) ---
     private void configurarValidacionTexto(TextField field) {
@@ -129,7 +130,6 @@ public class OrganizadorCrearEventoController {
         }
 
         // 3. Validaciones de Contenido (Nombre y Lugar)
-        // Deben tener al menos una letra
         if (!rawNombre.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ].*")) {
             mostrarMensaje("El nombre del evento debe contener texto descriptivo (no solo números).", true);
             txtNombreEvento.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;");
@@ -146,7 +146,7 @@ public class OrganizadorCrearEventoController {
             return;
         }
 
-        // 5. NORMALIZACIÓN (Capitalizar textos para que se vean bien en reportes)
+        // 5. NORMALIZACIÓN
         String nombre = capitalizarTexto(rawNombre);
         String lugar = capitalizarTexto(rawLugar);
 
@@ -173,7 +173,6 @@ public class OrganizadorCrearEventoController {
 
     // --- MÉTODOS AUXILIARES ---
 
-    // Método para convertir "torneo nacional" -> "Torneo Nacional"
     private String capitalizarTexto(String texto) {
         if (texto == null || texto.isEmpty()) return texto;
         String[] palabras = texto.trim().split("\\s+");
