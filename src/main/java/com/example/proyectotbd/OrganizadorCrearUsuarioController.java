@@ -2,6 +2,7 @@ package com.example.proyectotbd;
 
 import com.example.proyectotbd.ConexionDB;
 import javafx.animation.PauseTransition;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -39,8 +40,11 @@ public class OrganizadorCrearUsuarioController {
     @FXML private CheckBox checkCoach;
     @FXML private CheckBox checkJuez;
     @FXML private Label lblMensaje;
+    // --- CAMBIO: Ahora es un ComboBox ---
+    @FXML private ComboBox<String> cmbInstitucion;
 
     private boolean contrasenaVisible = false;
+    private OrganizadorDAO dao = new OrganizadorDAO(); // Necesitamos el DAO para cargar la lista
 
     // --- PATRONES DE VALIDACIÓN ---
     private static final Pattern PATRON_NOMBRE = Pattern.compile("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]*$");
@@ -55,8 +59,21 @@ public class OrganizadorCrearUsuarioController {
     public void initialize() {
         txtPasswordVisible.textProperty().bindBidirectional(txtPassword.textProperty());
 
+        // 1. Cargar Instituciones al ComboBox
+        cargarInstituciones();
+
         configurarValidaciones();
         configurarRestriccionTeclasContrasena();
+    }
+
+    // --- NUEVO: Cargar lista desde BD ---
+    private void cargarInstituciones() {
+        try {
+            ObservableList<String> lista = dao.obtenerInstituciones();
+            cmbInstitucion.setItems(lista);
+        } catch (SQLException e) {
+            mostrarMensaje("Error al cargar instituciones: " + e.getMessage(), true);
+        }
     }
 
     // =====================================================================
@@ -110,12 +127,9 @@ public class OrganizadorCrearUsuarioController {
     }
 
     private void configurarValidaciones() {
-        // 1. VALIDACIÓN NOMBRE
+        // Nombre
         txtNombre.textProperty().addListener((obs, oldV, newV) -> {
-            if (newV.length() > 50) {
-                txtNombre.setText(oldV);
-                return;
-            }
+            if (newV.length() > 50) { txtNombre.setText(oldV); return; }
             if (!PATRON_NOMBRE.matcher(newV).matches()) {
                 txtNombre.setText(oldV);
                 txtNombre.setStyle("-fx-border-color: red;");
@@ -124,27 +138,24 @@ public class OrganizadorCrearUsuarioController {
             }
         });
 
-        // 2. VALIDACIÓN INSTITUCIÓN
-        txtInstitucion.textProperty().addListener((obs, oldV, newV) -> {
+        // --- VALIDACIÓN INSTITUCIÓN (Adaptada para ComboBox) ---
+        // Usamos getEditor().textProperty() para escuchar lo que el usuario escribe
+        cmbInstitucion.getEditor().textProperty().addListener((obs, oldV, newV) -> {
             if (newV.length() > 50) {
-                txtInstitucion.setText(oldV);
+                cmbInstitucion.getEditor().setText(oldV);
                 return;
             }
-
             if (!PATRON_INSTITUCION.matcher(newV).matches()) {
-                txtInstitucion.setText(oldV);
-                txtInstitucion.setStyle("-fx-border-color: red;");
+                cmbInstitucion.getEditor().setText(oldV);
+                cmbInstitucion.setStyle("-fx-border-color: red;");
             } else {
-                txtInstitucion.setStyle("");
+                cmbInstitucion.setStyle(""); // Restaurar estilo (ojo: puede requerir re-aplicar estilos base si usas CSS complejos)
             }
         });
 
-        // 3. VALIDACIÓN USERNAME
+        // Username
         txtUsername.textProperty().addListener((obs, oldV, newV) -> {
-            if (newV.length() > 50) {
-                txtUsername.setText(oldV);
-                return;
-            }
+            if (newV.length() > 50) { txtUsername.setText(oldV); return; }
             if (!PATRON_USERNAME.matcher(newV).matches()) {
                 txtUsername.setText(oldV);
                 txtUsername.setStyle("-fx-border-color: red;");
@@ -153,18 +164,13 @@ public class OrganizadorCrearUsuarioController {
             }
         });
 
-        // 4. VALIDACIÓN PASSWORD
+        // Password
         txtPassword.textProperty().addListener((obs, oldV, newV) -> {
-            if (newV.length() > 50) {
-                txtPassword.setText(oldV);
-                return;
-            }
-
+            if (newV.length() > 50) { txtPassword.setText(oldV); return; }
             if (newV.contains(" ")) {
                 txtPassword.setText(newV.replaceAll(" ", ""));
                 return;
             }
-
             analizarSeguridadPassword(newV);
         });
     }
@@ -222,13 +228,17 @@ public class OrganizadorCrearUsuarioController {
     @FXML
     public void handleGuardarUsuario(ActionEvent event) {
         String rawNombre = txtNombre.getText();
-        String institucion = txtInstitucion.getText().trim();
+
+        // --- CAMBIO: Obtener texto del ComboBox (ya sea seleccionado o escrito) ---
+        String institucion = cmbInstitucion.getEditor().getText().trim();
+        // ------------------------------------------------------------------------
+
         String username = txtUsername.getText().trim();
         String password = txtPassword.getText();
         boolean esCoach = checkCoach.isSelected();
         boolean esJuez = checkJuez.isSelected();
 
-        // 1. Validaciones de Vacío
+        // Validaciones
         if (rawNombre.isEmpty() || institucion.isEmpty() || username.isEmpty() || password.isEmpty()) {
             mostrarMensaje("Error: Por favor llena todos los campos.", true);
             return;
@@ -239,29 +249,30 @@ public class OrganizadorCrearUsuarioController {
             return;
         }
 
-        // 2. Validación de Nombre y Apellido
         String nombre = capitalizarTexto(rawNombre);
+        // Validar nombre completo
         if (!nombre.contains(" ")) {
             mostrarMensaje("Error: Ingresa nombre y apellido completo.", true);
             txtNombre.setStyle("-fx-border-color: red;");
             return;
         }
 
-        // 3. Validación de Contraseña (Longitud y Complejidad)
         if (password.length() < 8 || !PATRON_PASSWORD_COMPLEJO.matcher(password).matches()) {
-            mostrarMensaje("La contraseña es insegura o es demasiado corta. Revisa los requisitos (8 chars, Mayúscula, Número, Símbolo).", true);
+            mostrarMensaje("La contraseña es insegura.", true);
             aplicarEstiloPassword("-fx-border-color: red;");
             analizarSeguridadPassword(password);
             return;
         }
 
-        // 4. Validación de Institución
         if (!PATRON_INSTITUCION.matcher(institucion).matches()) {
-            mostrarMensaje("Error: La institución contiene caracteres especiales no permitidos.", true);
-            txtInstitucion.setStyle("-fx-border-color: red;");
+            mostrarMensaje("Error: La institución contiene caracteres inválidos.", true);
+            cmbInstitucion.setStyle("-fx-border-color: red;");
             return;
         }
 
+        // --- NORMALIZAR INSTITUCIÓN ---
+        // Si el usuario escribe "itcm", lo guardamos bonito como "Itcm" (o como quieras manejarlo)
+        String institucionFinal = capitalizarTexto(institucion);
 
         String sql = "{call SP_registrarUsuario(?, ?, ?, ?, ?, ?)}";
 
@@ -271,7 +282,7 @@ public class OrganizadorCrearUsuarioController {
             stmt.setString(1, username);
             stmt.setString(2, password);
             stmt.setString(3, nombre);
-            stmt.setString(4, institucion);
+            stmt.setString(4, institucionFinal); // Usamos la variable normalizada
             stmt.setBoolean(5, esCoach);
             stmt.setBoolean(6, esJuez);
 
@@ -281,24 +292,7 @@ public class OrganizadorCrearUsuarioController {
             cambiarVista(event, "organizador_menu.fxml");
 
         } catch (SQLException e) {
-            // --- MODIFICACIÓN: MANEJO DEL ERROR DE DUPLICADO DE NOMBRE COMPLETO Y USERNAME ---
-            String errorMsg = e.getMessage().toLowerCase();
-
-            if (errorMsg.contains("nombre completo ya existe") || errorMsg.contains("error de nombre")) {
-                mostrarMensaje("Error: El nombre '" + nombre + "' ya está registrado en el sistema.", true);
-                txtNombre.setStyle("-fx-border-color: red;");
-                return;
-            }
-
-            if (errorMsg.contains("nombre de usuario ya está ocupado") || errorMsg.contains("error de usuario")) {
-                mostrarMensaje("Error: El nombre de usuario '" + username + "' ya está registrado.", true);
-                txtUsername.setStyle("-fx-border-color: red;");
-                return;
-            }
-
-            // Si es otro error de SQL
-            //e.printStackTrace();
-            mostrarMensaje("Error en BD: "+ e.getMessage(), true);
+            mostrarMensaje("Error BD: " + e.getMessage(), true);
         }
     }
 

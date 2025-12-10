@@ -13,6 +13,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+<?import javafx.scene.control.ComboBox?>
 <BorderPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.example.proyectotbd.OrganizadorCrearUsuarioController"
@@ -66,7 +67,10 @@
 
                 <VBox spacing="5.0">
                     <Label text="INSTITUCIÓN" textFill="#7f8c8d" style="-fx-font-weight:bold; -fx-font-size: 12;"/>
-                    <TextField fx:id="txtInstitucion" promptText="Ej: Tecnológico de Monterrey" prefHeight="40.0" style="-fx-background-color: #f4f6f8; -fx-border-color: #bdc3c7; -fx-border-radius: 5;"/>
+
+                    <ComboBox fx:id="cmbInstitucion" editable="true" promptText="Seleccione o escriba..."
+                              prefHeight="40.0" maxWidth="Infinity"
+                              style="-fx-background-color: #f4f6f8; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-font-size: 14px;"/>
                 </VBox>
 
                 <HBox spacing="20.0">

@@ -228,6 +228,21 @@ public class OrganizadorDAO {
         return lista;
     }
 
+    public ObservableList<String> obtenerInstituciones() throws SQLException {
+        ObservableList<String> lista = FXCollections.observableArrayList();
+        String sql = "{call SP_ListarInstituciones()}";
+
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(rs.getString("institucion"));
+            }
+        }
+        return lista;
+    }
+
     public ObservableList<UsuarioItem> obtenerTodosLosUsuarios() throws SQLException {
         ObservableList<UsuarioItem> lista = FXCollections.observableArrayList();
         String sql = "{call SP_Admin_ListarUsuarios()}";
