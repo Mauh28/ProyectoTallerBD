@@ -25,40 +25,29 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.regex.Pattern; // Importación necesaria
+import java.util.regex.Pattern;
 
 public class OrganizadorCrearEventoController {
 
-    @FXML
-    private TextField txtNombreEvento;
-    @FXML
-    private TextField txtLugar;
-    @FXML
-    private DatePicker dpFecha;
+    @FXML private TextField txtNombreEvento;
+    @FXML private TextField txtLugar;
+    @FXML private DatePicker dpFecha;
 
-    // --- CAMPOS SPINNER ---
-    @FXML
-    private Spinner<Integer> spnHoraInicio;
-    @FXML
-    private Spinner<Integer> spnMinutoInicio;
-    @FXML
-    private Spinner<Integer> spnHoraFin;
-    @FXML
-    private Spinner<Integer> spnMinutoFin;
+    @FXML private Spinner<Integer> spnHoraInicio;
+    @FXML private Spinner<Integer> spnMinutoInicio;
+    @FXML private Spinner<Integer> spnHoraFin;
+    @FXML private Spinner<Integer> spnMinutoFin;
 
-    @FXML
-    private Label lblMensaje;
+    @FXML private Label lblMensaje;
 
+    private OrganizadorDAO dao = new OrganizadorDAO();
+
+    // --- 1. PATRONES DE VALIDACIÓN ROBUSTA ---
     // Regex mejorado: Permite letras, números, espacios y signos comunes en direcciones (., #, -)
     private static final Pattern PATRON_CARACTERES_VALIDOS = Pattern.compile("^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ.,#\\-\\s]*$");
 
     // Regex para detectar repeticiones excesivas (ej: "aaa")
     private static final Pattern PATRON_REPETICION = Pattern.compile("(.)\\1{2,}");
-
-    private OrganizadorDAO dao = new OrganizadorDAO();
-
-    private static final Pattern PATRON_LETRAS_NUMEROS_ESPACIOS = Pattern.compile("^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\\s]*$");
-
 
     @FXML
     public void initialize() {
@@ -67,6 +56,13 @@ public class OrganizadorCrearEventoController {
         spnMinutoInicio.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
         spnHoraFin.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 17));
         spnMinutoFin.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
+
+        // --- CAMBIO: Deshabilitar escritura manual en Spinners (Igual que en Editar) ---
+        spnHoraInicio.setEditable(false);
+        spnMinutoInicio.setEditable(false);
+        spnHoraFin.setEditable(false);
+        spnMinutoFin.setEditable(false);
+        // -------------------------------------------------------------------------------
 
         // Bloquear escritura manual en el DatePicker
         dpFecha.setEditable(false);
@@ -83,41 +79,15 @@ public class OrganizadorCrearEventoController {
         dpFecha.valueProperty().addListener((observable, oldValue, newValue) -> {
             validarFechaSeleccionada(newValue);
         });
-        // Validación en tiempo real con la nueva lógica
-        configurarValidacionTexto(txtNombreEvento);
-        configurarValidacionTexto(txtLugar);
 
-        // --- VALIDACIONES DE TEXTO ---
+        // --- VALIDACIONES DE TEXTO EN TIEMPO REAL ---
         configurarValidacionTexto(txtNombreEvento);
         configurarValidacionTexto(txtLugar);
     }
 
-
-    // --- MÉTODO DE VALIDACIÓN EN TIEMPO REAL MEJORADO ---
-    private void configurarValidacionTexto(TextField field) {
-        field.textProperty().addListener((observable, oldValue, newValue) -> {
-
-            // 1. Limitar longitud
-            if (newValue.length() > 50) {
-                field.setText(oldValue);
-                return;
-            }
-
-            // 2. Validar caracteres permitidos (Si escribe un símbolo raro, lo borra)
-            if (!PATRON_CARACTERES_VALIDOS.matcher(newValue).matches()) {
-                field.setText(oldValue);
-                return;
-            }
-
-            // 3. Feedback Visual: ¿Tiene sentido lo que escribió?
-            // Si está vacío o NO es lógico, borde rojo. Si es lógico, borde normal.
-            if (!newValue.isEmpty() && !esTextoLogico(newValue)) {
-                field.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;"); // Rojo
-            } else {
-                field.setStyle(""); // Limpio
-            }
-        });
-    }
+    // =================================================================
+    // 2. MÉTODOS DE VALIDACIÓN LÓGICA (COHERENCIA)
+    // =================================================================
 
     // --- NUEVA FUNCIÓN: LÓGICA DE SENTIDO COMÚN ---
     private boolean esTextoLogico(String texto) {
@@ -136,26 +106,51 @@ public class OrganizadorCrearEventoController {
         return true;
     }
 
+    private void configurarValidacionTexto(TextField field) {
+        field.textProperty().addListener((observable, oldValue, newValue) -> {
+
+            // 1. Limitar longitud a 50 caracteres
+            if (newValue.length() > 50) {
+                field.setText(oldValue);
+                return;
+            }
+
+            // 2. Validar caracteres permitidos
+            if (!PATRON_CARACTERES_VALIDOS.matcher(newValue).matches()) {
+                field.setText(oldValue);
+                return;
+            }
+
+            // 3. Feedback Visual: ¿Tiene sentido lo que escribió?
+            if (!newValue.isEmpty() && !esTextoLogico(newValue)) {
+                // Borde ROJO si es inválido (muy corto, solo números, repetitivo)
+                field.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;");
+            } else {
+                // Estilo limpio
+                field.setStyle("");
+            }
+        });
+    }
+
     private boolean validarFechaSeleccionada(LocalDate fecha) {
         if (fecha == null) {
             dpFecha.setStyle("");
             return false;
         }
         if (fecha.isAfter(LocalDate.now())) {
-            mostrarMensaje("", false); // Limpiar mensaje
-            dpFecha.setStyle("-fx-border-color: #27ae60; -fx-border-radius: 5;"); // Verde
+            mostrarMensaje("", false);
+            dpFecha.setStyle("-fx-border-color: #27ae60; -fx-border-radius: 5;");
             return true;
         } else {
             mostrarMensaje("Error: La fecha debe ser al menos el día siguiente a hoy.", true);
-            dpFecha.setStyle("-fx-border-color: #e74c3c; -fx-border-radius: 5;"); // Rojo
+            dpFecha.setStyle("-fx-border-color: #e74c3c; -fx-border-radius: 5;");
             return false;
         }
     }
 
-    @FXML
-    public void handleRegresar(ActionEvent event) {
-        cambiarVista(event, "organizador_menu.fxml");
-    }
+    // =================================================================
+    // MÉTODOS DE ACCIÓN (GUARDAR)
+    // =================================================================
 
     @FXML
     public void handleGuardarEvento(ActionEvent event) {
@@ -175,31 +170,31 @@ public class OrganizadorCrearEventoController {
             return;
         }
 
-        // 3. NUEVA VALIDACIÓN: Lógica del Nombre
+        // 3. NUEVA VALIDACIÓN: Lógica del Nombre (Coherencia)
         if (!esTextoLogico(rawNombre)) {
-            mostrarMensaje("El nombre del evento no parece válido (muy corto, repetitivo o solo números).", true);
+            mostrarMensaje("El nombre del evento no es válido (muy corto, repetitivo o sin letras).", true);
             txtNombreEvento.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;");
             return;
         }
 
-        // 4. NUEVA VALIDACIÓN: Lógica del Lugar
+        // 4. NUEVA VALIDACIÓN: Lógica del Lugar (Coherencia)
         if (!esTextoLogico(rawLugar)) {
-            mostrarMensaje("El lugar no parece válido (muy corto, repetitivo o solo números).", true);
+            mostrarMensaje("El lugar no es válido (muy corto, repetitivo o sin letras).", true);
             txtLugar.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;");
             return;
         }
 
-        // 5. Validación de Horario (Lógica de negocio: Fin > Inicio y Duración >= 1h)
+        // 5. Validación de Horario (Lógica: Fin > Inicio y Duración >= 1h)
         if (!validarHorario(horaInicioInt, minutoInicioInt, horaFinInt, minutoFinInt)) {
-            return; // El metodo validarHorario ya muestra el mensaje y pinta los bordes
+            return;
         }
 
-        // 6. Validar Fecha (Futura)
+        // 6. Validar Fecha
         if (!validarFechaSeleccionada(fechaLocal)) {
-            return; // El metodo validarFechaSeleccionada ya muestra el mensaje
+            return;
         }
 
-        // 7. NORMALIZACIÓN (Capitalizar textos para que se vean bien en reportes)
+        // 7. NORMALIZACIÓN
         String nombre = capitalizarTexto(rawNombre);
         String lugar = capitalizarTexto(rawLugar);
 
@@ -219,12 +214,42 @@ public class OrganizadorCrearEventoController {
             cambiarVista(event, "organizador_verEventos.fxml");
 
         } catch (SQLException e) {
-            // Manejo de errores de BD (ej: Nombre duplicado, cruce de horarios detectado por el SP)
             mostrarMensaje(e.getMessage(), true);
         }
     }
 
     // --- MÉTODOS AUXILIARES ---
+
+    private boolean validarHorario(Integer hInicio, Integer mInicio, Integer hFin, Integer mFin) {
+        if (hInicio == null || mInicio == null || hFin == null || mFin == null) return false;
+
+        LocalTime inicio = LocalTime.of(hInicio, mInicio);
+        LocalTime fin = LocalTime.of(hFin, mFin);
+
+        // 1. Validar que el fin sea después del inicio
+        if (!fin.isAfter(inicio)) {
+            mostrarMensaje("Error de Horario: La hora de fin debe ser posterior a la de inicio.", true);
+            estilarErrorHorario(true);
+            return false;
+        }
+
+        // 2. Validar duración mínima de 1 hora (60 minutos)
+        long duracionMinutos = java.time.Duration.between(inicio, fin).toMinutes();
+        if (duracionMinutos < 60) {
+            mostrarMensaje("Error de Duración: El evento debe durar al menos 1 hora.", true);
+            estilarErrorHorario(true);
+            return false;
+        }
+
+        estilarErrorHorario(false);
+        return true;
+    }
+
+    private void estilarErrorHorario(boolean error) {
+        String estilo = error ? "-fx-border-color: #e74c3c; -fx-border-width: 2px;" : "";
+        spnHoraInicio.setStyle(estilo);
+        spnHoraFin.setStyle(estilo);
+    }
 
     private String capitalizarTexto(String texto) {
         if (texto == null || texto.isEmpty()) return texto;
@@ -261,17 +286,17 @@ public class OrganizadorCrearEventoController {
             PauseTransition delay = new PauseTransition(Duration.seconds(3));
             delay.setOnFinished(e -> toastStage.close());
             delay.play();
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {}
     }
 
     private void mostrarMensaje(String mensaje, boolean esError) {
         lblMensaje.setText(mensaje);
         lblMensaje.setStyle(esError ? "-fx-text-fill: #e74c3c;" : "-fx-text-fill: #27ae60;");
         lblMensaje.setVisible(true);
-        // Limpiar bordes rojos si el mensaje es informativo o al reintentar
         if (!esError) {
             txtNombreEvento.setStyle("");
             txtLugar.setStyle("");
+            estilarErrorHorario(false);
         }
     }
 
@@ -285,49 +310,12 @@ public class OrganizadorCrearEventoController {
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Error navegando a: " + fxml);
-            alert.show(); }
+            alert.show();
+        }
     }
 
-    // Validar que la hora fin sea al menos 1 hora después del inicio
-    private boolean validarHorario(Integer hInicio, Integer mInicio, Integer hFin, Integer mFin) {
-        if (hInicio == null || mInicio == null || hFin == null || mFin == null) {
-            return false;
-        }
-
-        LocalTime inicio = LocalTime.of(hInicio, mInicio);
-        LocalTime fin = LocalTime.of(hFin, mFin);
-
-        // 1. Validar que el fin sea después del inicio
-        if (!fin.isAfter(inicio)) {
-            mostrarMensaje("Error de Horario: La hora de fin debe ser posterior a la de inicio.", true);
-            estilarErrorHorario(true);
-            return false;
-        }
-
-        // 2. Validar duración mínima de 1 hora (60 minutos)
-        long duracionMinutos = java.time.Duration.between(inicio, fin).toMinutes();
-        if (duracionMinutos < 60) {
-            mostrarMensaje("Error de Duración: El evento debe durar al menos 1 hora.", true);
-            estilarErrorHorario(true);
-            return false;
-        }
-
-        // Si pasa, limpiamos estilos
-        estilarErrorHorario(false);
-        return true;
-    }
-
-    // Metodo auxiliar para pintar los spinners de rojo/verde
-    private void estilarErrorHorario(boolean error) {
-        String estiloError = "-fx-border-color: #e74c3c; -fx-border-width: 2px;";
-        String estiloNormal = "";
-
-        if (error) {
-            spnHoraInicio.setStyle(estiloError);
-            spnHoraFin.setStyle(estiloError);
-        } else {
-            spnHoraInicio.setStyle(estiloNormal);
-            spnHoraFin.setStyle(estiloNormal);
-        }
+    @FXML
+    public void handleRegresar(ActionEvent event) {
+        cambiarVista(event, "organizador_menu.fxml");
     }
 }
