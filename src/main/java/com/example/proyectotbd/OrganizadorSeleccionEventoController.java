@@ -36,7 +36,6 @@ public class OrganizadorSeleccionEventoController {
         vboxListaEventos.getChildren().clear();
 
         try {
-            // Utilizamos el método existente para listar todos los eventos
             ObservableList<EventoItem> eventos = dao.obtenerTodosLosEventos();
 
             if (eventos.isEmpty()) {
@@ -90,7 +89,6 @@ public class OrganizadorSeleccionEventoController {
         Button btnSeleccionar = new Button("VER EQUIPOS");
         btnSeleccionar.setStyle("-fx-background-color: #d35400; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5; -fx-padding: 10 25;");
 
-        // ACCIÓN: Guardar ID y Navegar
         btnSeleccionar.setOnAction(e -> handleSeleccionarEvento(evento));
 
         tarjeta.getChildren().addAll(lblNombre, lblLugar, lblFecha, spacer, btnSeleccionar);

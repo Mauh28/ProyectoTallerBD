@@ -22,12 +22,9 @@ public class OrganizadorVerEventosController {
     @FXML private TableColumn<EventoItem, String> colNombre;
     @FXML private TableColumn<EventoItem, String> colLugar;
     @FXML private TableColumn<EventoItem, String> colFecha;
-    // --- Columnas añadidas para los nuevos campos de hora ---
     @FXML private TableColumn<EventoItem, String> colHoraInicio;
     @FXML private TableColumn<EventoItem, String> colHoraFin;
-    // --------------------------------------------------------
     @FXML private TableColumn<EventoItem, String> colJueces;
-    // @FXML private TableColumn<EventoItem, Void> colAcciones; // Si hubiéramos usado botones por fila, pero usamos un botón global.
 
     private OrganizadorDAO dao = new OrganizadorDAO();
 
@@ -56,9 +53,6 @@ public class OrganizadorVerEventosController {
         }
     }
 
-    // =================================================================
-    //  NUEVA FUNCIÓN: EDITAR EVENTO
-    // =================================================================
 
     @FXML
     public void handleEditarEvento(ActionEvent event) {
@@ -68,9 +62,6 @@ public class OrganizadorVerEventosController {
             mostrarAlerta("Atención", "Selecciona un evento para editar.", false);
             return;
         }
-
-        // 1. Validar la regla de negocio: No se puede editar si es hoy o pasó.
-        // Convertimos la fecha de String (yyyy-MM-dd) a LocalDate para la comparación
         LocalDate fechaEvento = LocalDate.parse(seleccionado.getFecha());
 
         if (!fechaEvento.isAfter(LocalDate.now())) {
@@ -163,9 +154,7 @@ public class OrganizadorVerEventosController {
         } catch (IOException e) { e.printStackTrace(); }
     }
 
-    /**
-     * Muestra una alerta informativa o de error.
-     */
+
     private void mostrarAlerta(String titulo, String msg, boolean esError) {
         Alert.AlertType type = esError ? Alert.AlertType.ERROR : Alert.AlertType.INFORMATION;
         Alert alert = new Alert(type);

@@ -3,7 +3,7 @@ package com.example.proyectotbd;
 public class ReporteCoachItem {
     private String equipo;
     private String categoria;
-    private String evento; // Este campo es la diferencia clave con ReporteJuezItem
+    private String evento;
     private String ptsDiseno;
     private String ptsProg;
     private String ptsConst;

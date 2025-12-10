@@ -39,9 +39,7 @@ public class JuezEquiposUnificadoController {
 
     @FXML
     public void initialize() {
-        // --- CAMBIO: Carga automática al iniciar ---
         cargarDatosInteligentes();
-        // 1. Verificar y cargar la hora del evento al inicio
         verificarYEstablecerHoraEvento();
     }
 
@@ -52,7 +50,6 @@ public class JuezEquiposUnificadoController {
         try {
             horaInicioEvento = juezDao.obtenerFechaHoraInicioEvento(eventoId);
             if (horaInicioEvento == null) {
-                // Manejo si la BD no devuelve la hora, el botón se deshabilitará por defecto
                 System.err.println("Advertencia: No se pudo obtener la hora de inicio del evento.");
             }
         } catch (SQLException e) {
@@ -161,13 +158,11 @@ public class JuezEquiposUnificadoController {
             }
 
             for (EquipoItem equipo : equipos) {
-                // Pasar la hora del evento a la tarjeta
                 vboxListaEquipos.getChildren().add(crearTarjetaEquipo(equipo));
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
-            // Manejo de error visual...
         }
     }
 

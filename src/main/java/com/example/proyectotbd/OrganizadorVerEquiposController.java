@@ -44,13 +44,8 @@ public class OrganizadorVerEquiposController {
         cargarPestanasReportesEstaticos(eventoId);
     }
 
-    // =================================================================
-    //  MÉTODOS DE INICIALIZACIÓN Y CARGA
-    // =================================================================
 
     private String obtenerNombreEvento(int eventoId) {
-        // En un escenario real, buscarías el nombre del evento en la BD usando el ID.
-        // Mantenemos el placeholder para evitar un nuevo SP/DAO complejo.
         return "ID " + eventoId;
     }
 
@@ -87,7 +82,6 @@ public class OrganizadorVerEquiposController {
     private void cargarPestanasReportesEstaticos(int eventoId) {
         // --- 1. Pestaña de Asignaciones de Jueces ---
         try {
-            // CORRECCIÓN CLAVE: Pasamos el eventoId
             ObservableList<AsignacionItem> asignaciones = dao.obtenerReporteAsignaciones(eventoId);
             TableView<AsignacionItem> tablaAsignaciones = crearTablaAsignaciones(asignaciones);
 
@@ -112,13 +106,6 @@ public class OrganizadorVerEquiposController {
     }
 
 
-    // =================================================================
-    //  MÉTODOS AUXILIARES: CREACIÓN DE TABLAS
-    // =================================================================
-
-    /**
-     * Crea y configura la TableView para listar los Equipos.
-     */
     private TableView<EquipoItem> crearTablaEquipos(String categoriaNombre, ObservableList<EquipoItem> datos) {
         TableView<EquipoItem> tabla = new TableView<>(datos);
         tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -140,9 +127,6 @@ public class OrganizadorVerEquiposController {
         return tabla;
     }
 
-    /**
-     * Crea y configura la TableView para el Reporte de Asignaciones.
-     */
     private TableView<AsignacionItem> crearTablaAsignaciones(ObservableList<AsignacionItem> datos) {
         TableView<AsignacionItem> tabla = new TableView<>(datos);
         tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -165,9 +149,7 @@ public class OrganizadorVerEquiposController {
         return tabla;
     }
 
-    /**
-     * Crea y configura la TableView para los Resultados Finales.
-     */
+
     private TableView<ResultadoFinalItem> crearTablaResultados(ObservableList<ResultadoFinalItem> datos) {
         TableView<ResultadoFinalItem> tabla = new TableView<>(datos);
         tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);

@@ -9,7 +9,7 @@ public class ConexionDB {
     // Configuración de la base de datos basada en tu script SQL
     private static final String URL = "jdbc:mysql://localhost:3306/concurso_robotica"; //
     private static final String USER = "root"; // Tu usuario de MySQL (usualmente root)
-    private static final String PASSWORD = "12345"; // Tu contraseña de MySQL
+    private static final String PASSWORD = "1234"; // Tu contraseña de MySQL
 
     private static Connection connection = null;
 

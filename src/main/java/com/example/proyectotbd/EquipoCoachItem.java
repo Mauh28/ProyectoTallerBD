@@ -6,7 +6,7 @@ public class EquipoCoachItem {
     private String institucion;
     private String categoria;
     private String evento;
-    private String integrantes; // <--- NUEVO CAMPO
+    private String integrantes;
 
     public EquipoCoachItem(int id, String nombre, String institucion, String categoria, String evento, String integrantes) {
         this.id = id;

@@ -10,7 +10,7 @@ import javafx.scene.control.Label;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.net.URL; // Importación necesaria
+import java.net.URL;
 
 public class OrganizadorMenuController {
 
@@ -21,9 +21,7 @@ public class OrganizadorMenuController {
         cargarNombreUsuario();
     }
 
-    /**
-     * Carga el nombre completo del usuario desde UserSession y lo muestra en la barra superior.
-     */
+
     private void cargarNombreUsuario() {
         String nombre = UserSession.getInstance().getNombreCompleto();
 

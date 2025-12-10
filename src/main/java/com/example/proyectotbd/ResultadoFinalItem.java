@@ -4,22 +4,12 @@ package com.example.proyectotbd;
 // promedio final de los equipos en un evento.
 
 public class ResultadoFinalItem {
-
-    // Campos que corresponden a las columnas del reporte final
     private int equipoId;
     private String nombreEquipo;
     private String nombreCategoria;
     private String nombreCoach;
     private double puntajePromedio;
 
-    /**
-     * Constructor para inicializar un nuevo ResultadoFinalItem.
-     * * @param equipoId ID del equipo.
-     * @param nombreEquipo Nombre del equipo.
-     * @param nombreCategoria Nivel de la categoría.
-     * @param nombreCoach Nombre del Coach del equipo.
-     * @param puntajePromedio Promedio de la calificación total de las rúbricas (Diseño + Programación + Construcción).
-     */
     public ResultadoFinalItem(int equipoId, String nombreEquipo, String nombreCategoria, String nombreCoach, double puntajePromedio) {
         this.equipoId = equipoId;
         this.nombreEquipo = nombreEquipo;
@@ -28,9 +18,6 @@ public class ResultadoFinalItem {
         this.puntajePromedio = puntajePromedio;
     }
 
-    // =================================================================
-    // GETTERS (OBLIGATORIOS PARA TableView y PropertyValueFactory)
-    // =================================================================
 
     public int getEquipoId() {
         return equipoId;
@@ -49,8 +36,6 @@ public class ResultadoFinalItem {
     }
 
     public double getPuntajePromedio() {
-        // Formato: Usamos un String para devolver el puntaje con un decimal, si es necesario,
-        // aunque el PropertyValueFactory buscará el getter del tipo primitivo.
         return puntajePromedio;
     }
 }

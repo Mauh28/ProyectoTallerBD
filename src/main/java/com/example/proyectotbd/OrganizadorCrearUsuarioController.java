@@ -1,5 +1,6 @@
 package com.example.proyectotbd;
 
+import com.example.proyectotbd.ConexionDB;
 import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -46,7 +47,7 @@ public class OrganizadorCrearUsuarioController {
     private static final Pattern PATRON_USERNAME = Pattern.compile("^[a-zA-Z0-9._-]*$");
     private static final Pattern PATRON_PASSWORD_COMPLEJO = Pattern.compile("^(?=.*[0-9])(?=.*[A-Z])(?=.*[^a-zA-Z0-9\\s]).{8,}$");
 
-    // PATRÓN INSTITUCIÓN (Sin cambios)
+    // PATRÓN INSTITUCIÓN
     private static final Pattern PATRON_INSTITUCION = Pattern.compile("^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\\s]*$");
 
 
@@ -59,34 +60,30 @@ public class OrganizadorCrearUsuarioController {
     }
 
     // =====================================================================
-    // FUNCIÓN CORREGIDA: Bloquear Barra Espaciadora y permitir Backspace
+    // FUNCIÓN: Bloquear Barra Espaciadora y permitir Backspace
     // =====================================================================
 
     private void configurarRestriccionTeclasContrasena() {
-        // Manejador de eventos para bloquear la tecla SPACE.
-
-        // El evento KEY_TYPED se usa para caracteres ingresados (como el espacio).
-        // Bloquear en campo oculto (ya permite backspace)
+        // Bloquear SPACE en campo oculto
         txtPassword.addEventFilter(KeyEvent.KEY_TYPED, event -> {
             if (event.getCharacter().equals(" ")) {
                 event.consume();
             }
         });
 
-        // Bloquear en campo visible (ya permite backspace)
+        // Bloquear SPACE en campo visible
         txtPasswordVisible.addEventFilter(KeyEvent.KEY_TYPED, event -> {
             if (event.getCharacter().equals(" ")) {
                 event.consume();
             }
         });
 
-        // Bloqueo para evitar que el usuario PEGE espacios iniciales/finales, aunque el Listener ya lo hace
+        // Bloqueo para evitar que se PEGEN espacios iniciales/finales
         txtPassword.textProperty().addListener((obs, oldV, newV) -> {
             if (newV != null && (newV.startsWith(" ") || newV.endsWith(" "))) {
                 txtPassword.setText(newV.trim());
             }
         });
-        // NOTA: El bloqueo de BACK_SPACE que tenías en el código anterior fue eliminado para cumplir con tu requisito.
     }
 
     // =====================================================================
@@ -113,7 +110,7 @@ public class OrganizadorCrearUsuarioController {
     }
 
     private void configurarValidaciones() {
-        // 1. VALIDACIÓN NOMBRE (Sin cambios)
+        // 1. VALIDACIÓN NOMBRE
         txtNombre.textProperty().addListener((obs, oldV, newV) -> {
             if (newV.length() > 50) {
                 txtNombre.setText(oldV);
@@ -127,7 +124,7 @@ public class OrganizadorCrearUsuarioController {
             }
         });
 
-        // 2. VALIDACIÓN INSTITUCIÓN (Sin cambios)
+        // 2. VALIDACIÓN INSTITUCIÓN
         txtInstitucion.textProperty().addListener((obs, oldV, newV) -> {
             if (newV.length() > 50) {
                 txtInstitucion.setText(oldV);
@@ -142,7 +139,7 @@ public class OrganizadorCrearUsuarioController {
             }
         });
 
-        // 3. VALIDACIÓN USERNAME (Sin cambios)
+        // 3. VALIDACIÓN USERNAME
         txtUsername.textProperty().addListener((obs, oldV, newV) -> {
             if (newV.length() > 50) {
                 txtUsername.setText(oldV);
@@ -156,14 +153,13 @@ public class OrganizadorCrearUsuarioController {
             }
         });
 
-        // 4. VALIDACIÓN PASSWORD (Lógica de limpieza para pegar texto con espacios)
+        // 4. VALIDACIÓN PASSWORD
         txtPassword.textProperty().addListener((obs, oldV, newV) -> {
             if (newV.length() > 50) {
                 txtPassword.setText(oldV);
                 return;
             }
 
-            // Esta línea se mantiene para la operación de PEGAR que no activa KEY_TYPED
             if (newV.contains(" ")) {
                 txtPassword.setText(newV.replaceAll(" ", ""));
                 return;
@@ -183,7 +179,8 @@ public class OrganizadorCrearUsuarioController {
         boolean cumpleLongitud = password.length() >= 8;
         boolean cumpleMayuscula = password.matches(".*[A-Z].*");
         boolean cumpleNumero = password.matches(".*[0-9].*");
-        boolean cumpleEspecial = password.matches(".*[^a-zA-Z0-9].*");
+        // Nota: El patrón PATRON_PASSWORD_COMPLEJO ya verifica el símbolo. Usaremos una verificación simple aquí.
+        boolean cumpleEspecial = password.matches(".*[^a-zA-Z0-9\\s].*");
 
         if (cumpleLongitud && cumpleMayuscula && cumpleNumero && cumpleEspecial) {
             lblMensaje.setText("Contraseña Segura ✅");
@@ -258,7 +255,7 @@ public class OrganizadorCrearUsuarioController {
             return;
         }
 
-        // 4. Validación de Institución (Doble chequeo por si el usuario pegó)
+        // 4. Validación de Institución
         if (!PATRON_INSTITUCION.matcher(institucion).matches()) {
             mostrarMensaje("Error: La institución contiene caracteres especiales no permitidos.", true);
             txtInstitucion.setStyle("-fx-border-color: red;");
@@ -284,6 +281,22 @@ public class OrganizadorCrearUsuarioController {
             cambiarVista(event, "organizador_menu.fxml");
 
         } catch (SQLException e) {
+            // --- MODIFICACIÓN: MANEJO DEL ERROR DE DUPLICADO DE NOMBRE COMPLETO Y USERNAME ---
+            String errorMsg = e.getMessage().toLowerCase();
+
+            if (errorMsg.contains("nombre completo ya existe") || errorMsg.contains("error de nombre")) {
+                mostrarMensaje("Error: El nombre '" + nombre + "' ya está registrado en el sistema.", true);
+                txtNombre.setStyle("-fx-border-color: red;");
+                return;
+            }
+
+            if (errorMsg.contains("nombre de usuario ya está ocupado") || errorMsg.contains("error de usuario")) {
+                mostrarMensaje("Error: El nombre de usuario '" + username + "' ya está registrado.", true);
+                txtUsername.setStyle("-fx-border-color: red;");
+                return;
+            }
+
+            // Si es otro error de SQL
             //e.printStackTrace();
             mostrarMensaje("Error en BD: "+ e.getMessage(), true);
         }

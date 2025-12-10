@@ -227,16 +227,7 @@ public class OrganizadorDAO {
         }
         return lista;
     }
-    // ---------------------------------
 
-    // -----------------------------------------------------------------
-    // MÉTODOS DE GESTIÓN (ADMIN CRUD)
-    // -----------------------------------------------------------------
-
-    /**
-     * Lista todos los usuarios (Coach y/o Juez) para la vista del Administrador.
-     * AHORA INCLUYE LA CONTRASEÑA.
-     */
     public ObservableList<UsuarioItem> obtenerTodosLosUsuarios() throws SQLException {
         ObservableList<UsuarioItem> lista = FXCollections.observableArrayList();
         String sql = "{call SP_Admin_ListarUsuarios()}";
@@ -270,9 +261,7 @@ public class OrganizadorDAO {
         }
     }
 
-    /**
-     * Lista todos los eventos registrados con sus jueces asignados.
-     */
+
     public ObservableList<EventoItem> obtenerTodosLosEventos() throws SQLException {
         ObservableList<EventoItem> lista = FXCollections.observableArrayList();
         String sql = "{call SP_Admin_ListarEventos()}";
@@ -298,9 +287,7 @@ public class OrganizadorDAO {
         return lista;
     }
 
-    /**
-     * Elimina un evento por su ID (Hard Delete).
-     */
+
     public void eliminarEvento(int id) throws SQLException {
         String sql = "{call SP_Admin_EliminarEvento(?)}";
         try (Connection conn = ConexionDB.getConnection();

@@ -11,7 +11,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox; // Aseguramos VBox si necesitas deshabilitar contenedores
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -30,14 +30,10 @@ public class JuezEvaluacionController {
 
     @FXML private Label lblNombreEquipo;
     @FXML private ScrollPane scrollPane;
-    @FXML private Button btnEnviar; // Añadimos el botón de envío para deshabilitarlo
+    @FXML private Button btnEnviar;
 
-    // --- Contenedor de CheckBoxes (Asumimos que están dentro del ScrollPane o VBox) ---
-    // Si tienes un contenedor principal VBox/GridPane dentro del ScrollPane,
-    // puedes inyectarlo para deshabilitar su contenido.
-    // @FXML private VBox vboxContenidoPrincipal;
 
-    @FXML private Label lblMensajeEstado; // Añadido para mostrar el mensaje de tiempo
+    @FXML private Label lblMensajeEstado;
 
     // --- DISEÑO ---
     @FXML private CheckBox chkBitRegistroFechas, chkBitJustificacion, chkBitDiagramas, chkBitOrtografia, chkBitPresentacion;
@@ -66,11 +62,8 @@ public class JuezEvaluacionController {
         // 2. TODO: Si es modo EDICIÓN, aquí se debería implementar la lógica para cargar los estados.
     }
 
-    /**
-     * Verifica la hora actual contra la hora de inicio del evento y deshabilita la interfaz si es muy pronto.
-     */
+
     private void verificarHoraDeEvaluacion() {
-        // Asumimos que tempEventoId es el ID del evento que estamos evaluando.
         int eventoId = UserSession.getInstance().getTempEventoId();
 
         if (eventoId == 0) {
@@ -122,9 +115,7 @@ public class JuezEvaluacionController {
         }
     }
 
-    /**
-     * Deshabilita/Habilita todos los CheckBoxes y el botón de envío.
-     */
+
     private void deshabilitarControles(boolean deshabilitar) {
         // Recoge todos los CheckBoxes
         List<CheckBox> allCheckboxes = Arrays.asList(
@@ -159,8 +150,6 @@ public class JuezEvaluacionController {
 
     @FXML
     public void handleEnviar(ActionEvent event) {
-        // *** IMPORTANTE: Si deshabilitarControles(true) fue llamado, este método no debería ejecutarse ***
-
         UserSession session = UserSession.getInstance();
 
         int equipoId = session.getEquipoIdTemp();

@@ -1,8 +1,6 @@
 package com.example.proyectotbd;
 
 public class UserSession {
-
-    // Instancia única de la clase (Singleton)
     private static UserSession instance;
 
     // --- CAMPOS DE USUARIO Y ROL ---
@@ -11,16 +9,13 @@ public class UserSession {
     private String nombreCompleto;
     private boolean coach;
     private boolean juez;
-    private String institucionUsuario; // Institución fija del perfil
-
-    // --- CAMPOS TEMPORALES DEL COACH (Registro/Edición de Equipo) ---
+    private String institucionUsuario;
     private int equipoIdTemp;
     private boolean modoEdicion = false;
     private int tempEventoId;
     private int tempCategoriaId;
     private String tempCategoriaNombre;
     private String tempNombreEquipo;
-    // Se mantiene 'tempInstitucion' para consistencia con los temporales
     private String tempInstitucion;
 
     // --- CAMPOS TEMPORALES DEL JUEZ (Evaluación Activa) ---
@@ -43,16 +38,14 @@ public class UserSession {
     //  MÉTODO DE LIMPIEZA
     // =================================================================
 
-    /**
-     * Limpia todos los datos de sesión al cerrar la aplicación o cambiar de usuario.
-     */
+
     public void cleanUserSession() {
         userId = 0;
         username = null;
         nombreCompleto = null;
         coach = false;
         juez = false;
-        institucionUsuario = null; // Limpieza de campo principal
+        institucionUsuario = null;
 
         equipoIdTemp = 0;
         modoEdicion = false;
@@ -60,7 +53,7 @@ public class UserSession {
         tempCategoriaId = 0;
         tempCategoriaNombre = null;
         tempNombreEquipo = null;
-        tempInstitucion = null; // Limpieza de campo temporal
+        tempInstitucion = null;
 
         evaluacionIdTemp = 0;
         idDisenoTemp = 0;
@@ -93,7 +86,7 @@ public class UserSession {
 
 
     // =================================================================
-    //  GETTERS Y SETTERS TEMPORALES (Registro/Edición Coach)
+    //  GETTERS Y SETTERS TEMPORALES
     // =================================================================
 
     public int getEquipoIdTemp() { return equipoIdTemp; }
@@ -119,7 +112,7 @@ public class UserSession {
     public void setTempInstitucion(String tempInstitucion) { this.tempInstitucion = tempInstitucion; }
 
     // =================================================================
-    //  GETTERS Y SETTERS DEL JUEZ (Evaluación Activa)
+    //  GETTERS Y SETTERS DEL JUEZ
     // =================================================================
 
     public int getEvaluacionIdTemp() { return evaluacionIdTemp; }
