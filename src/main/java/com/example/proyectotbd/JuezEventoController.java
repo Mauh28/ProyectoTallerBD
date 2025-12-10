@@ -20,6 +20,10 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 public class JuezEventoController {
 
@@ -67,31 +71,30 @@ public class JuezEventoController {
         tarjeta.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20;");
         tarjeta.setEffect(new DropShadow(5, Color.color(0,0,0,0.1)));
 
-        // 1. Nombre del Evento (Ajustado a 350.0 para hacer espacio a las horas)
+        // 1. Nombre del Evento
         Label lblNombre = new Label(evento.getNombre());
         lblNombre.setPrefWidth(350.0);
         lblNombre.setWrapText(true);
         lblNombre.setStyle("-fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: #2c3e50;");
 
-        // 2. Lugar (Ajustado a 200.0)
+        // 2. Lugar
         Label lblLugar = new Label(evento.getLugar());
         lblLugar.setPrefWidth(200.0);
         lblLugar.setWrapText(true);
         lblLugar.setStyle("-fx-text-fill: #7f8c8d; -fx-font-size: 14px;");
 
-        // 3. Fecha (Ajustado a 120.0)
+        // 3. Fecha
         Label lblFecha = new Label(evento.getFecha());
         lblFecha.setPrefWidth(120.0);
         lblFecha.setStyle("-fx-text-fill: #2980b9; -fx-font-weight: bold;");
 
-        // 4. HORA DE INICIO (NUEVO)
-        // Tomamos solo HH:MM eliminando :SS (que se incluye por el .toString() de java.sql.Time)
+        // 4. HORA DE INICIO
         String horaInicioFormatted = evento.getHoraInicio().substring(0, 5);
         Label lblHoraInicio = new Label(horaInicioFormatted);
         lblHoraInicio.setPrefWidth(80.0);
         lblHoraInicio.setStyle("-fx-text-fill: #34495e; -fx-font-weight: bold;");
 
-        // 5. HORA DE FIN (NUEVO)
+        // 5. HORA DE FIN
         String horaFinFormatted = evento.getHoraFin().substring(0, 5);
         Label lblHoraFin = new Label(horaFinFormatted);
         lblHoraFin.setPrefWidth(80.0);
@@ -101,20 +104,51 @@ public class JuezEventoController {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // 6. Botón Seleccionar
-        Button btnSeleccionar = new Button("SELECCIONAR");
-        btnSeleccionar.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5; -fx-padding: 10 25;");
+        // 6. Botón Seleccionar y Lógica de Deshabilitación
+        Button btnSeleccionar = new Button();
 
-        // ACCIÓN: Guardar ID y Navegar
-        btnSeleccionar.setOnAction(e -> handleSeleccionarEvento(evento));
+        try {
+            // Conversión de String a LocalDateTime
+            LocalDate fechaEvento = LocalDate.parse(evento.getFecha());
+            LocalTime horaEvento = LocalTime.parse(evento.getHoraInicio());
+            LocalDateTime horaInicioEvento = LocalDateTime.of(fechaEvento, horaEvento);
 
-        // Añadir todos los componentes en el orden de los encabezados (FXML)
+            LocalDateTime ahora = LocalDateTime.now();
+
+            boolean eventoInactivo = ahora.isBefore(horaInicioEvento);
+
+            if (eventoInactivo) {
+                long minutosRestantes = ChronoUnit.MINUTES.between(ahora, horaInicioEvento);
+                long horas = minutosRestantes / 60;
+                long minutos = minutosRestantes % 60;
+
+                btnSeleccionar.setText(String.format("INICIA EN %d H %d M", horas, minutos));
+                btnSeleccionar.setDisable(true);
+                btnSeleccionar.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
+
+            } else {
+                btnSeleccionar.setText("SELECCIONAR");
+                btnSeleccionar.setDisable(false);
+                btnSeleccionar.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5; -fx-padding: 10 25;");
+                btnSeleccionar.setOnAction(e -> handleSeleccionarEvento(evento));
+            }
+
+        } catch (Exception e) {
+            // Manejo de error si la fecha o la hora tienen un formato incorrecto
+            btnSeleccionar.setText("ERROR FECHA");
+            btnSeleccionar.setDisable(true);
+            btnSeleccionar.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
+            e.printStackTrace();
+        }
+
+
+        // Añadir todos los componentes
         tarjeta.getChildren().addAll(
                 lblNombre,
                 lblLugar,
                 lblFecha,
-                lblHoraInicio, // <-- Nuevo
-                lblHoraFin,    // <-- Nuevo
+                lblHoraInicio,
+                lblHoraFin,
                 spacer,
                 btnSeleccionar
         );

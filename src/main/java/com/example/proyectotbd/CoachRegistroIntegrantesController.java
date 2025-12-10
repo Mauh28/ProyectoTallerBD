@@ -50,6 +50,7 @@ public class CoachRegistroIntegrantesController {
         if (cbSexo.getItems().isEmpty()) {
             cbSexo.setItems(FXCollections.observableArrayList("Femenino", "Masculino"));
         }
+        dpNacimiento.setEditable(false);
 
         listaParticipantes.setItems(participantes);
 

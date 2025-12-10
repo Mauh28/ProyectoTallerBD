@@ -9,12 +9,47 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Date;
-import java.sql.Time; // Necesario para obtener las horas
+import java.sql.Time;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class JuezDAO {
+    /**
+     * Obtiene la fecha y hora exacta de inicio de un evento por su ID.
+     * Requiere que el SP_ObtenerFechaHoraInicio devuelva las columnas 'fecha' y 'hora_inicio'.
+     */
+    public LocalDateTime obtenerFechaHoraInicioEvento(int eventoId) throws SQLException {
+        // SP_ObtenerFechaHoraInicio debe existir en la BD y devolver fecha/hora_inicio
+        String sql = "{call SP_ObtenerFechaHoraInicio(?)}";
+
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
+            stmt.setInt(1, eventoId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    // Extraer DATE y TIME de SQL
+                    Date sqlDate = rs.getDate("fecha");
+                    Time sqlTime = rs.getTime("hora_inicio");
+
+                    // Convertir a LocalDateTime de Java
+                    LocalDate localDate = sqlDate.toLocalDate();
+                    LocalTime localTime = sqlTime.toLocalTime();
+
+                    return LocalDateTime.of(localDate, localTime);
+                }
+            }
+        }
+        return null; // Devuelve nulo si no se encuentra el evento
+    }
+
+    // =================================================================
+    // MÉTODOS EXISTENTES
+    // =================================================================
 
     // Nuevo método que acepta Connection para ser parte de la transacción de guardado
     public EvaluacionIds iniciarEvaluacion(Connection conn, int equipoId, int eventoId, int juezId) throws SQLException {
@@ -53,8 +88,6 @@ public class JuezDAO {
         }
     }
 
-    // --- MÉTODO CORREGIDO ---
-    // Ahora recibe la Connection 'conn' como parámetro
     public IdsAreas obtenerIdsAreas(Connection conn, int evaluacionId, int juezId) throws SQLException {
         String sql = "{call SP_ObtenerIdsAreas(?, ?)}";
 
@@ -202,8 +235,6 @@ public class JuezDAO {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    // CORRECCIÓN CLAVE: Se añaden hora_inicio y hora_fin
-                    // para coincidir con el constructor de 7 argumentos de EventoItem.
                     lista.add(new EventoItem(
                             rs.getInt("evento_id"),
                             rs.getString("nombre_evento"),
@@ -232,7 +263,6 @@ public class JuezDAO {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    // Agregamos cada categoría encontrada a la lista
                     categorias.add(rs.getString("nivel"));
                 }
             }
