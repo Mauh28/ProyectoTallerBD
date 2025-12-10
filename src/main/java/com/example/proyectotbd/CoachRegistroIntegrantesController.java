@@ -328,6 +328,7 @@ public class CoachRegistroIntegrantesController {
 
     @FXML
     public void handleFinalizar(ActionEvent event) {
+        // 1. Validar que la lista tenga exactamente 3 integrantes
         if (participantes.size() != 3) {
             lblError.setText("Regla del Torneo: El equipo debe tener exactamente 3 integrantes.");
             lblError.setStyle("-fx-text-fill: #e74c3c;");
@@ -339,6 +340,7 @@ public class CoachRegistroIntegrantesController {
         int equipoId = session.getEquipoIdTemp();
         boolean esEdicion = session.isModoEdicion();
 
+        // 2. Validar datos de sesión
         if (!esEdicion) {
             if (session.getTempNombreEquipo() == null || session.getTempCategoriaNombre() == null) {
                 lblError.setText("Error: Datos de sesión perdidos. Vuelve a iniciar.");
@@ -353,36 +355,35 @@ public class CoachRegistroIntegrantesController {
             }
         }
 
+        // --- AQUÍ SE DECLARA 'conn'. Solo existe dentro de este bloque try ---
         try (Connection conn = ConexionDB.getConnection()) {
-            conn.setAutoCommit(false);
+            conn.setAutoCommit(false); // Iniciar Transacción
 
             try {
                 // --- BLOQUE A: CREACIÓN (Solo si NO es edición) ---
                 if (!esEdicion) {
-                    // 1. Crear Equipo
-                    String sqlEquipo = "{call SP_NombreEquipoExiste(?, ?, ?, ?)}";
+                    // LLAMADA AL SP CON 5 PARÁMETROS (Corrección importante)
+                    String sqlEquipo = "{call SP_NombreEquipoExiste(?, ?, ?, ?, ?)}";
                     int nuevoEquipoId = 0;
+
                     try (CallableStatement stmtEq = conn.prepareCall(sqlEquipo)) {
                         stmtEq.setInt(1, session.getUserId());
                         stmtEq.setString(2, session.getTempCategoriaNombre());
                         stmtEq.setString(3, session.getTempNombreEquipo());
+                        stmtEq.setInt(4, session.getTempEventoId()); // <--- FALTA ESTE EN TU CÓDIGO
 
-                        // Registrar parámetro de salida para obtener el nuevo ID
-                        stmtEq.registerOutParameter(4, Types.INTEGER);
+                        stmtEq.registerOutParameter(5, Types.INTEGER); // Salida es el 5
 
-                        // Ejecutar y obtener el ID
                         stmtEq.execute();
-                        nuevoEquipoId = stmtEq.getInt(4); // Obtener el valor del parámetro de salida (Índice 4)
+                        nuevoEquipoId = stmtEq.getInt(5);
                     }
-                    if (nuevoEquipoId <= 0) { // Si el ID es 0 o negativo, falló o ya existe (el SP maneja la lógica)
-                        throw new SQLException("No se generó ID del equipo o el nombre ya existe. Contacte a soporte.");
+
+                    if (nuevoEquipoId <= 0) {
+                        throw new SQLException("No se generó ID del equipo.");
                     }
                     equipoId = nuevoEquipoId;
 
-                    // Asegurar que el ID del equipo se guarde en sesión
-                    session.setEquipoIdTemp(equipoId);
-
-                    // 2. Inscribir
+                    // 2. Inscribir en Equipo_Evento
                     String sqlEvento = "{call SP_RegistrarEquipoEnEvento(?, ?)}";
                     try (CallableStatement stmtEv = conn.prepareCall(sqlEvento)) {
                         stmtEv.setInt(1, equipoId);
@@ -393,7 +394,6 @@ public class CoachRegistroIntegrantesController {
 
                 // --- BLOQUE B: LIMPIEZA (Solo si ES edición) ---
                 else {
-                    // Borramos alumnos viejos para re-insertar la lista nueva
                     String sqlLimpiar = "{call SP_EliminarParticipantesPorEquipo(?)}";
                     try (CallableStatement stmtClean = conn.prepareCall(sqlLimpiar)) {
                         stmtClean.setInt(1, equipoId);
@@ -401,26 +401,23 @@ public class CoachRegistroIntegrantesController {
                     }
                 }
 
-                // --- BLOQUE C: INSERCIÓN (Común para ambos) ---
-                // Se usa 5 parámetros: (equipoId, nombre, fecha, sexo, eventoId) para la validación cruzada.
+                // --- BLOQUE C: INSERCIÓN DE INTEGRANTES ---
                 String sqlPart = "{call SP_RegistrarParticipante(?, ?, ?, ?, ?)}";
                 try (CallableStatement stmtPart = conn.prepareCall(sqlPart)) {
                     for (String p : participantes) {
                         String[] datos = p.split(" \\| ");
-
-                        stmtPart.setInt(1, equipoId); // 1. ID del equipo
-                        stmtPart.setString(2, datos[0]); // 2. Nombre del participante
-                        stmtPart.setDate(3, java.sql.Date.valueOf(LocalDate.parse(datos[1]))); // 3. Fecha
-                        stmtPart.setString(4, datos[2]); // 4. Sexo
-                        stmtPart.setInt(5, session.getTempEventoId()); // 5. ID del evento (¡NUEVO!)
-
+                        stmtPart.setInt(1, equipoId);
+                        stmtPart.setString(2, datos[0]);
+                        stmtPart.setDate(3, java.sql.Date.valueOf(LocalDate.parse(datos[1])));
+                        stmtPart.setString(4, datos[2]);
+                        stmtPart.setInt(5, session.getTempEventoId()); // ID Evento para validación cruzada
                         stmtPart.execute();
                     }
                 }
 
-                conn.commit();
+                conn.commit(); // CONFIRMAR CAMBIOS
 
-                // Limpieza final de sesión
+                // Limpieza final
                 session.setModoEdicion(false);
                 session.setTempNombreEquipo(null);
 
@@ -430,25 +427,23 @@ public class CoachRegistroIntegrantesController {
                 else cambiarVista(event, "coach_menu.fxml");
 
             } catch (SQLException ex) {
+                // AQUÍ USAMOS 'conn' PARA EL ROLLBACK
                 conn.rollback();
-                ex.printStackTrace();
 
                 String errorMsg = ex.getMessage().toLowerCase();
 
-                // Manejo específico del error de duplicado de participante en otro equipo del mismo evento
-                if (errorMsg.contains("participante ya está registrado en otro equipo")) {
+                // Validación del mensaje de duplicado
+                if (errorMsg.contains("ya está registrado en otro equipo") || errorMsg.contains("error de duplicado")) {
                     lblError.setText("Error: Uno de los alumnos ya está inscrito en otro equipo de este evento.");
                 } else {
-                    lblError.setText(ex.getMessage());
+                    lblError.setText("Error BD: " + ex.getMessage());
                 }
-
                 lblError.setVisible(true);
-
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
-            lblError.setText(e.getMessage());
+            // AQUÍ 'conn' YA NO EXISTE (está cerrada). No intentes usarla aquí.
+            lblError.setText("Error de conexión: " + e.getMessage());
             lblError.setVisible(true);
         }
     }

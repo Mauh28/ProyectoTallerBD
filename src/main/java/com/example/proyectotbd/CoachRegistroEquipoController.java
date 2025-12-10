@@ -82,68 +82,74 @@ public class CoachRegistroEquipoController {
 
     @FXML
     public void handleContinuar(ActionEvent event) {
-        UserSession session = UserSession.getInstance();
-
-        int usuarioId = session.getUserId();
-
-        int eventoId = session.getTempEventoId();
+        // 1. Obtener datos de la vista y sesión
+        int eventoId = UserSession.getInstance().getTempEventoId(); // (Ya debiste seleccionarlo antes)
         String nombre = txtNombreEquipo.getText().trim();
 
+        // 2. Validaciones Visuales
         if (eventoId == 0) {
             mostrarMensaje("Error: Debe seleccionar un evento en la vista anterior.", true);
             return;
         }
-        if (categoriaTexto == null) { mostrarMensaje("Selecciona una categoría.", true); return; }
-        if (nombre.isEmpty()) { mostrarMensaje("Escribe el nombre del equipo.", true); return; }
+        if (categoriaTexto == null) {
+            mostrarMensaje("Selecciona una categoría.", true);
+            return;
+        }
+        if (nombre.isEmpty()) {
+            mostrarMensaje("Escribe el nombre del equipo.", true);
+            return;
+        }
 
+        // Validación Regex (Al menos una palabra real)
         if (!nombre.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ]{2,}.*")) {
             mostrarMensaje("El nombre debe contener al menos una palabra real (mínimo 2 letras seguidas).", true);
             txtNombreEquipo.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;");
             return;
         }
 
-        String sql = "{call SP_NombreEquipoExiste(?, ?, ?, ?, ?)}";
+        // 3. VALIDACIÓN EN BD (SOLO LECTURA)
+        // Usamos la FUNCIÓN 'FN_VerificarDisponibilidadEquipo' en lugar del Procedimiento.
+        // Esta función retorna 1 si existe, 0 si está libre. NO INSERTA NADA.
+        String sql = "{? = call FN_VerificarDisponibilidadEquipo(?, ?)}";
 
         try (Connection conn = ConexionDB.getConnection();
              CallableStatement stmt = conn.prepareCall(sql)) {
 
-            stmt.setInt(1, usuarioId);
-            stmt.setString(2, categoriaTexto);
-            stmt.setString(3, nombre);
-            stmt.setInt(4, eventoId);
-
-            stmt.registerOutParameter(5, Types.INTEGER); // p_nuevo_equipo_id OUT
+            // Configurar parámetros
+            stmt.registerOutParameter(1, Types.INTEGER); // El retorno de la función
+            stmt.setString(2, nombre);      // El nombre que queremos checar
+            stmt.setInt(3, categoriaId);    // La categoría
 
             stmt.execute();
 
-            int nuevoEquipoId = stmt.getInt(5); // Obtener el ID del equipo recién creado
+            int existe = stmt.getInt(1); // 1 = Ocupado, 0 = Libre
 
-            session.setEquipoIdTemp(nuevoEquipoId);
+            if (existe > 0) {
+                mostrarMensaje("El nombre del equipo ya existe en esta categoría. Elige otro.", true);
+                txtNombreEquipo.setStyle("-fx-border-color: #e74c3c;");
+                return;
+            }
+
+            // 4. SI ESTÁ LIBRE: Guardamos en Sesión (Memoria) y avanzamos
+            // NO insertamos en la BD todavía.
+            UserSession session = UserSession.getInstance();
 
             session.setTempEventoId(eventoId);
             session.setTempCategoriaId(categoriaId);
             session.setTempCategoriaNombre(categoriaTexto);
             session.setTempNombreEquipo(nombre);
+
+            // Asignamos la institución del perfil del usuario (Coach)
             session.setTempInstitucion(session.getInstitucionUsuario());
 
-            mostrarMensaje("Equipo registrado exitosamente. ID: " + nuevoEquipoId, false);
-            txtNombreEquipo.setStyle("");
+            System.out.println("Validación correcta. Nombre disponible en memoria. Pasando a integrantes...");
 
-            System.out.println("Datos guardados en memoria. Pasando a integrantes...");
-
+            // Cambiamos de pantalla
             cambiarVista(event, "coach_registroIntegrantes.fxml");
 
         } catch (SQLException e) {
-            String errorMessage = e.getMessage();
-
-            if (errorMessage != null && errorMessage.contains("Error:")) {
-                mostrarMensaje(errorMessage.substring(errorMessage.indexOf("Error:")), true);
-            } else {
-                mostrarMensaje(errorMessage, true);
-            }
-
-            txtNombreEquipo.setStyle("");
             e.printStackTrace();
+            mostrarMensaje("Error de conexión al validar nombre: " + e.getMessage(), true);
         }
     }
 
