@@ -57,7 +57,7 @@ public class JuezEventoController {
             }
 
         } catch (SQLException e) {
-            // e.printStackTrace();
+            // e.printStackTrace(); <-- Se elimina impresión aquí
             Label error = new Label("Error de conexión al cargar eventos: Asegúrate que la BD está activa.");
             error.setStyle("-fx-text-fill: red; -fx-font-weight: bold; -fx-padding: 20;");
             vboxListaEventos.getChildren().add(error);
@@ -138,7 +138,7 @@ public class JuezEventoController {
             btnSeleccionar.setText("ERROR FECHA");
             btnSeleccionar.setDisable(true);
             btnSeleccionar.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
-            //e.printStackTrace();
+            //e.printStackTrace(); <-- Se elimina impresión aquí
         }
 
 
@@ -184,6 +184,8 @@ public class JuezEventoController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) {
+            // 🛑 CORRECCIÓN: Usar printStackTrace() para debugging, evitar Alert para eventos críticos
+            e.printStackTrace();
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Error navegando a: " + fxml);
             alert.show();
@@ -199,6 +201,8 @@ public class JuezEventoController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) {
+            // 🛑 CORRECCIÓN: Usar printStackTrace() para debugging, evitar Alert para eventos críticos
+            e.printStackTrace();
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Error navegando a: " + fxml);
             alert.show();

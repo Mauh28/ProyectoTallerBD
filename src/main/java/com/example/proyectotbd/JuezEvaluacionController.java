@@ -166,6 +166,7 @@ public class JuezEvaluacionController {
 
             try {
                 // 1. PRIMER PASO: CREAR LA EVALUACIÓN Y OBTENER LOS IDs
+                // Este método llamará a SP_IniciarEvaluacionSegura, que ahora tiene la regla 1/1.
                 JuezDAO.EvaluacionIds ids = juezDAO.iniciarEvaluacion(conn, equipoId, eventoId, juezId);
 
                 // 2. SEGUNDO PASO: GUARDAR LOS DETALLES USANDO LOS IDs GENERADOS
@@ -205,8 +206,16 @@ public class JuezEvaluacionController {
 
             } catch (SQLException ex) {
                 conn.rollback();
-                ex.printStackTrace();
-                mostrarAlertaError("Error al guardar: " + ex.getMessage());
+                // 🛑 MANEJO DEL ERROR ESPECÍFICO DE LÍMITE (Regla 1/1)
+                String errorMsg = ex.getMessage();
+                if (errorMsg != null && errorMsg.contains("Error de Límite")) {
+                    // Muestra el mensaje exacto lanzado por el SP
+                    mostrarAlertaError(errorMsg);
+                } else {
+                    // Muestra el error genérico de BD
+                    mostrarAlertaError("Error al guardar la evaluación en la Base de Datos: " + errorMsg);
+                }
+                ex.printStackTrace(); // Imprimir stack trace para debug
             }
 
         } catch (SQLException e) {
