@@ -1,5 +1,7 @@
 package com.example.proyectotbd;
 
+import javafx.animation.PauseTransition; // Importante
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -8,6 +10,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import javafx.util.Duration; // Importante
 
 import java.io.IOException;
 import java.sql.CallableStatement;
@@ -25,19 +28,19 @@ public class CoachRegistroEquipoController {
 
     private String categoriaTexto = null;
     private int categoriaId = 0;
-    private OrganizadorDAO dao = new OrganizadorDAO(); // se mantiene pero no se utiliza en el codigo
+
+    // --- NUEVO: Temporizador para no saturar la BD mientras escribes ---
+    private PauseTransition pause = new PauseTransition(Duration.millis(500));
 
     @FXML
     public void initialize() {
         mostrarEventoSeleccionado();
         recuperarDatosDeSesion();
-        configurarValidacionNombre();
+        configurarValidacionNombre(); // Aquí está la magia nueva
     }
 
-    // Muestra el nombre del evento seleccionado, obtenido desde la sesión temporal.
     private void mostrarEventoSeleccionado() {
         int eventoId = UserSession.getInstance().getTempEventoId();
-
         if (eventoId != 0 && lblEventoSeleccionado != null) {
             lblEventoSeleccionado.setText("Inscribiendo al Evento ID: " + eventoId);
         } else {
@@ -47,11 +50,7 @@ public class CoachRegistroEquipoController {
 
     private void recuperarDatosDeSesion() {
         UserSession session = UserSession.getInstance();
-
-        // 1. Restaurar Nombre de Equipo
         if (session.getTempNombreEquipo() != null) txtNombreEquipo.setText(session.getTempNombreEquipo());
-
-        // 2. Restaurar Categoría (Visual y Lógica)
         if (session.getTempCategoriaNombre() != null) {
             this.categoriaTexto = session.getTempCategoriaNombre();
             this.categoriaId = session.getTempCategoriaId();
@@ -65,7 +64,6 @@ public class CoachRegistroEquipoController {
         Button btn = (Button) event.getSource();
         categoriaTexto = btn.getText();
 
-        // Mapeo ID (Asegúrate de que coincida con tu BD)
         switch (categoriaTexto) {
             case "Primaria": categoriaId = 1; break;
             case "Secundaria": categoriaId = 2; break;
@@ -76,79 +74,124 @@ public class CoachRegistroEquipoController {
 
         lblCategoriaSeleccionada.setText("Seleccionada: " + categoriaTexto);
         lblCategoriaSeleccionada.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold; -fx-font-style: italic;");
+
+        // Si cambia de categoría, revalidamos el nombre actual porque podría estar libre en esta nueva categoría
+        if (!txtNombreEquipo.getText().isEmpty()) {
+            verificarDisponibilidadEnBD(txtNombreEquipo.getText().trim());
+        }
     }
 
-    @FXML
-    public void handleContinuar(ActionEvent event) {
-        // 1. Obtener datos de la vista y sesión
-        int eventoId = UserSession.getInstance().getTempEventoId(); // (Ya debiste seleccionarlo antes)
-        String nombre = txtNombreEquipo.getText().trim();
+    // =================================================================
+    //  VALIDACIÓN EN TIEMPO REAL (Listener + DB Check)
+    // =================================================================
 
-        // 2. Validaciones Visuales
-        if (eventoId == 0) {
-            mostrarMensaje("Error: Debe seleccionar un evento en la vista anterior.", true);
-            return;
-        }
-        if (categoriaTexto == null) {
-            mostrarMensaje("Selecciona una categoría.", true);
-            return;
-        }
-        if (nombre.isEmpty()) {
-            mostrarMensaje("Escribe el nombre del equipo.", true);
-            return;
-        }
+    private void configurarValidacionNombre() {
+        // Configurar qué hace el temporizador cuando termina el tiempo
+        pause.setOnFinished(event -> {
+            String nombre = txtNombreEquipo.getText().trim();
+            if (!nombre.isEmpty() && categoriaId != 0) {
+                verificarDisponibilidadEnBD(nombre);
+            }
+        });
 
-        // Validación Regex (Al menos una palabra real)
-        if (!nombre.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ]{2,}.*")) {
-            mostrarMensaje("El nombre debe contener al menos una palabra real (mínimo 2 letras seguidas).", true);
-            txtNombreEquipo.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;");
-            return;
-        }
+        txtNombreEquipo.textProperty().addListener((observable, oldValue, newValue) -> {
+            // 1. Validaciones básicas de formato (Frontend)
+            if (newValue.length() > 50) {
+                txtNombreEquipo.setText(oldValue);
+                return;
+            }
 
-        // 3. VALIDACIÓN EN BD (SOLO LECTURA)
-        // Usamos la FUNCIÓN 'FN_VerificarDisponibilidadEquipo' en lugar del Procedimiento.
-        // Esta función retorna 1 si existe, 0 si está libre. NO INSERTA NADA.
+            // Reiniciamos estilos si borran todo
+            if (newValue.isEmpty()) {
+                txtNombreEquipo.setStyle("");
+                lblMensaje.setVisible(false);
+                return;
+            }
+
+            // Validar regex localmente
+            boolean contienePalabra = newValue.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ]{2,}.*");
+            if (!contienePalabra) {
+                txtNombreEquipo.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;");
+                // No consultamos a la BD si el formato ya está mal
+                return;
+            } else {
+                // Formato OK, quitamos borde rojo momentáneamente
+                txtNombreEquipo.setStyle("");
+            }
+
+            // 2. Disparar el temporizador para consultar a la BD
+            // Cada vez que escribes, reinicia la cuenta regresiva.
+            pause.playFromStart();
+        });
+    }
+
+    // Método que va a la Base de Datos (Solo Lectura)
+    private void verificarDisponibilidadEnBD(String nombreEquipo) {
+        if (categoriaId == 0) return; // No podemos verificar sin categoría
+
         String sql = "{? = call FN_VerificarDisponibilidadEquipo(?, ?)}";
 
         try (Connection conn = ConexionDB.getConnection();
              CallableStatement stmt = conn.prepareCall(sql)) {
 
-            // Configurar parámetros
-            stmt.registerOutParameter(1, Types.INTEGER); // El retorno de la función
-            stmt.setString(2, nombre);      // El nombre que queremos checar
-            stmt.setInt(3, categoriaId);    // La categoría
+            stmt.registerOutParameter(1, Types.INTEGER);
+            stmt.setString(2, nombreEquipo);
+            stmt.setInt(3, categoriaId);
 
             stmt.execute();
 
-            int existe = stmt.getInt(1); // 1 = Ocupado, 0 = Libre
+            int existe = stmt.getInt(1); // 1 = Existe, 0 = Libre
 
-            if (existe > 0) {
-                mostrarMensaje("El nombre del equipo ya existe en esta categoría. Elige otro.", true);
-                txtNombreEquipo.setStyle("-fx-border-color: #e74c3c;");
-                return;
-            }
-
-            // 4. SI ESTÁ LIBRE: Guardamos en Sesión (Memoria) y avanzamos
-            // NO insertamos en la BD todavía.
-            UserSession session = UserSession.getInstance();
-
-            session.setTempEventoId(eventoId);
-            session.setTempCategoriaId(categoriaId);
-            session.setTempCategoriaNombre(categoriaTexto);
-            session.setTempNombreEquipo(nombre);
-
-            // Asignamos la institución del perfil del usuario (Coach)
-            session.setTempInstitucion(session.getInstitucionUsuario());
-
-            System.out.println("Validación correcta. Nombre disponible en memoria. Pasando a integrantes...");
-
-            // Cambiamos de pantalla
-            cambiarVista(event, "coach_registroIntegrantes.fxml");
+            // Actualizamos la UI en el hilo principal de JavaFX
+            Platform.runLater(() -> {
+                if (existe > 0) {
+                    // EL NOMBRE YA EXISTE
+                    txtNombreEquipo.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;");
+                    lblMensaje.setText("⚠️ Este nombre ya está registrado en la categoría seleccionada.");
+                    lblMensaje.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                    lblMensaje.setVisible(true);
+                } else {
+                    // EL NOMBRE ESTÁ LIBRE
+                    txtNombreEquipo.setStyle("-fx-border-color: #27ae60; -fx-border-width: 2px; -fx-border-radius: 5;");
+                    lblMensaje.setText("✅ Nombre disponible.");
+                    lblMensaje.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
+                    lblMensaje.setVisible(true);
+                }
+            });
 
         } catch (SQLException e) {
-            // e.printStackTrace();
-            mostrarMensaje("Error de conexión al validar nombre: " + e.getMessage(), true);
+            e.printStackTrace(); // Error técnico (consola)
         }
+    }
+
+    // =================================================================
+
+    @FXML
+    public void handleContinuar(ActionEvent event) {
+        // Validaciones Finales antes de cambiar de pantalla
+        int eventoId = UserSession.getInstance().getTempEventoId();
+        String nombre = txtNombreEquipo.getText().trim();
+
+        if (eventoId == 0) { mostrarMensaje("Error: Evento no seleccionado.", true); return; }
+        if (categoriaTexto == null) { mostrarMensaje("Selecciona una categoría.", true); return; }
+        if (nombre.isEmpty()) { mostrarMensaje("Escribe el nombre del equipo.", true); return; }
+
+        // Si el borde sigue rojo (por duplicado o regex), no dejamos pasar
+        if (txtNombreEquipo.getStyle().contains("#e74c3c")) {
+            mostrarMensaje("Corrige el nombre del equipo antes de continuar.", true);
+            return;
+        }
+
+        // --- SI TODO ESTÁ BIEN: Guardamos en Sesión (Memoria) ---
+        UserSession session = UserSession.getInstance();
+        session.setTempEventoId(eventoId);
+        session.setTempCategoriaId(categoriaId);
+        session.setTempCategoriaNombre(categoriaTexto);
+        session.setTempNombreEquipo(nombre);
+        session.setTempInstitucion(session.getInstitucionUsuario());
+
+        System.out.println("Validación correcta. Avanzando...");
+        cambiarVista(event, "coach_registroIntegrantes.fxml");
     }
 
     @FXML
@@ -173,22 +216,5 @@ public class CoachRegistroEquipoController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) { e.printStackTrace(); }
-    }
-
-    private void configurarValidacionNombre() {
-        txtNombreEquipo.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue.length() > 50) {
-                txtNombreEquipo.setText(oldValue);
-                return;
-            }
-
-            boolean contienePalabra = newValue.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ]{2,}.*");
-
-            if (!newValue.isEmpty() && !contienePalabra) {
-                txtNombreEquipo.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px; -fx-border-radius: 5;");
-            } else {
-                txtNombreEquipo.setStyle("");
-            }
-        });
     }
 }

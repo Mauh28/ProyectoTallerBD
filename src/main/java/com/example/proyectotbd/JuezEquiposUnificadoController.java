@@ -187,7 +187,7 @@ public class JuezEquiposUnificadoController {
         boolean evaluadoTotal = equipo.getConteoJueces() >= MAX_JUECES;
 
         Label lblProgreso = new Label("Estado: " + (evaluadoTotal ? "EVALUADO (1/1)" : "PENDIENTE (0/1)"));
-        lblProgreso.setPrefWidth(180); // Ajustar ancho para el nuevo mensaje
+        lblProgreso.setPrefWidth(180);
 
         if (evaluadoTotal) {
             lblProgreso.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold; -fx-font-size: 14px;");
@@ -195,18 +195,36 @@ public class JuezEquiposUnificadoController {
             lblProgreso.setStyle("-fx-text-fill: #e67e22; -fx-font-weight: bold; -fx-font-size: 14px;");
         }
 
-        // --- 3. Estado Personal (Tu estado como juez) ---
+        // --- 3. Estado Personal (CORREGIDO) ---
         boolean yaEvaluadoPorTi = "EVALUADO".equalsIgnoreCase(equipo.getEstado());
-        Label lblEstado = new Label(yaEvaluadoPorTi ? "TU ESTADO: LISTO" : "TU ESTADO: PENDIENTE");
+
+        String textoEstado;
+        String estiloEstado;
+
+        if (yaEvaluadoPorTi) {
+            // Si tú lo evaluaste, sale verde
+            textoEstado = "TU ESTADO: LISTO";
+            estiloEstado = "-fx-text-fill: #27ae60; -fx-font-weight: bold; -fx-font-size: 11px;";
+        } else if (evaluadoTotal) {
+            // Si YA está cerrado globalmente (1/1) y NO fuiste tú,
+            // ocultamos el mensaje "Pendiente" para no confundir.
+            textoEstado = "";
+            estiloEstado = "";
+        } else {
+            // Si está abierto y no has evaluado, sale rojo
+            textoEstado = "TU ESTADO: PENDIENTE";
+            estiloEstado = "-fx-text-fill: #e74c3c; -fx-font-weight: bold; -fx-font-size: 11px;";
+        }
+
+        Label lblEstado = new Label(textoEstado);
         lblEstado.setPrefWidth(180);
-        lblEstado.setStyle(yaEvaluadoPorTi
-                ? "-fx-text-fill: #7f8c8d; -fx-font-size: 11px;"
-                : "-fx-text-fill: #e74c3c; -fx-font-weight: bold; -fx-font-size: 11px;");
+        lblEstado.setStyle(estiloEstado);
+
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // --- 4. Botón de Acción y Lógica de Deshabilitación por Hora y Regla 1/1 ---
+        // --- 4. Botón de Acción y Lógica ---
         Button btnAccion = new Button();
 
         // Caso 1: Tú ya evaluaste (COMPLETADO)
@@ -225,8 +243,8 @@ public class JuezEquiposUnificadoController {
         else {
             // Verificar si el evento aún no ha comenzado
             if (horaInicioEvento != null && LocalDateTime.now().isBefore(horaInicioEvento)) {
-
-                long minutosRestantes = ChronoUnit.MINUTES.between(LocalDateTime.now(), horaInicioEvento);
+                // ... (cálculo de tiempo igual que antes) ...
+                long minutosRestantes = java.time.temporal.ChronoUnit.MINUTES.between(LocalDateTime.now(), horaInicioEvento);
                 long horas = minutosRestantes / 60;
                 long minutos = minutosRestantes % 60;
 
@@ -234,7 +252,6 @@ public class JuezEquiposUnificadoController {
                 btnAccion.setDisable(true);
                 btnAccion.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
             } else {
-                // Evaluación activa (tiempo cumplido)
                 btnAccion.setText("EVALUAR");
                 btnAccion.setDisable(false);
                 btnAccion.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold; -fx-background-radius: 5;");
