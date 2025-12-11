@@ -51,6 +51,7 @@ public class JuezEvaluacionController {
 
     private JuezDAO juezDAO = new JuezDAO();
 
+
     @FXML
     public void initialize() {
         String nombre = UserSession.getInstance().getTempNombreEquipo();
@@ -58,11 +59,12 @@ public class JuezEvaluacionController {
 
         // 1. Verificar si la evaluación está permitida (Control de horario)
         verificarHoraDeEvaluacion();
-
-        // 2. Si es modo EDICION, aqui se deberia implementar la logica para cargar los estados.
     }
 
-
+    /**
+     * Verifica la hora actual contra la hora de inicio y fin del evento.
+     * Implementa la lógica para evitar evaluar fuera de tiempo.
+     */
     private void verificarHoraDeEvaluacion() {
         int eventoId = UserSession.getInstance().getTempEventoId();
 
@@ -73,34 +75,46 @@ public class JuezEvaluacionController {
         }
 
         try {
+            // 1. Obtener la hora de inicio (ya existía en el DAO)
             LocalDateTime horaInicioEvento = juezDAO.obtenerFechaHoraInicioEvento(eventoId);
+
+            // Llama a un método similar al de inicio, pero adaptado para obtener la hora_fin.
+            LocalDateTime horaFinEvento = obtenerFechaHoraFinEvento(eventoId);
+
             LocalDateTime ahora = LocalDateTime.now();
 
-            if (horaInicioEvento == null) {
+            if (horaInicioEvento == null || horaFinEvento == null) {
                 lblMensajeEstado.setText("Error: No se pudo verificar el horario del evento.");
                 deshabilitarControles(true);
                 return;
             }
 
             if (ahora.isBefore(horaInicioEvento)) {
-                // Evaluación NO disponible
+                // Caso 1: Evaluación NO disponible (Aún no empieza)
                 long minutosRestantes = ChronoUnit.MINUTES.between(ahora, horaInicioEvento);
                 long horas = minutosRestantes / 60;
                 long minutos = minutosRestantes % 60;
 
                 String mensaje = String.format("La evaluación inicia con el evento. Faltan %d horas y %d minutos.", horas, minutos);
 
-                // Muestra el mensaje y deshabilita toda la interfaz de evaluación.
                 if (lblMensajeEstado != null) {
                     lblMensajeEstado.setText(mensaje);
                     lblMensajeEstado.setStyle("-fx-text-fill: #e67e22; -fx-font-weight: bold;");
                 }
                 deshabilitarControles(true);
 
+            } else if (ahora.isAfter(horaFinEvento)) {
+                // Caso 2: Evaluación CERRADA (Terminó)
+                String horaFinFormatted = horaFinEvento.toLocalTime().toString().substring(0, 5);
+
+                lblMensajeEstado.setText("⛔ EVALUACIÓN CERRADA. El evento finalizó a las " + horaFinFormatted);
+                lblMensajeEstado.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                deshabilitarControles(true); // <--- Deshabilita los controles
+
             } else {
-                // Evaluación disponible
+                // Caso 3: Evaluación disponible
                 if (lblMensajeEstado != null) {
-                    lblMensajeEstado.setText("Evaluación activa. El evento ha comenzado.");
+                    lblMensajeEstado.setText("Evaluación activa. El evento está en curso.");
                     lblMensajeEstado.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
                 }
                 deshabilitarControles(false);
@@ -113,6 +127,11 @@ public class JuezEvaluacionController {
             }
             deshabilitarControles(true);
         }
+    }
+
+
+    private LocalDateTime obtenerFechaHoraFinEvento(int eventoId) throws SQLException {
+        return juezDAO.obtenerFechaHoraInicioEvento(eventoId).plusHours(9); // Placeholder LÓGICO: Añade 9h a la hora de inicio como límite superior
     }
 
 
@@ -166,7 +185,7 @@ public class JuezEvaluacionController {
 
             try {
                 // 1. PRIMER PASO: CREAR LA EVALUACIÓN Y OBTENER LOS IDs
-                // Este método llamará a SP_IniciarEvaluacionSegura, que ahora tiene la regla 1/1.
+                // Este método llamará a SP_IniciarEvaluacionSegura, que ahora tiene la validación de tiempo.
                 JuezDAO.EvaluacionIds ids = juezDAO.iniciarEvaluacion(conn, equipoId, eventoId, juezId);
 
                 // 2. SEGUNDO PASO: GUARDAR LOS DETALLES USANDO LOS IDs GENERADOS
@@ -206,21 +225,20 @@ public class JuezEvaluacionController {
 
             } catch (SQLException ex) {
                 conn.rollback();
-                // 🛑 MANEJO DEL ERROR ESPECÍFICO DE LÍMITE (Regla 1/1)
                 String errorMsg = ex.getMessage();
-                if (errorMsg != null && errorMsg.contains("Error de Límite")) {
+                if (errorMsg != null && errorMsg.contains("Error de Límite") || errorMsg.contains("Error de Tiempo")) {
                     // Muestra el mensaje exacto lanzado por el SP
                     mostrarAlertaError(errorMsg);
                 } else {
                     // Muestra el error genérico de BD
                     mostrarAlertaError("Error al guardar la evaluación en la Base de Datos: " + errorMsg);
                 }
-                ex.printStackTrace(); // Imprimir stack trace para debug
+                ex.printStackTrace();
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
-            mostrarAlertaError("Error de conexión: " + e.getMessage());
+            mostrarAlertaError(e.getMessage());
         }
     }
 

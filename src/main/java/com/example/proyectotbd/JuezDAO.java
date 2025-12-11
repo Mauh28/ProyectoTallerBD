@@ -18,8 +18,11 @@ import java.util.List;
 
 public class JuezDAO {
 
+    /**
+     * Obtiene la fecha y hora de inicio de un evento.
+     */
     public LocalDateTime obtenerFechaHoraInicioEvento(int eventoId) throws SQLException {
-        // SP_ObtenerFechaHoraInicio debe existir en la BD y devolver fecha/hora_inicio
+        // Asumimos que este SP devuelve fecha/hora_inicio
         String sql = "{call SP_ObtenerFechaHoraInicio(?)}";
 
         try (Connection conn = ConexionDB.getConnection();
@@ -44,12 +47,44 @@ public class JuezDAO {
         return null; // Devuelve nulo si no se encuentra el evento
     }
 
+    /**
+     * NUEVO MÉTODO: Obtiene la fecha y hora de finalización de un evento.
+     * Requerido para la validación de que el juez no evalúe fuera de tiempo.
+     */
+    public LocalDateTime obtenerFechaHoraFinEvento(int eventoId) throws SQLException {
+        // NOTA: Asume la existencia de un SP en BD que devuelve fecha y hora_fin.
+        String sql = "{call SP_ObtenerHorarioCompleto(?)}";
+
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
+            stmt.setInt(1, eventoId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    // Extraer DATE y TIME de SQL
+                    Date sqlDate = rs.getDate("fecha");
+                    Time sqlTime = rs.getTime("hora_fin"); // <-- CLAVE: Obtener hora_fin
+
+                    // Convertir a LocalDateTime de Java
+                    LocalDate localDate = sqlDate.toLocalDate();
+                    LocalTime localTime = sqlTime.toLocalTime();
+
+                    return LocalDateTime.of(localDate, localTime);
+                }
+            }
+        }
+        return null; // Devuelve nulo si no se encuentra el evento
+    }
+
+
     // =================================================================
-    // MÉTODOS EXISTENTES
+    // MÉTODOS EXISTENTES (Mantienen la funcionalidad previa)
     // =================================================================
 
     // Nuevo metodo que acepta Connection para ser parte de la transaccion de guardado
     public EvaluacionIds iniciarEvaluacion(Connection conn, int equipoId, int eventoId, int juezId) throws SQLException {
+        // Este SP debe contener ahora la validación de tiempo límite (NOW() > hora_fin)
         String sql = "{call SP_IniciarEvaluacionSegura(?, ?, ?, ?)}";
 
         try (CallableStatement stmt = conn.prepareCall(sql)) {

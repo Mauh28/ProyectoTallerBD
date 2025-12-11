@@ -57,7 +57,7 @@ public class JuezEventoController {
             }
 
         } catch (SQLException e) {
-            // e.printStackTrace(); <-- Se elimina impresión aquí
+            // e.printStackTrace();
             Label error = new Label("Error de conexión al cargar eventos: Asegúrate que la BD está activa.");
             error.setStyle("-fx-text-fill: red; -fx-font-weight: bold; -fx-padding: 20;");
             vboxListaEventos.getChildren().add(error);
@@ -110,14 +110,18 @@ public class JuezEventoController {
         try {
             // Conversión de String a LocalDateTime
             LocalDate fechaEvento = LocalDate.parse(evento.getFecha());
-            LocalTime horaEvento = LocalTime.parse(evento.getHoraInicio());
-            LocalDateTime horaInicioEvento = LocalDateTime.of(fechaEvento, horaEvento);
+            LocalTime horaInicio = LocalTime.parse(evento.getHoraInicio().substring(0, 5));
+            LocalTime horaFin = LocalTime.parse(evento.getHoraFin().substring(0, 5)); // <--- Hora de Fin
 
+            LocalDateTime horaInicioEvento = LocalDateTime.of(fechaEvento, horaInicio);
+            LocalDateTime horaFinEvento = LocalDateTime.of(fechaEvento, horaFin); // <--- FECHA Y HORA DE FIN
             LocalDateTime ahora = LocalDateTime.now();
 
-            boolean eventoInactivo = ahora.isBefore(horaInicioEvento);
+            boolean eventoNoIniciado = ahora.isBefore(horaInicioEvento);
+            boolean eventoTerminado = ahora.isAfter(horaFinEvento); // <--- LÍMITE SUPERIOR
 
-            if (eventoInactivo) {
+            if (eventoNoIniciado) {
+                // Caso 1: Evento NO iniciado
                 long minutosRestantes = ChronoUnit.MINUTES.between(ahora, horaInicioEvento);
                 long horas = minutosRestantes / 60;
                 long minutos = minutosRestantes % 60;
@@ -126,7 +130,14 @@ public class JuezEventoController {
                 btnSeleccionar.setDisable(true);
                 btnSeleccionar.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
 
+            } else if (eventoTerminado) {
+                // Caso 2: Evento TERMINADO
+                btnSeleccionar.setText("CERRADO");
+                btnSeleccionar.setDisable(true);
+                btnSeleccionar.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
+
             } else {
+                // Caso 3: Evento ACTIVO (entre inicio y fin)
                 btnSeleccionar.setText("SELECCIONAR");
                 btnSeleccionar.setDisable(false);
                 btnSeleccionar.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5; -fx-padding: 10 25;");
@@ -138,7 +149,7 @@ public class JuezEventoController {
             btnSeleccionar.setText("ERROR FECHA");
             btnSeleccionar.setDisable(true);
             btnSeleccionar.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
-            //e.printStackTrace(); <-- Se elimina impresión aquí
+            //e.printStackTrace();
         }
 
 
@@ -184,7 +195,6 @@ public class JuezEventoController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) {
-            // 🛑 CORRECCIÓN: Usar printStackTrace() para debugging, evitar Alert para eventos críticos
             e.printStackTrace();
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Error navegando a: " + fxml);
@@ -201,7 +211,6 @@ public class JuezEventoController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) {
-            // 🛑 CORRECCIÓN: Usar printStackTrace() para debugging, evitar Alert para eventos críticos
             e.printStackTrace();
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Error navegando a: " + fxml);
