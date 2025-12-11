@@ -100,7 +100,9 @@ public class CoachVerEventosController {
         }
 
         // Si es futuro: guardar ID del evento y navegar a registro
-        UserSession.getInstance().setTempEventoId(seleccionado.getId());
+        UserSession session = UserSession.getInstance();
+        session.setTempEventoId(seleccionado.getId());
+        session.setTempNombreEvento(seleccionado.getNombre());
 
         // Navegar a la vista de registro modificada
         cambiarVista(event, "coach_registroEquipo.fxml");

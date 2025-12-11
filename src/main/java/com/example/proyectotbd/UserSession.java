@@ -4,6 +4,7 @@ public class UserSession {
     private static UserSession instance;
 
     // --- CAMPOS DE USUARIO Y ROL ---
+    private String tempNombreEvento;
     private int userId;
     private String username;
     private String nombreCompleto;
@@ -54,6 +55,7 @@ public class UserSession {
         tempCategoriaNombre = null;
         tempNombreEquipo = null;
         tempInstitucion = null;
+        tempNombreEvento = null;
 
         evaluacionIdTemp = 0;
         idDisenoTemp = 0;
@@ -114,6 +116,8 @@ public class UserSession {
     // =================================================================
     //  GETTERS Y SETTERS DEL JUEZ
     // =================================================================
+    public String getTempNombreEvento() { return tempNombreEvento; }
+    public void setTempNombreEvento(String tempNombreEvento) { this.tempNombreEvento = tempNombreEvento; }
 
     public int getEvaluacionIdTemp() { return evaluacionIdTemp; }
     public void setEvaluacionIdTemp(int evaluacionIdTemp) { this.evaluacionIdTemp = evaluacionIdTemp; }
