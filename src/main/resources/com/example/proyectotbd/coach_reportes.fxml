@@ -58,6 +58,8 @@
                     <TableColumn fx:id="colCategoria" text="CATEGORÍA" prefWidth="150.0" />
                     <TableColumn fx:id="colEvento" text="EVENTO" prefWidth="250.0" />
 
+                    <TableColumn fx:id="colEvaluado" text="EVALUADO" prefWidth="100.0" style="-fx-alignment: CENTER; -fx-font-weight: bold;"/>
+
                     <TableColumn text="PUNTAJES POR ÁREA">
                         <columns>
                             <TableColumn fx:id="colDiseno" text="Diseño" prefWidth="100.0" style="-fx-alignment: CENTER;"/>

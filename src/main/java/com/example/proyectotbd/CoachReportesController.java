@@ -8,6 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -21,6 +22,7 @@ public class CoachReportesController {
     @FXML private TableColumn<ReporteCoachItem, String> colEquipo;
     @FXML private TableColumn<ReporteCoachItem, String> colCategoria;
     @FXML private TableColumn<ReporteCoachItem, String> colEvento;
+    @FXML private TableColumn<ReporteCoachItem, String> colEvaluado;
     @FXML private TableColumn<ReporteCoachItem, String> colDiseno;
     @FXML private TableColumn<ReporteCoachItem, String> colProg;
     @FXML private TableColumn<ReporteCoachItem, String> colConst;
@@ -33,6 +35,25 @@ public class CoachReportesController {
         colEquipo.setCellValueFactory(new PropertyValueFactory<>("equipo"));
         colCategoria.setCellValueFactory(new PropertyValueFactory<>("categoria"));
         colEvento.setCellValueFactory(new PropertyValueFactory<>("evento"));
+        colEvaluado.setCellValueFactory(new PropertyValueFactory<>("evaluado"));
+
+        colEvaluado.setCellFactory(column -> new TableCell<ReporteCoachItem, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(item);
+                    if (item.equalsIgnoreCase("Sí")) {
+                        setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold; -fx-alignment: CENTER;");
+                    } else {
+                        setStyle("-fx-text-fill: #95a5a6; -fx-alignment: CENTER;");
+                    }
+                }
+            }
+        });
         colDiseno.setCellValueFactory(new PropertyValueFactory<>("ptsDiseno"));
         colProg.setCellValueFactory(new PropertyValueFactory<>("ptsProg"));
         colConst.setCellValueFactory(new PropertyValueFactory<>("ptsConst"));

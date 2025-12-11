@@ -8,7 +8,7 @@ import java.sql.*;
 
 public class CoachDAO {
 
-    // Verifica si existen equipos (Devuelve true/false)
+    // 1. Verifica si existen equipos (Devuelve true/false)
     public boolean tieneEquiposRegistrados(int usuarioId) throws SQLException {
         String sql = "{call SP_VerificarEquiposDelCoach(?, ?)}";
         boolean tieneEquipos = false;
@@ -26,7 +26,7 @@ public class CoachDAO {
         return tieneEquipos;
     }
 
-    // Obtiene la lista para la tabla
+    // 2. Obtiene la lista para la tabla "Mis Equipos"
     public ObservableList<EquipoCoachItem> obtenerMisEquipos(int usuarioId) throws SQLException {
         ObservableList<EquipoCoachItem> lista = FXCollections.observableArrayList();
         String sql = "{call SP_ListarMisEquiposCoach(?)}";
@@ -52,7 +52,7 @@ public class CoachDAO {
         return lista;
     }
 
-    // metodo para llamar participantes (necesario para editar) - esta obsoleto me parece
+    // 3. Método para limpiar participantes (útil al editar)
     public void limpiarParticipantes(int equipoId) throws SQLException {
         String sql = "{call SP_EliminarParticipantesPorEquipo(?)}";
         try (Connection conn = ConexionDB.getConnection();
@@ -62,7 +62,7 @@ public class CoachDAO {
         }
     }
 
-    // metodo para eliminar equipo - eliminar
+    // 4. Método para eliminar equipo
     public void eliminarEquipo(int equipoId) throws SQLException {
         String sql = "{call SP_EliminarEquipoCoach(?)}";
         try (Connection conn = ConexionDB.getConnection();
@@ -72,7 +72,7 @@ public class CoachDAO {
         }
     }
 
-    // metodo que trae participantes para cuando vamos a editarlos
+    // 5. Método que trae participantes para editarlos
     public ObservableList<String> obtenerParticipantes(int equipoId) throws SQLException {
         ObservableList<String> lista = FXCollections.observableArrayList();
         String sql = "{call SP_ListarParticipantesPorEquipo(?)}";
@@ -82,7 +82,7 @@ public class CoachDAO {
             stmt.setInt(1, equipoId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    // Formato compatible con tu lista visual: Nombre | Fecha | Sexo
+                    // Formato: Nombre | Fecha | Sexo
                     String p = rs.getString("nombre_participante") + " | " +
                             rs.getDate("fecha_nac") + " | " +
                             rs.getString("sexo");
@@ -93,7 +93,7 @@ public class CoachDAO {
         return lista;
     }
 
-    // metodo que obtiene el reporte de evaluacion
+    // 6. Método que obtiene el reporte de evaluación
     public ObservableList<ReporteCoachItem> obtenerReporteEvaluaciones(int coachId) throws SQLException {
         ObservableList<ReporteCoachItem> lista = FXCollections.observableArrayList();
         String sql = "{call SP_Coach_ObtenerReporteEvaluaciones(?)}";
@@ -109,6 +109,7 @@ public class CoachDAO {
                             rs.getString("nombre_equipo"),
                             rs.getString("nombre_categoria"),
                             rs.getString("nombre_evento"),
+                            rs.getString("evaluado"), // <--- Nueva columna EVALUADO
                             rs.getString("pts_disenio"),
                             rs.getString("pts_programacion"),
                             rs.getString("pts_construccion"),
@@ -118,11 +119,9 @@ public class CoachDAO {
             }
         }
         return lista;
-    }
+    } // <--- ¡AQUÍ PROBABLEMENTE FALTABA TU LLAVE EN EL CÓDIGO ANTERIOR!
 
-    /**
-     * Obtiene la lista de eventos donde el coach NO es juez y que son futuros.
-     */
+    // 7. Obtiene la lista de eventos futuros donde el coach NO es juez
     public ObservableList<EventoItem> obtenerEventosSinConflicto(int coachId) throws SQLException {
         ObservableList<EventoItem> lista = FXCollections.observableArrayList();
         String sql = "{call SP_Coach_ListarEventosSinConflicto(?)}";
@@ -134,13 +133,12 @@ public class CoachDAO {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    // Debe leer 6 columnas (id, nombre, lugar, fecha, horaInicio, horaFin)
                     lista.add(new EventoItem(
                             rs.getInt("evento_id"),
                             rs.getString("nombre_evento"),
                             rs.getString("lugar"),
                             rs.getDate("fecha").toString(),
-                            "N/A", // Jueces no aplica para esta vista
+                            "N/A", // Jueces no aplica aquí
                             rs.getTime("hora_inicio").toString(),
                             rs.getTime("hora_fin").toString()
                     ));
@@ -149,5 +147,4 @@ public class CoachDAO {
         }
         return lista;
     }
-
 }

@@ -4,15 +4,18 @@ public class ReporteCoachItem {
     private String equipo;
     private String categoria;
     private String evento;
+    private String evaluado; // <--- NUEVO CAMPO
     private String ptsDiseno;
     private String ptsProg;
     private String ptsConst;
     private String total;
 
-    public ReporteCoachItem(String equipo, String categoria, String evento, String ptsDiseno, String ptsProg, String ptsConst, String total) {
+
+    public ReporteCoachItem(String equipo, String categoria, String evento, String evaluado, String ptsDiseno, String ptsProg, String ptsConst, String total) {
         this.equipo = equipo;
         this.categoria = categoria;
         this.evento = evento;
+        this.evaluado = evaluado; // <--- ASIGNAR
         this.ptsDiseno = ptsDiseno;
         this.ptsProg = ptsProg;
         this.ptsConst = ptsConst;
@@ -23,6 +26,7 @@ public class ReporteCoachItem {
     public String getEquipo() { return equipo; }
     public String getCategoria() { return categoria; }
     public String getEvento() { return evento; }
+    public String getEvaluado() { return evaluado; } // <--- NUEVO GETTER
     public String getPtsDiseno() { return ptsDiseno; }
     public String getPtsProg() { return ptsProg; }
     public String getPtsConst() { return ptsConst; }

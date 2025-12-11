@@ -43,6 +43,7 @@
                         style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 5;"/>
 
                 <Button text="🗑️ BORRAR EQUIPO" onAction="#handleBorrar"
+                        visible="false" managed="false"
                         style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 5;"/>
             </HBox>
         </VBox>
