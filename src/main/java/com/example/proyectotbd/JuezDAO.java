@@ -212,7 +212,9 @@ public class JuezDAO {
                             String.valueOf(rs.getInt("pts_disenio")),
                             String.valueOf(rs.getInt("pts_programacion")),
                             String.valueOf(rs.getInt("pts_construccion")),
-                            String.valueOf(rs.getInt("total_juez"))
+
+                            // CAMBIO: Usar getDouble y formatear a 2 decimales
+                            String.format("%.2f", rs.getDouble("total_juez"))
                     ));
                 }
             }
