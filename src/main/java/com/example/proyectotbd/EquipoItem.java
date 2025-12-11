@@ -6,7 +6,7 @@ public class EquipoItem {
     private String institucion;
     private String estado;
     private int conteoJueces;
-
+    private int juecesAsignadosCategoria;
     /**
      * Constructor para EquipoItem.
      * @param id ID del equipo.
@@ -15,12 +15,13 @@ public class EquipoItem {
      * @param estado Estado personal del juez actual ("PENDIENTE" o "EVALUADO").
      * @param conteoJueces Estado global del equipo (0: Abierto, 1: Cerrado/Ya evaluado).
      */
-    public EquipoItem(int id, String nombre, String institucion, String estado, int conteoJueces) {
+    public EquipoItem(int id, String nombre, String institucion, String estado, int conteoJueces, int juecesAsignadosCategoria) {
         this.id = id;
         this.nombre = nombre;
         this.institucion = institucion;
         this.estado = estado;
         this.conteoJueces = conteoJueces;
+        this.juecesAsignadosCategoria = juecesAsignadosCategoria;
     }
 
     // Getters necesarios para que el Controlador pueda leer los datos
@@ -45,4 +46,6 @@ public class EquipoItem {
      * Se usa para verificar si el equipo ya fue cerrado por CUALQUIER juez (Regla 1/1).
      */
     public int getConteoJueces() { return conteoJueces; }
+
+    public int getJuecesAsignadosCategoria() { return juecesAsignadosCategoria; }
 }

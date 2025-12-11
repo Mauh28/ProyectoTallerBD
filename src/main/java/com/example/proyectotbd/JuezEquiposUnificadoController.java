@@ -227,23 +227,30 @@ public class JuezEquiposUnificadoController {
         // --- 4. Botón de Acción y Lógica ---
         Button btnAccion = new Button();
 
-        // Caso 1: Tú ya evaluaste (COMPLETADO)
+        // CASO 1: Tú ya evaluaste (COMPLETADO)
         if (yaEvaluadoPorTi) {
             btnAccion.setText("YA EVALUASTE");
             btnAccion.setDisable(true);
             btnAccion.setStyle("-fx-background-color: #bdc3c7; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
         }
-        // Caso 2: Otro juez ya evaluó y el equipo está CERRADO (1/1)
+        // CASO 2: Otro juez ya evaluó y el equipo está CERRADO (1/1)
         else if (evaluadoTotal) {
             btnAccion.setText("CERRADO (1/1)");
             btnAccion.setDisable(true);
             btnAccion.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
         }
-        // Caso 3: Evaluación pendiente y verificación de hora
+        // CASO 3 (NUEVO): Faltan Jueces Asignados (Menos de 3)
+        // Solo aplica si NO has evaluado todavía
+        else if (equipo.getJuecesAsignadosCategoria() < 3) {
+            btnAccion.setText("FALTAN JUECES (" + equipo.getJuecesAsignadosCategoria() + "/3)");
+            btnAccion.setDisable(true);
+            // Color Naranja/Amarillo preventivo
+            btnAccion.setStyle("-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
+        }
+        // CASO 4: Evaluación pendiente y verificación de hora
         else {
             // Verificar si el evento aún no ha comenzado
             if (horaInicioEvento != null && LocalDateTime.now().isBefore(horaInicioEvento)) {
-                // ... (cálculo de tiempo igual que antes) ...
                 long minutosRestantes = java.time.temporal.ChronoUnit.MINUTES.between(LocalDateTime.now(), horaInicioEvento);
                 long horas = minutosRestantes / 60;
                 long minutos = minutosRestantes % 60;
@@ -252,6 +259,7 @@ public class JuezEquiposUnificadoController {
                 btnAccion.setDisable(true);
                 btnAccion.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
             } else {
+                // TODO LISTO
                 btnAccion.setText("EVALUAR");
                 btnAccion.setDisable(false);
                 btnAccion.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold; -fx-background-radius: 5;");

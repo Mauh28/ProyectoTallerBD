@@ -22,8 +22,8 @@ public class JuezDAO {
      * Obtiene la fecha y hora de inicio de un evento.
      */
     public LocalDateTime obtenerFechaHoraInicioEvento(int eventoId) throws SQLException {
-        // Asumimos que este SP devuelve fecha/hora_inicio
-        String sql = "{call SP_ObtenerFechaHoraInicio(?)}";
+        // CORRECCIÓN: Usamos el nuevo nombre del SP proporcionado en tu script
+        String sql = "{call SP_ObtenerHorarioCompleto(?)}";
 
         try (Connection conn = ConexionDB.getConnection();
              CallableStatement stmt = conn.prepareCall(sql)) {
@@ -35,18 +35,19 @@ public class JuezDAO {
                     // Extraer DATE y TIME de SQL
                     Date sqlDate = rs.getDate("fecha");
                     Time sqlTime = rs.getTime("hora_inicio");
+                    // Nota: El SP también devuelve 'hora_fin', pero por ahora solo necesitamos el inicio
+                    // para validar que el evento haya comenzado.
 
-                    // Convertir a LocalDateTime de Java
-                    LocalDate localDate = sqlDate.toLocalDate();
-                    LocalTime localTime = sqlTime.toLocalTime();
-
-                    return LocalDateTime.of(localDate, localTime);
+                    if (sqlDate != null && sqlTime != null) {
+                        LocalDate localDate = sqlDate.toLocalDate();
+                        LocalTime localTime = sqlTime.toLocalTime();
+                        return LocalDateTime.of(localDate, localTime);
+                    }
                 }
             }
         }
-        return null; // Devuelve nulo si no se encuentra el evento
+        return null; // Devuelve nulo si no se encuentra el evento o los datos
     }
-
     /**
      * NUEVO MÉTODO: Obtiene la fecha y hora de finalización de un evento.
      * Requerido para la validación de que el juez no evalúe fuera de tiempo.
@@ -222,7 +223,8 @@ public class JuezDAO {
                             rs.getString("nombre_equipo"),
                             rs.getString("institucion_equipo"),
                             rs.getString("estado_evaluacion"),
-                            rs.getInt("conteo_jueces")
+                            rs.getInt("conteo_jueces"),
+                            rs.getInt("jueces_asignados_categoria")
                     ));
                 }
             }

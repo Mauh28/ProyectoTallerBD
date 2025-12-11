@@ -162,7 +162,7 @@ public class OrganizadorDAO {
                             rs.getString("nombre_equipo"),
                             rs.getString("institucion_equipo"),
                             rs.getString("estado_inscripcion"),
-                            0
+                            0, 0
                     ));
                 }
             }

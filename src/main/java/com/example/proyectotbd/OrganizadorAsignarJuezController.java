@@ -184,7 +184,7 @@ public class OrganizadorAsignarJuezController {
 
         } catch (SQLException e) {
             // Error controlado (sin printStackTrace)
-            mostrarMensaje("Error: " + e.getMessage(), true);
+            mostrarMensaje(e.getMessage(), true);
         }
     }
 

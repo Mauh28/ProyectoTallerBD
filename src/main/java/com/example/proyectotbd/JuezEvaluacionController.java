@@ -237,7 +237,7 @@ public class JuezEvaluacionController {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             mostrarAlertaError(e.getMessage());
         }
     }
