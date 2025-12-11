@@ -28,7 +28,8 @@ public class CoachVerEventosController {
     @FXML private Label lblMensaje;
     @FXML private Label lblCoachNombre;
 
-    private OrganizadorDAO dao = new OrganizadorDAO(); // Usamos OrganizadorDAO para listar todos los eventos
+    // CORRECCIÓN 1: Usar CoachDAO para acceder al filtro específico
+    private CoachDAO coachDao = new CoachDAO();
 
     @FXML
     public void initialize() {
@@ -69,10 +70,13 @@ public class CoachVerEventosController {
     }
 
     private void cargarEventos() {
+        // CORRECCIÓN 2: Obtener el ID del usuario y llamar al método filtrado del DAO
+        int coachId = UserSession.getInstance().getUserId();
         try {
-            tablaEventos.setItems(dao.obtenerTodosLosEventos()); // Reutilizamos el método del admin
+            // El DAO ahora trae SOLO eventos futuros y sin conflicto de Juez
+            tablaEventos.setItems(coachDao.obtenerEventosSinConflicto(coachId));
         } catch (SQLException e) {
-            lblMensaje.setText("Error al cargar eventos de BD: " + e.getMessage());
+            lblMensaje.setText(e.getMessage());
             // e.printStackTrace();
         }
     }
@@ -89,7 +93,7 @@ public class CoachVerEventosController {
         LocalDate fechaEvento = LocalDate.parse(seleccionado.getFecha());
         LocalDate hoy = LocalDate.now();
 
-        // Validación: El evento no puede ser hoy ni en el pasado.
+        // Validación de fecha (Se mantiene por redundancia, aunque el DAO ya filtra el pasado)
         if (!fechaEvento.isAfter(hoy)) {
             lblMensaje.setText("Error: No puedes inscribirte. El evento ya ha comenzado o ha expirado.");
             return;
