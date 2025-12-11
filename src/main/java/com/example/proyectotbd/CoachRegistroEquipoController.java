@@ -40,9 +40,13 @@ public class CoachRegistroEquipoController {
     }
 
     private void mostrarEventoSeleccionado() {
+        // CAMBIO CLAVE: Leer el nombre del evento de la sesión.
+        String nombreEvento = UserSession.getInstance().getTempNombreEvento();
         int eventoId = UserSession.getInstance().getTempEventoId();
-        if (eventoId != 0 && lblEventoSeleccionado != null) {
-            lblEventoSeleccionado.setText("Inscribiendo al Evento ID: " + eventoId);
+
+        if (nombreEvento != null && eventoId != 0 && lblEventoSeleccionado != null) {
+            // Muestra el nombre, y opcionalmente el ID entre paréntesis.
+            lblEventoSeleccionado.setText("Inscribiendo a: " + nombreEvento);
         } else {
             lblEventoSeleccionado.setText("Error: Evento no preseleccionado.");
         }
