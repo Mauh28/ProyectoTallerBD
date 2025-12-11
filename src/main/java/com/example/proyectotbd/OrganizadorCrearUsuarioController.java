@@ -2,6 +2,7 @@ package com.example.proyectotbd;
 
 import com.example.proyectotbd.ConexionDB;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform; // Importante para actualizar la UI desde un hilo
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.regex.Pattern;
 
 public class OrganizadorCrearUsuarioController {
@@ -47,13 +49,16 @@ public class OrganizadorCrearUsuarioController {
     private boolean contrasenaVisible = false;
     private OrganizadorDAO dao = new OrganizadorDAO();
 
+    // --- NUEVO: Temporizadores para validación en tiempo real (Debounce) ---
+    private PauseTransition pauseNombre = new PauseTransition(Duration.millis(500));
+    private PauseTransition pauseUsername = new PauseTransition(Duration.millis(500));
+    // -----------------------------------------------------------------------
+
     // --- PATRONES DE VALIDACIÓN ---
     private static final Pattern PATRON_NOMBRE = Pattern.compile("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]*$");
     private static final Pattern PATRON_USERNAME = Pattern.compile("^[a-zA-Z0-9._-]*$");
     private static final Pattern PATRON_PASSWORD_COMPLEJO = Pattern.compile("^(?=.*[0-9])(?=.*[A-Z])(?=.*[^a-zA-Z0-9\\s]).{8,}$");
     private static final Pattern PATRON_INSTITUCION = Pattern.compile("^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\\s]*$");
-
-    // --- NUEVO: Patrón para detectar caracteres repetidos excesivos (ej: "aaa") ---
     private static final Pattern PATRON_REPETICION = Pattern.compile("(.)\\1{2,}");
 
 
@@ -61,12 +66,71 @@ public class OrganizadorCrearUsuarioController {
     public void initialize() {
         txtPasswordVisible.textProperty().bindBidirectional(txtPassword.textProperty());
 
-        // 1. Cargar Instituciones al ComboBox
         cargarInstituciones();
-
         configurarValidaciones();
         configurarRestriccionTeclasContrasena();
+
+        // NUEVO: Configurar la lógica de validación asíncrona
+        configurarValidacionEnTiempoReal();
     }
+
+    // Método auxiliar para la lógica asíncrona (Thread + Platform.runLater)
+    private void configurarValidacionEnTiempoReal() {
+        // 1. Configuración de la validación de NOMBRE/USERNAME al soltar la tecla
+        pauseNombre.setOnFinished(e -> {
+            String nombre = txtNombre.getText().trim();
+            String username = txtUsername.getText().trim();
+            if (!nombre.isEmpty() && nombre.contains(" ") && esTextoLogico(nombre)) {
+                verificarConflictoEnTiempoReal(nombre, username, txtNombre, "Nombre");
+            }
+        });
+
+        // 2. Configuración de la validación de USERNAME al soltar la tecla
+        pauseUsername.setOnFinished(e -> {
+            String nombre = txtNombre.getText().trim();
+            String username = txtUsername.getText().trim();
+            if (!username.isEmpty()) {
+                verificarConflictoEnTiempoReal(nombre, username, txtUsername, "Username");
+            }
+        });
+    }
+
+
+    // Lógica que corre en un hilo de fondo para consultar la BD
+    private void verificarConflictoEnTiempoReal(String nombre, String username, TextField targetField, String fieldName) {
+        String nombreCapitalizado = capitalizarTexto(nombre);
+
+        // Validar que el nombre tenga al menos dos partes antes de consultar
+        if (fieldName.equals("Nombre") && !nombre.contains(" ")) return;
+
+        // Ejecutar la consulta en un hilo de fondo para no congelar la UI
+        new Thread(() -> {
+            try {
+                // Llama a la misma función que el botón de guardar
+                int conflicto = verificarConflictoGlobal(nombreCapitalizado, username);
+
+                Platform.runLater(() -> {
+                    if (conflicto == 1) {
+                        targetField.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;"); // Rojo: Conflicto
+                        lblMensaje.setText("Error: El " + fieldName + " ya está en uso por un Participante.");
+                        lblMensaje.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                        lblMensaje.setVisible(true);
+                    } else {
+                        // Si pasa el filtro de formato y el filtro de conflicto: OK
+                        targetField.setStyle("-fx-border-color: #27ae60; -fx-border-width: 2px;"); // Verde: Disponible
+                        lblMensaje.setVisible(false);
+                    }
+                });
+            } catch (SQLException e) {
+                Platform.runLater(() -> {
+                    mostrarMensaje("Error de BD al validar en tiempo real: " + e.getMessage(), true);
+                    targetField.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;");
+                });
+            }
+        }).start();
+    }
+    // -----------------------------------------------------------------------
+
 
     private void cargarInstituciones() {
         try {
@@ -76,10 +140,6 @@ public class OrganizadorCrearUsuarioController {
             mostrarMensaje("Error al cargar instituciones: " + e.getMessage(), true);
         }
     }
-
-    // =====================================================================
-    // FUNCIÓN: Bloquear Barra Espaciadora y permitir Backspace
-    // =====================================================================
 
     private void configurarRestriccionTeclasContrasena() {
         // Bloquear SPACE en campo oculto
@@ -105,27 +165,8 @@ public class OrganizadorCrearUsuarioController {
     }
 
     // =====================================================================
-    // LÓGICA DE VALIDACIÓN
+    // LÓGICA DE VALIDACIÓN (Contiene llamadas a PauseTransition)
     // =====================================================================
-
-    @FXML
-    public void handleTogglePassword(ActionEvent event) {
-        contrasenaVisible = !contrasenaVisible;
-
-        if (contrasenaVisible) {
-            txtPasswordVisible.setVisible(true);
-            txtPasswordVisible.setManaged(true);
-            txtPassword.setVisible(false);
-            txtPassword.setManaged(false);
-            btnVerPassword.setText("🙈");
-        } else {
-            txtPasswordVisible.setVisible(false);
-            txtPasswordVisible.setManaged(false);
-            txtPassword.setVisible(true);
-            txtPassword.setManaged(true);
-            btnVerPassword.setText("👁️");
-        }
-    }
 
     private void configurarValidaciones() {
         // Nombre
@@ -136,6 +177,7 @@ public class OrganizadorCrearUsuarioController {
                 txtNombre.setStyle("-fx-border-color: red;");
             } else {
                 txtNombre.setStyle("");
+                pauseNombre.playFromStart(); // <-- NUEVO: Inicia chequeo en tiempo real
             }
         });
 
@@ -161,6 +203,7 @@ public class OrganizadorCrearUsuarioController {
                 txtUsername.setStyle("-fx-border-color: red;");
             } else {
                 txtUsername.setStyle("");
+                pauseUsername.playFromStart(); // <-- NUEVO: Inicia chequeo en tiempo real
             }
         });
 
@@ -175,18 +218,14 @@ public class OrganizadorCrearUsuarioController {
         });
     }
 
-    // --- NUEVO: MÉTODO DE VALIDACIÓN LÓGICA (COHERENCIA) ---
     private boolean esTextoLogico(String texto) {
         String limpio = texto.trim();
 
-        // 1. Longitud mínima de 3 caracteres
         if (limpio.length() < 3) return false;
 
-        // 2. Debe contener al menos una letra (no solo números "123")
         boolean tieneLetra = limpio.matches(".*[a-zA-ZáéíóúÁÉÍÓÚñÑ].*");
         if (!tieneLetra) return false;
 
-        // 3. No tener 3 caracteres idénticos seguidos ("Juaaan")
         if (PATRON_REPETICION.matcher(limpio).find()) return false;
 
         return true;
@@ -237,6 +276,62 @@ public class OrganizadorCrearUsuarioController {
     }
 
     @FXML
+    public void handleTogglePassword(ActionEvent event) {
+        contrasenaVisible = !contrasenaVisible;
+
+        if (contrasenaVisible) {
+            txtPasswordVisible.setVisible(true);
+            txtPasswordVisible.setManaged(true);
+            txtPassword.setVisible(false);
+            txtPassword.setManaged(false);
+            btnVerPassword.setText("🙈");
+        } else {
+            txtPasswordVisible.setVisible(false);
+            txtPasswordVisible.setManaged(false);
+            txtPassword.setVisible(true);
+            txtPassword.setManaged(true);
+            btnVerPassword.setText("👁️");
+        }
+    }
+
+
+    // =====================================================================
+    // VALIDACIÓN CRUZADA EN BD (Función Requerida: FN_VerificarConflictoGlobalUsuario)
+    // =====================================================================
+
+    /**
+     * Llama a la función de la BD para verificar si el nombre del nuevo usuario (o username)
+     * ya existe como nombre de un Participante, o viceversa.
+     * * @param nombre Nombre completo (capitalizado) del nuevo usuario.
+     * @param username Nombre de usuario del nuevo usuario.
+     * @return 1 si hay conflicto, 0 si no.
+     * @throws SQLException Si ocurre un error de BD.
+     */
+    private int verificarConflictoGlobal(String nombre, String username) throws SQLException {
+        // La función FN_VerificarConflictoGlobalUsuario debe existir en la BD
+        String sql = "{? = call FN_VerificarConflictoGlobalUsuario(?, ?)}";
+
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
+            stmt.registerOutParameter(1, Types.INTEGER);
+            stmt.setString(2, nombre);
+            stmt.setString(3, username);
+            stmt.execute();
+
+            return stmt.getInt(1); // 1 = Conflicto, 0 = OK
+        } catch (SQLException e) {
+            throw new SQLException("Fallo la validación global de nombres. Asegúrate de ejecutar FN_VerificarConflictoGlobalUsuario en la BD.", e);
+        }
+    }
+
+
+    // =====================================================================
+    // LÓGICA DE ACCIÓN (Botón Guardar)
+    // =====================================================================
+
+
+    @FXML
     public void handleRegresar(ActionEvent event) {
         cambiarVista(event, "organizador_menu.fxml");
     }
@@ -244,10 +339,7 @@ public class OrganizadorCrearUsuarioController {
     @FXML
     public void handleGuardarUsuario(ActionEvent event) {
         String rawNombre = txtNombre.getText();
-
-        // Obtener texto del ComboBox
         String institucion = cmbInstitucion.getEditor().getText().trim();
-
         String username = txtUsername.getText().trim();
         String password = txtPassword.getText();
         boolean esCoach = checkCoach.isSelected();
@@ -273,14 +365,14 @@ public class OrganizadorCrearUsuarioController {
             return;
         }
 
-        // --- NUEVO: Validación de Coherencia en Nombre ---
+        // 3. Validación de Coherencia
         if (!esTextoLogico(rawNombre)) {
             mostrarMensaje("Error: El nombre parece inválido (letras repetidas o sin sentido).", true);
             txtNombre.setStyle("-fx-border-color: red;");
             return;
         }
 
-        // 3. Validación de Contraseña
+        // 4. Validación de Contraseña
         if (password.length() < 8 || !PATRON_PASSWORD_COMPLEJO.matcher(password).matches()) {
             mostrarMensaje("La contraseña es insegura.", true);
             aplicarEstiloPassword("-fx-border-color: red;");
@@ -288,22 +380,35 @@ public class OrganizadorCrearUsuarioController {
             return;
         }
 
-        // 4. Validación de Caracteres en Institución
-        if (!PATRON_INSTITUCION.matcher(institucion).matches()) {
-            mostrarMensaje("Error: La institución contiene caracteres inválidos.", true);
+        // 5. Validación de Institución
+        if (!PATRON_INSTITUCION.matcher(institucion).matches() || !esTextoLogico(institucion)) {
+            mostrarMensaje("Error: La institución es inválida.", true);
             cmbInstitucion.setStyle("-fx-border-color: red;");
             return;
         }
 
-        // --- NUEVO: Validación de Coherencia en Institución ---
-        if (!esTextoLogico(institucion)) {
-            mostrarMensaje("Error: La institución no es válida (muy corta, solo números o repetitiva).", true);
-            cmbInstitucion.setStyle("-fx-border-color: red;");
-            return;
-        }
-
-        // 5. Normalización
         String institucionFinal = capitalizarTexto(institucion);
+
+
+        // ======================================================================
+        // 6. VALIDACIÓN DE CONFLICTO DE INTERES CRUZADO (FINAL CHECK)
+        // ======================================================================
+        try {
+            int conflicto = verificarConflictoGlobal(nombre, username);
+            if (conflicto == 1) {
+                mostrarMensaje("Error de Conflicto: El nombre o usuario ya existe como Participante en un equipo. No se permite la duplicación de nombres.", true);
+                txtNombre.setStyle("-fx-border-color: red;");
+                txtUsername.setStyle("-fx-border-color: red;");
+                return;
+            }
+        } catch (SQLException e) {
+            mostrarMensaje(e.getMessage(), true);
+            return;
+        }
+
+        // ======================================================================
+        // 7. REGISTRO FINAL
+        // ======================================================================
 
         String sql = "{call SP_registrarUsuario(?, ?, ?, ?, ?, ?)}";
 

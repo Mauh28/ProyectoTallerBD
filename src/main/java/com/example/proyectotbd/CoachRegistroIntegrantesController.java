@@ -61,7 +61,7 @@ public class CoachRegistroIntegrantesController {
         int categoriaId = UserSession.getInstance().getTempCategoriaId();
 
         configurarValidacionFecha(categoriaId);
-        configurarValidacionNombre(); // <--- AQUÍ ESTÁ LA LÓGICA MEJORADA
+        configurarValidacionNombre();
 
         // Cargar datos si es modo edición
         if (UserSession.getInstance().isModoEdicion()) {
@@ -73,7 +73,7 @@ public class CoachRegistroIntegrantesController {
                     participantes.setAll(existentes);
                 }
             } catch (SQLException e) {
-                lblError.setText("Error cargando alumnos: " + e.getMessage());
+                lblError.setText(e.getMessage());
                 lblError.setVisible(true);
             }
             if (btnRegresar != null) btnRegresar.setVisible(false);
@@ -81,35 +81,33 @@ public class CoachRegistroIntegrantesController {
         actualizarContador();
     }
 
-    // --- CONFIGURACIÓN DE VALIDACIÓN EN TIEMPO REAL (MEJORADA) ---
+    // --- CONFIGURACIÓN DE VALIDACIÓN EN TIEMPO REAL (CORREGIDA) ---
     private void configurarValidacionNombre() {
         // A. Qué hacer cuando el usuario deja de escribir por 0.5s
         pause.setOnFinished(event -> {
-            String nombre = txtNombre.getText().trim();
+            String rawNombre = txtNombre.getText().trim();
 
-            // Si está vacío, no hacemos nada (el listener ya limpió estilos)
-            if (nombre.isEmpty()) return;
+            if (rawNombre.isEmpty()) return;
 
-            // 1. VALIDACIÓN: Nombre y Apellido (Debe tener espacio)
-            if (!nombre.contains(" ")) {
+            // 1. VALIDACIÓN: Nombre y Apellido (Formato)
+            if (!rawNombre.contains(" ")) {
                 Platform.runLater(() -> {
-                    txtNombre.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;"); // Rojo
+                    txtNombre.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;");
                     lblError.setText("⚠️ Ingresa Nombre y Apellido (debe haber un espacio).");
                     lblError.setStyle("-fx-text-fill: #e67e22; -fx-font-weight: bold;");
                     lblError.setVisible(true);
                 });
-                return; // Detenemos aquí, no consultamos BD
+                return;
             }
 
             // 2. VALIDACIÓN: Duplicado en el EQUIPO ACTUAL (Lista Local)
             boolean duplicadoLocal = false;
-            for (int i = 0; i < participantes.size(); i++) {
-                // Si estamos editando, ignoramos el índice actual
-                if (i == indiceEdicion) continue;
+            String nombreCapitalizado = capitalizarTexto(rawNombre);
 
-                // El formato en la lista es "Nombre | Fecha | Sexo"
+            for (int i = 0; i < participantes.size(); i++) {
+                if (i == indiceEdicion) continue;
                 String nombreExistente = participantes.get(i).split(" \\| ")[0];
-                if (nombreExistente.equalsIgnoreCase(nombre)) {
+                if (nombreExistente.equalsIgnoreCase(nombreCapitalizado)) {
                     duplicadoLocal = true;
                     break;
                 }
@@ -122,41 +120,59 @@ public class CoachRegistroIntegrantesController {
                     lblError.setStyle("-fx-text-fill: #e67e22; -fx-font-weight: bold;");
                     lblError.setVisible(true);
                 });
-                return; // Detenemos aquí
+                return;
             }
 
-            // 3. VALIDACIÓN: Duplicado en OTROS EQUIPOS (Consulta BD)
-            // Solo si pasa las anteriores y cumple el regex
-            if (nombre.length() >= 3 && PATRON_NOMBRE.matcher(nombre).matches()) {
-                verificarDuplicadoEnBD(nombre);
+            // 3. INICIAR CADENA DE VALIDACIÓN ASÍNCRONA (Conflictos de BD)
+            if (rawNombre.length() >= 3 && PATRON_NOMBRE.matcher(rawNombre).matches()) {
+
+                // Ejecutar la validación cruzada en un hilo separado
+                new Thread(() -> {
+                    try {
+                        // Primero, verificar conflicto con USUARIO/COACH/JUEZ
+                        int conflictoUsuario = verificarConflictoGlobalParticipante(nombreCapitalizado);
+
+                        Platform.runLater(() -> {
+                            if (conflictoUsuario == 1) {
+                                txtNombre.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;"); // Rojo
+                                lblError.setText("Error: El nombre '" + nombreCapitalizado + "' ya existe como Usuario Coach o Juez.");
+                                lblError.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                                lblError.setVisible(true);
+                            } else {
+                                // Si no hay conflicto con Usuarios, procedemos a verificar duplicado entre otros equipos.
+                                verificarDuplicadoEnBD(rawNombre);
+                            }
+                        });
+                    } catch (SQLException e) {
+                        Platform.runLater(() -> {
+                            mostrarError("Error BD al validar conflicto de usuario/participante.");
+                            txtNombre.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;");
+                        });
+                    }
+                }).start();
             }
         });
 
         // B. Listener de escritura (Validaciones de Formato Básico)
         txtNombre.textProperty().addListener((observable, oldValue, newValue) -> {
-            // 1. Longitud
             if (newValue.length() > 50) {
                 txtNombre.setText(oldValue);
                 return;
             }
 
-            // 2. Regex (Solo letras)
             if (!PATRON_NOMBRE.matcher(newValue).matches()) {
                 txtNombre.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;");
                 return;
             } else {
-                // Si el formato es válido, quitamos el error visual momentáneamente
-                // para dejar escribir. El 'pause' hará la validación fuerte.
                 txtNombre.setStyle("");
                 lblError.setVisible(false);
             }
 
-            // 3. Reiniciar temporizador
             pause.playFromStart();
         });
     }
 
-    // --- Consulta a Base de Datos (Solo Lectura) ---
+    // --- Consulta a Base de Datos (Duplicado entre equipos) ---
     private void verificarDuplicadoEnBD(String nombreParticipante) {
         int eventoId = UserSession.getInstance().getTempEventoId();
         int equipoId = UserSession.getInstance().getEquipoIdTemp();
@@ -182,18 +198,39 @@ public class CoachRegistroIntegrantesController {
                     lblError.setStyle("-fx-text-fill: #e67e22; -fx-font-weight: bold;");
                     lblError.setVisible(true);
                 } else {
-                    // ÉXITO: Borde verde suave
+                    // Si pasa las 3 validaciones: Borde verde suave
                     txtNombre.setStyle("-fx-border-color: #27ae60; -fx-border-width: 2px;");
                     lblError.setVisible(false);
                 }
             });
 
         } catch (SQLException e) {
-            // Silencio en consola, error visual si es crítico
+            // Manejo de errores de conexión o SP inexistente
         }
     }
 
-    // --- LÓGICA DE FECHAS ---
+    // --- MÉTODO PARA VALIDACIÓN CRUZADA CON USUARIO ---
+    /**
+     * Verifica si el nombre del participante ya existe como Usuario (Coach/Juez) o Username.
+     * @param nombre Nombre a verificar (capitalizado y limpio).
+     * @return 1 si hay conflicto, 0 si no.
+     */
+    private int verificarConflictoGlobalParticipante(String nombre) throws SQLException {
+        // La función FN_VerificarConflictoGlobalParticipante debe existir en la BD
+        String sql = "{? = call FN_VerificarConflictoGlobalParticipante(?)}";
+
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
+            stmt.registerOutParameter(1, Types.INTEGER);
+            stmt.setString(2, nombre);
+            stmt.execute();
+
+            return stmt.getInt(1); // 1 = Conflicto, 0 = OK
+        }
+    }
+
+    // --- LÓGICA DE FECHAS (Sin cambios) ---
     private static class RangoEdad {
         final LocalDate limiteAntiguo;
         final LocalDate limiteReciente;
@@ -246,10 +283,10 @@ public class CoachRegistroIntegrantesController {
         });
     }
 
-    // --- BOTÓN AGREGAR ---
+    // --- BOTÓN AGREGAR (Incluye validación cruzada síncrona final) ---
     @FXML
     public void handleAgregarOActualizar(ActionEvent event) {
-        String rawNombre = txtNombre.getText().trim(); // Trim importante
+        String rawNombre = txtNombre.getText().trim();
         LocalDate nacimiento = dpNacimiento.getValue();
         String sexo = cbSexo.getValue();
         int categoriaId = UserSession.getInstance().getTempCategoriaId();
@@ -260,29 +297,43 @@ public class CoachRegistroIntegrantesController {
             return;
         }
 
-        // 2. Validación Nombre y Apellido (Bloqueo final)
-        if (!rawNombre.contains(" ")) {
+        // Si hay advertencia visual (rojo por duplicado entre equipos o usuarios), no dejar pasar
+        if (txtNombre.getStyle().contains("#e74c3c")) {
+            mostrarError("Corrige el nombre antes de agregar.");
+            return;
+        }
+
+        String nombre = capitalizarTexto(rawNombre);
+
+        // 2. Validación de Nombre y Apellido (Bloqueo final)
+        if (!nombre.contains(" ")) {
             mostrarError("Ingresa Nombre y Apellido.");
             txtNombre.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;");
             return;
         }
 
-        // 3. Si hay advertencia visual (rojo), no dejar pasar
-        if (txtNombre.getStyle().contains("#e74c3c")) {
-            mostrarError("Corrige el nombre (Duplicado o Formato incorrecto).");
-            return;
-        }
-
-        // 4. Validación Edad
+        // 3. Validación Edad
         final RangoEdad rango = obtenerLimitesEdad(categoriaId);
         if (nacimiento.isBefore(rango.limiteAntiguo) || nacimiento.isAfter(rango.limiteReciente)) {
             mostrarError("La fecha de nacimiento no cumple con la edad requerida.");
             return;
         }
 
-        String nombre = capitalizarTexto(rawNombre);
+        // 4. VALIDACIÓN DE CONFLICTO CRUZADO SÍNCRONA (Capa final de seguridad)
+        try {
+            int conflicto = verificarConflictoGlobalParticipante(nombre);
+            if (conflicto == 1) {
+                mostrarError("Error de Conflicto: El nombre '" + nombre + "' ya está registrado como Usuario Coach o Juez en el sistema.");
+                txtNombre.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;");
+                return;
+            }
+        } catch (SQLException e) {
+            mostrarError("Falló la verificación de conflicto de nombres.");
+            return;
+        }
 
-        // 5. Validación Duplicados Locales (Redundancia de seguridad)
+
+        // 5. Validación Duplicados Locales (Final)
         for (int i = 0; i < participantes.size(); i++) {
             if (i != indiceEdicion) {
                 String nombreExistente = participantes.get(i).split(" \\| ")[0];
@@ -381,12 +432,12 @@ public class CoachRegistroIntegrantesController {
                 if (errorMsg.contains("ya está registrado en otro equipo") || errorMsg.contains("error de duplicado")) {
                     lblError.setText("Error: Uno de los alumnos ya está inscrito en otro equipo.");
                 } else {
-                    lblError.setText("Error BD: " + ex.getMessage());
+                    lblError.setText(ex.getMessage());
                 }
                 lblError.setVisible(true);
             }
         } catch (SQLException e) {
-            lblError.setText("Error conexión: " + e.getMessage());
+            lblError.setText(e.getMessage());
             lblError.setVisible(true);
         }
     }
