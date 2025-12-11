@@ -119,4 +119,35 @@ public class CoachDAO {
         }
         return lista;
     }
+
+    /**
+     * Obtiene la lista de eventos donde el coach NO es juez y que son futuros.
+     */
+    public ObservableList<EventoItem> obtenerEventosSinConflicto(int coachId) throws SQLException {
+        ObservableList<EventoItem> lista = FXCollections.observableArrayList();
+        String sql = "{call SP_Coach_ListarEventosSinConflicto(?)}";
+
+        try (Connection conn = ConexionDB.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
+            stmt.setInt(1, coachId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    // Debe leer 6 columnas (id, nombre, lugar, fecha, horaInicio, horaFin)
+                    lista.add(new EventoItem(
+                            rs.getInt("evento_id"),
+                            rs.getString("nombre_evento"),
+                            rs.getString("lugar"),
+                            rs.getDate("fecha").toString(),
+                            "N/A", // Jueces no aplica para esta vista
+                            rs.getTime("hora_inicio").toString(),
+                            rs.getTime("hora_fin").toString()
+                    ));
+                }
+            }
+        }
+        return lista;
+    }
+
 }
