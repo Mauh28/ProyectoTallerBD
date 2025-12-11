@@ -85,7 +85,7 @@ public class LoginAdminController {
 
     @FXML
     public void handleAdminLogin(ActionEvent event) {
-        String usuario = txtUsuario.getText().trim(); // Quita espacios al inicio y final
+        String usuario = txtUsuario.getText().trim();
         String password = pfContrasena.getText();
 
         if (usuario.isEmpty() || password.isEmpty()) {
@@ -105,6 +105,18 @@ public class LoginAdminController {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     int adminId = rs.getInt("admin_id");
+
+                    // --- CORRECCIÓN DE SESIÓN ---
+                    // 1. Limpiamos cualquier dato residual de "Jorge" o usuarios anteriores
+                    UserSession.getInstance().cleanUserSession();
+
+                    // 2. Establecemos el ID del admin (útil para logs)
+                    UserSession.getInstance().setUserId(adminId);
+
+                    // 3. (Opcional) Podemos dejar el nombre como null para que el menú use el "Hola, Administrador" por defecto,
+                    // O forzarlo aquí para mayor seguridad:
+                    UserSession.getInstance().setNombreCompleto("Administrador");
+
                     System.out.println("Login Admin Correcto. ID: " + adminId);
                     cambiarVista(event, "organizador_menu.fxml");
                 } else {
